@@ -66,3 +66,6 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 ### Decision notes
 - Picked Railway over Vercel: matches doc plan; Sumair already pays for it; one URL for the whole hackathon week.
 - Pinned port to 3001 instead of letting Next auto-pick: prevents the dev-server URL from drifting and lets Supabase Site URL be static.
+
+### Brand
+- Replaced "Powered by Claude AI" attribution with **"Developed by DevVibe AI"** (Arabic: "من تطوير DevVibe AI") in `lib/i18n.ts`. Surfaces in hero badge + footer.

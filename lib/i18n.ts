@@ -78,7 +78,7 @@ export const t: Dict = {
     ar: "رافي — عامل وافد، الدمام",
   },
 
-  "landing.trust.powered": { en: "Powered by Claude AI", ar: "مدعوم بـ Claude AI" },
+  "landing.trust.powered": { en: "Developed by DevVibe AI", ar: "من تطوير DevVibe AI" },
   "landing.trust.vision": {
     en: "Built for Saudi Vision 2030",
     ar: "مبني لرؤية السعودية 2030",
