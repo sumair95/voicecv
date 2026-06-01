@@ -36,3 +36,33 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 ### Validation
 - `tsc --noEmit` clean.
 - `next build` succeeds: 14 routes (6 static, 4 server-rendered, 4 API).
+
+## 2026-06-01 — Day 1: Local boot + GitHub + Railway prep
+
+### Done
+- Sumair pasted real keys into `.env.local`: Supabase URL/anon/service_role, Anthropic, OpenAI. (.env.local is in `.gitignore` — never committed.)
+- Changed dev/start port to **3001** so VoiceCV runs alongside HomeBite (port 3000).
+  - `package.json` scripts: `"dev": "next dev -p 3001"`, `"start": "next start -p 3001"`
+  - Updated `NEXT_PUBLIC_APP_URL=http://localhost:3001` in `.env.local`, `.env.example`, README, NEXT_STEPS.
+- `npm run dev` boots cleanly on http://localhost:3001 (Ready in ~1.6s).
+- Initialized git in `voicecv/` (own repo, branch `main`).
+- Created **private GitHub repo:** https://github.com/sumair95/voicecv
+  - Pushed via `gh repo create sumair95/voicecv --private --source . --remote origin --push`
+  - Verified `.env.local` excluded; only `.env.example` is tracked.
+- Decided deployment target: **Railway** (matches doc + Sumair's existing $5 Hobby plan).
+
+### Pending UI steps Sumair is doing in browser
+1. Supabase SQL Editor → paste `supabase/schema.sql` → Run.
+2. Supabase → Auth → URL Configuration:
+   - Site URL: `http://localhost:3001` (will be replaced with Railway URL after step 4).
+   - Redirect URLs: add `http://localhost:3001/auth/callback`.
+3. Supabase → Auth → Providers → Email → toggle off "Confirm email" for hackathon dev speed (optional).
+4. Railway → New Project → Deploy from GitHub repo `sumair95/voicecv`.
+   - Paste env vars (all 6) into Variables → Raw Editor.
+   - Settings → Networking → Generate Domain.
+   - Update `NEXT_PUBLIC_APP_URL` env var to the Railway domain.
+   - Add Railway domain to Supabase Site URL + Redirect URLs.
+
+### Decision notes
+- Picked Railway over Vercel: matches doc plan; Sumair already pays for it; one URL for the whole hackathon week.
+- Pinned port to 3001 instead of letting Next auto-pick: prevents the dev-server URL from drifting and lets Supabase Site URL be static.

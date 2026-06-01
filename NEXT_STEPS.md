@@ -1,9 +1,13 @@
 # Next Steps
 
-## ✅ Done (Day 0 — 2026-05-30)
+> **For future sessions:** read this file + `WORKLOG.md` first to pick up exactly where we left off. `.env.local` holds real keys and is gitignored — values still live on Sumair's machine.
+
+## ✅ Done so far
+
+### Day 0 — 2026-05-30 (code scaffold)
 - Next.js 14 scaffold, deps, shadcn/ui, brand palette (navy + teal).
 - Bilingual landing page with EN/AR + RTL flip, Navbar, LanguageProvider.
-- Auth (email + Google OAuth) + onboarding + middleware.
+- Auth (email + Google OAuth) + onboarding + protected-route middleware.
 - Dashboard with CV grid + empty state.
 - VoiceRecorder (MediaRecorder + Web Audio waveform).
 - /api/transcribe (Whisper), /api/generate-cv (Claude), /api/export-pdf (@react-pdf).
@@ -11,33 +15,63 @@
 - README, schema, .env.example, .gitignore.
 - `next build` clean (14 routes).
 
-## 🔑 Blocking on Sumair (browser steps — required to run the app end-to-end)
-1. **Create Supabase project** at https://supabase.com/dashboard → New Project.
-   - Copy `Project URL` (Settings → API → Project URL)
-   - Copy `anon` public key
-   - Copy `service_role` secret key (⚠ server-only)
-2. **Run schema** — open Supabase SQL Editor → paste `supabase/schema.sql` → Run.
-3. **OpenAI API key** — https://platform.openai.com → API keys → create new.
-4. **Anthropic API key** — reuse from hisabbot/homebite, or https://console.anthropic.com.
-5. **Paste all five into `.env.local`** (file is already in the repo root).
-6. (For Google OAuth) In Supabase → Auth → Providers → enable Google, add a Google OAuth client and paste creds.
+### Day 1 — 2026-06-01 (env + GitHub + port)
+- Real API keys pasted into `.env.local` by Sumair (Supabase + Anthropic + OpenAI).
+- Port pinned to **3001** for local dev (HomeBite owns 3000).
+- `npm run dev` confirmed working at http://localhost:3001.
+- Code pushed to private repo: **https://github.com/sumair95/voicecv** (branch `main`).
 
-## 🚀 First run
-```bash
-cd voicecv
-npm run dev
-```
-Open http://localhost:3001 (VoiceCV is pinned to 3001 so it doesn't collide with HomeBite on 3000)
+## 🟡 In progress (Sumair, browser)
 
-## 🧪 Smoke test checklist
+### Step 1 — Supabase schema (one-time)
+- Open https://supabase.com/dashboard → project `ilksvltqcmcsjeappepq`.
+- SQL Editor → paste `supabase/schema.sql` → Run.
+- Confirms 3 tables exist (profiles, cvs, questions) + RLS policies + `recordings` storage bucket + auto-profile trigger.
+
+### Step 2 — Supabase Auth URL config (so login redirects work)
+- Authentication → URL Configuration:
+  - **Site URL:** `http://localhost:3001`
+  - **Redirect URLs (add):**
+    - `http://localhost:3001/auth/callback`
+    - (After Railway): `https://<your-railway-domain>/auth/callback`
+- (Optional, dev convenience) Authentication → Providers → Email → toggle off "Confirm email".
+
+### Step 3 — Railway deploy
+Detailed steps recorded in the chat; condensed here:
+1. https://railway.app/dashboard → New Project → Deploy from GitHub repo → **sumair95/voicecv**.
+2. First build will fail (no env vars yet) — that's expected.
+3. Service → Variables → Raw Editor → paste all 6 from `.env.local`:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `ANTHROPIC_API_KEY`
+   - `OPENAI_API_KEY`
+   - `NEXT_PUBLIC_APP_URL=<set after step 4>`
+4. Settings → Networking → **Generate Domain** → copy the URL.
+5. Update `NEXT_PUBLIC_APP_URL` to the Railway URL (with `https://`).
+6. Add the Railway URL to Supabase Site URL + Redirect URLs (step 2 above).
+7. If Railway start fails on port: change `package.json` `"start": "next start"` (drop `-p 3001`) and push.
+
+## 🧪 Smoke test checklist (after Railway is live)
 - Landing loads, EN↔AR toggle flips layout RTL.
-- Sign up with email → lands on /onboarding → pick language → /dashboard.
-- Click "Create New CV" → /record → confirm language → record q1..q5 → processing → confetti → /cv/[id].
+- Sign up with email → lands on `/onboarding` → pick language → `/dashboard`.
+- Click "Create New CV" → `/record` → confirm language → record q1..q5 → processing → confetti → `/cv/[id]`.
 - Edit a field on CV view, switch off edit mode, refresh — change persists.
-- Click "Download PDF" → file downloads, opens in PDF viewer.
-- Mobile (responsive view): record button is reachable, waveform animates.
+- Click "Download PDF" → file downloads + opens correctly.
+- Mobile (real phone, not just devtools): record button reachable, mic permission prompts, waveform animates.
 
-## 📦 Coming next (after smoke test passes)
-- Polish: micro-animations on hover, mobile sweep, longer recording compression.
-- Demo prep (Day 7): 3-min walkthrough video, impact statement for judges, final README with live URL.
-- Deploy: push to GitHub → Railway → add env vars → set `NEXT_PUBLIC_APP_URL` + Supabase allowed redirect URLs.
+## 📦 Backlog (post smoke-test)
+- **Polish:** micro-animations on hover, mobile sweep, audio compression for slow networks.
+- **Performance:** lazy-load the PDF renderer (heavy bundle).
+- **Robustness:** offline recording fallback (localStorage queue → sync on reconnect), retry UI on Whisper/Claude failures, server-side validation of CVData shape from Claude.
+- **Audit log:** save Whisper transcripts + Claude prompt/response to a `cv_events` table for debugging.
+- **Demo prep (week of July 13):** 3-min walkthrough video, impact statement for judges, final README with live Railway URL.
+
+## 🔁 If you lose this session — how to resume
+1. `cd "C:\Users\admin\AI Agent\voicecv"`
+2. Read **WORKLOG.md** (chronology) and **NEXT_STEPS.md** (this file).
+3. Confirm `.env.local` still has all 6 keys.
+4. `npm run dev` → http://localhost:3001 should serve the landing page.
+5. `git status` should be clean; `git log --oneline` shows the commit history.
+6. GitHub: https://github.com/sumair95/voicecv
+7. Next concrete action is whichever step above is not yet ticked.

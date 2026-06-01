@@ -17,3 +17,6 @@ All notable changes to VoiceCV will be documented in this file.
 - 2026-05-30: Multi-step record flow with animated processing screen + confetti.
 - 2026-05-30: CVPreview (2-column print-ready, inline edit, RTL-aware) + CV view/edit page with debounced auto-save.
 - 2026-05-30: README, .env.example, tightened .gitignore.
+- 2026-06-01: Dev/start port pinned to 3001 (was 3000) so VoiceCV runs alongside HomeBite.
+- 2026-06-01: `NEXT_PUBLIC_APP_URL` updated to `http://localhost:3001` across env files + docs.
+- 2026-06-01: Initialized own git repo in `voicecv/`, pushed to private GitHub repo `sumair95/voicecv` on branch `main`.
