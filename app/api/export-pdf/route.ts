@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
 import { CVDocument } from "@/lib/pdf-generator";
-import type { CVData, CVRecord, Language, Profile } from "@/types/cv";
+import type { CVRecord, Language, Profile } from "@/types/cv";
+import { migrateCvData } from "@/types/cv";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
     const language: Language = profile?.language ?? "en";
 
     const buffer = await renderToBuffer(
-      CVDocument({ cv: cv.cv_data as CVData, language }),
+      CVDocument({ cv: migrateCvData(cv.cv_data), language }),
     );
 
     await supabase

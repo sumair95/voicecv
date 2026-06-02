@@ -23,6 +23,7 @@ import type {
   CVLanguageItem,
   Language,
 } from "@/types/cv";
+import { migrateCvData } from "@/types/cv";
 
 interface Props {
   cvData: CVData;
@@ -164,10 +165,10 @@ const EMPTY_ACHIEVEMENT: CVAchievement = {
 
 export function CVPreview({ cvData, language, editable, onChange }: Props) {
   const { t } = useLanguage();
-  const [data, setData] = useState<CVData>(cvData);
+  const [data, setData] = useState<CVData>(() => migrateCvData(cvData));
 
   useEffect(() => {
-    setData(cvData);
+    setData(migrateCvData(cvData));
   }, [cvData]);
 
   function patch(next: Partial<CVData>) {

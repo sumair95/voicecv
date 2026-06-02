@@ -110,6 +110,15 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - `tsc --noEmit` clean.
 - `next build` succeeds: 14 routes, build size grew ~30KB (extra fonts).
 
+### Bugfix — old CVs crashed the editor with "Application error"
+- Symptom: opening a CV created before Day 2 threw a client-side runtime error.
+- Cause: the v1 schema had no `certificates`, `hobbies`, or `achievement`, and `languages` was `string[]`. New CVPreview reads `data.certificates.length` etc., which crashes on `undefined`.
+- Fix: added `migrateCvData(raw)` helper in `types/cv.ts` that backfills every missing field and converts `languages` from `string[]` → `{name, proficiency}[]`. Used at three load points:
+  - `app/(dashboard)/cv/[id]/page.tsx` after the supabase fetch
+  - `components/CVPreview.tsx` on mount + when `cvData` prop changes
+  - `app/api/export-pdf/route.ts` before handing to `@react-pdf`
+- Side effect: the next save (debounced auto-save when you edit a field) writes the migrated shape back to Supabase, so old CVs heal themselves over time.
+
 ### Full editor — every CV field is now editable
 - Previously: text fields inside existing items were editable, but arrays couldn't grow/shrink and skills/languages/hobbies/achievement were display-only.
 - Now (in `components/CVPreview.tsx`):

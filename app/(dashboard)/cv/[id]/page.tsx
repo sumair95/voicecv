@@ -9,7 +9,7 @@ import { CVPreview } from "@/components/CVPreview";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import type { CVData, CVRecord } from "@/types/cv";
-import { EMPTY_CV } from "@/types/cv";
+import { EMPTY_CV, migrateCvData } from "@/types/cv";
 
 export default function CVDetailPage() {
   const { t, lang } = useLanguage();
@@ -34,7 +34,11 @@ export default function CVDetailPage() {
       toast.error(error.message);
       return;
     }
-    setCv(data as CVRecord);
+    const record = data as CVRecord;
+    if (record.cv_data) {
+      record.cv_data = migrateCvData(record.cv_data);
+    }
+    setCv(record);
     setLoading(false);
   }, [id]);
 
