@@ -76,7 +76,18 @@ function Editable({
       suppressContentEditableWarning
       role="textbox"
       data-placeholder={placeholder}
-      className={`rounded outline-none transition focus:bg-teal/10 focus:ring-2 focus:ring-teal/30 ${className ?? ""}`}
+      spellCheck={false}
+      className={[
+        // base
+        "inline-block min-w-[2ch] cursor-text rounded px-1 -mx-0.5 outline-none transition",
+        // hint that this is editable: subtle dotted underline that uses the text color
+        "underline decoration-dotted decoration-current/30 underline-offset-[3px]",
+        // hover
+        "hover:bg-teal/15 hover:decoration-teal/70",
+        // focused: clear box + ring + bolder text + solid teal underline
+        "focus:bg-teal/20 focus:ring-2 focus:ring-teal focus:decoration-teal focus:decoration-solid focus:font-semibold",
+        className ?? "",
+      ].join(" ")}
       onBlur={(e) =>
         onChange?.(
           multiline

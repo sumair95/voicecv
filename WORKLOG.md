@@ -110,6 +110,16 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - `tsc --noEmit` clean.
 - `next build` succeeds: 14 routes, build size grew ~30KB (extra fonts).
 
+### Edit-mode visual affordance
+- Problem: contact info + objective were already editable, but it looked like static text — no visual cue that you could click into them.
+- Fix in `components/CVPreview.tsx` (`Editable` component) + `app/globals.css`:
+  - In edit mode, every editable span gets a **dotted underline** in its own text color (visible on both navy sidebar and white main).
+  - **Hover**: teal background tint + brighter underline.
+  - **Focus**: stronger teal ring + bolder font weight + solid teal underline → the field being edited stands out.
+  - **Teal text cursor** (`caret-color: #14B8A6`) so the blinking caret is obvious even on dark backgrounds.
+  - **Empty placeholder** rendered via CSS `[contenteditable][data-placeholder]:empty::before` — so an empty Email field shows `email@example.com` faintly, an empty Objective shows `Objective…`, etc.
+  - Print styles strip the underline / caret / bg so the printed CV stays clean.
+
 ### Bugfix — old CVs crashed the editor with "Application error"
 - Symptom: opening a CV created before Day 2 threw a client-side runtime error.
 - Cause: the v1 schema had no `certificates`, `hobbies`, or `achievement`, and `languages` was `string[]`. New CVPreview reads `data.certificates.length` etc., which crashes on `undefined`.
