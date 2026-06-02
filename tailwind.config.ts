@@ -78,7 +78,6 @@ const config: Config = {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
         arabic: ["var(--font-noto-arabic)", "var(--font-inter)", "sans-serif"],
         urdu: ["var(--font-noto-urdu)", "var(--font-noto-arabic)", "sans-serif"],
-        devanagari: ["var(--font-noto-devanagari)", "var(--font-inter)", "sans-serif"],
       },
       keyframes: {
         "pulse-ring": {

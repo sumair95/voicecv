@@ -1,4 +1,4 @@
-export type Language = "en" | "ar" | "ur" | "hi";
+export type Language = "en" | "ar" | "ur";
 
 export type CVStatus = "processing" | "ready" | "exported" | "failed";
 

@@ -34,19 +34,10 @@ Font.register({
   ],
 });
 
-Font.register({
-  family: "NotoDevanagari",
-  fonts: [
-    { src: "https://fonts.gstatic.com/s/notosansdevanagari/v26/TuGoUUFzXI5FBtUq5a8bjKYTZjtRU6Sgv3NaV_SNmI0b8QQCQmHn6B2OHjbL_08AlXQly-AzoFoW4Ow.ttf", fontWeight: 400 },
-    { src: "https://fonts.gstatic.com/s/notosansdevanagari/v26/TuGoUUFzXI5FBtUq5a8bjKYTZjtRU6Sgv3NaV_SNmI0b8QQCQmHn6B2OHjbL_08AlXQly-AzoFoW4Ow.ttf", fontWeight: 700 },
-  ],
-});
-
 const FONT_BY_LANG: Record<Language, string> = {
   en: "Inter",
   ar: "NotoArabic",
   ur: "NotoUrdu",
-  hi: "NotoDevanagari",
 };
 
 const SECTION_LABELS: Record<Language, Record<string, string>> = {
@@ -85,18 +76,6 @@ const SECTION_LABELS: Record<Language, Record<string, string>> = {
     education: "تعلیم",
     certificates: "سرٹیفکیٹ اور تربیت",
     achievement: "اہم کامیابی",
-  },
-  hi: {
-    contact: "संपर्क",
-    nationality: "राष्ट्रीयता",
-    skills: "कौशल",
-    languages: "भाषाएं",
-    hobbies: "शौक़",
-    objective: "उद्देश्य",
-    experience: "कार्य अनुभव",
-    education: "शिक्षा",
-    certificates: "सर्टिफिकेट और प्रशिक्षण",
-    achievement: "मुख्य उपलब्धि",
   },
 };
 

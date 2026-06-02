@@ -21,12 +21,12 @@
 - `npm run dev` confirmed working at http://localhost:3001.
 - Code pushed to private repo: **https://github.com/sumair95/voicecv** (branch `main`).
 
-### Day 2 — 2026-06-02 (question set v2 + 4 languages)
-- Languages expanded EN+AR → **EN+AR+UR+HI**. Urdu joins RTL.
+### Day 2 — 2026-06-02 (question set v2 + 3 languages)
 - Recording flow 5 → **9 questions**. New section keys: recent_job, previous_roles, spoken_languages, certificates, hobbies, achievement.
+- Languages settled at **EN + AR + UR** (Hindi was added then removed same day per Sumair's clarification).
 - CV data model + preview + PDF updated to render Nationality, Certificates, Hobbies, STAR achievement.
-- LanguageToggle is now a dropdown; onboarding + record picker show 4 language cards.
-- DB migration written: `supabase/migrations/002_questions_v2.sql`.
+- LanguageToggle is now a dropdown; onboarding + record picker show 3 language cards.
+- DB migrations written: `002_questions_v2.sql` (9q × 4 lang) then `003_remove_hindi.sql` (drop `hi` → 9q × 3 lang).
 
 ## 🟡 In progress (Sumair, browser)
 
@@ -37,8 +37,12 @@
 
 ### Step 1b — Apply question-set v2 migration (REQUIRED if schema.sql was already run before 2026-06-02)
 - SQL Editor → paste `supabase/migrations/002_questions_v2.sql` → Run.
-- Verify: `select count(*) from questions;` → should return **36**.
-- Old 5-question set is replaced with new 9-question × 4-language set (36 rows total).
+- This seeds 36 rows (9 questions × 4 languages including Hindi).
+
+### Step 1c — Apply Hindi-removal migration (REQUIRED after running 002)
+- SQL Editor → paste `supabase/migrations/003_remove_hindi.sql` → Run.
+- Verify: the verification query at the bottom returns `ar=9, en=9, ur=9` (27 rows total).
+- Hindi rows are dropped; any user profile that was on `hi` is reset to `en`.
 
 ### Step 2 — Supabase Auth URL config (so login redirects work)
 - Authentication → URL Configuration:

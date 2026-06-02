@@ -109,3 +109,17 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 ### Validation
 - `tsc --noEmit` clean.
 - `next build` succeeds: 14 routes, build size grew ~30KB (extra fonts).
+
+### Reversal — Hindi removed later same day
+- Sumair clarified the original "3 languages" intent: keep **EN + AR + UR** only, drop Hindi.
+- Reverted every `hi` touchpoint:
+  - `types/cv.ts` Language now `"en" | "ar" | "ur"`.
+  - `lib/i18n.ts` dropped all `hi` translations + LANGUAGES entry; `landing.subhead` mentions only 3 langs.
+  - `app/layout.tsx` removed `Noto_Sans_Devanagari` import + variable.
+  - `app/globals.css` dropped the `html[lang="hi"]` selector.
+  - `tailwind.config.ts` dropped the `font-devanagari` family.
+  - `lib/claude.ts` LANGUAGE_NAME map no longer includes `hi`.
+  - `lib/pdf-generator.tsx` removed `NotoDevanagari` Font.register, `FONT_BY_LANG.hi`, `SECTION_LABELS.hi`.
+- Wrote **`supabase/migrations/003_remove_hindi.sql`** — deletes `hi` rows from `questions` and resets any `hi` profile rows to `en`. Idempotent.
+- `supabase/schema.sql` (fresh-project seed) trimmed back to 27 question rows (3 langs × 9 questions).
+- `next build` still clean.

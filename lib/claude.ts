@@ -7,7 +7,6 @@ const LANGUAGE_NAME: Record<Language, string> = {
   en: "English",
   ar: "Arabic",
   ur: "Urdu",
-  hi: "Hindi",
 };
 
 function client() {
