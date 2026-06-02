@@ -13,6 +13,7 @@ import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import type { Language, QAPair, QuestionRow } from "@/types/cv";
+import { LANGUAGES } from "@/lib/i18n";
 
 type Stage = "language" | "recording" | "processing" | "done" | "error";
 
@@ -134,23 +135,22 @@ export default function RecordPage() {
             <Card className="border-navy-100/60">
               <CardContent className="p-8">
                 <h1 className="text-2xl font-bold text-navy-900">{t("onb.title")}</h1>
-                <div className="mt-6 grid gap-3 md:grid-cols-2">
-                  {(["en", "ar"] as Language[]).map((c) => {
-                    const active = pickedLang === c;
+                <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {LANGUAGES.map((l) => {
+                    const active = pickedLang === l.code;
                     return (
                       <button
-                        key={c}
-                        onClick={() => setPickedLang(c)}
-                        className={`rounded-xl border-2 p-6 text-${c === "ar" ? "right" : "left"} transition ${
+                        key={l.code}
+                        onClick={() => setPickedLang(l.code as Language)}
+                        className={`rounded-xl border-2 p-5 transition ${
                           active
                             ? "border-teal bg-teal/5"
                             : "border-navy-100 hover:border-teal/40"
                         }`}
-                        dir={c === "ar" ? "rtl" : "ltr"}
+                        dir={l.dir}
                       >
-                        <div className="text-2xl font-bold text-navy-900">
-                          {c === "ar" ? "العربية" : "English"}
-                        </div>
+                        <div className="text-xl font-bold text-navy-900">{l.label}</div>
+                        <div className="mt-1 text-xs text-navy-400">{l.english}</div>
                       </button>
                     );
                   })}

@@ -21,3 +21,10 @@ All notable changes to VoiceCV will be documented in this file.
 - 2026-06-01: `NEXT_PUBLIC_APP_URL` updated to `http://localhost:3001` across env files + docs.
 - 2026-06-01: Initialized own git repo in `voicecv/`, pushed to private GitHub repo `sumair95/voicecv` on branch `main`.
 - 2026-06-01: Replaced "Powered by Claude AI" badge with "Developed by DevVibe AI" (EN + AR).
+- 2026-06-02: Expanded supported languages from 2 (EN/AR) → 4 (EN/AR/UR/HI). Urdu joins RTL handling.
+- 2026-06-02: Recording flow expanded from 5 → 9 questions. New field_keys: recent_job, previous_roles, spoken_languages, certificates, hobbies, achievement.
+- 2026-06-02: CVData now carries nationality, certificates[], hobbies[], languages with proficiency, optional STAR achievement.
+- 2026-06-02: CV preview + PDF render new sections (Certificates, Hobbies, Key Achievement). PDF fonts include Noto Nastaliq Urdu + Noto Sans Devanagari.
+- 2026-06-02: LanguageToggle changed from 2-state toggle to 4-language dropdown.
+- 2026-06-02: Onboarding + record language picker show 4 cards instead of 2.
+- 2026-06-02: Added DB migration `supabase/migrations/002_questions_v2.sql` (36 question rows).

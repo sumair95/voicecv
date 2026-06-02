@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Noto_Sans_Arabic } from "next/font/google";
+import { Inter, Noto_Sans_Arabic, Noto_Nastaliq_Urdu, Noto_Sans_Devanagari } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import "./globals.css";
@@ -9,11 +9,19 @@ const notoArabic = Noto_Sans_Arabic({
   subsets: ["arabic"],
   variable: "--font-noto-arabic",
 });
+const notoUrdu = Noto_Nastaliq_Urdu({
+  subsets: ["arabic"],
+  variable: "--font-noto-urdu",
+});
+const notoHindi = Noto_Sans_Devanagari({
+  subsets: ["devanagari"],
+  variable: "--font-noto-devanagari",
+});
 
 export const metadata: Metadata = {
   title: "VoiceCV — Speak. We Write. You Succeed.",
   description:
-    "AI-powered bilingual CV generator. Turn a 5-minute voice recording into a professional CV — free, in Arabic or English.",
+    "AI-powered bilingual CV generator. Turn a 5-minute voice recording into a professional CV — free, in Arabic, English, Urdu or Hindi.",
 };
 
 export default function RootLayout({
@@ -23,7 +31,7 @@ export default function RootLayout({
     <html
       lang="en"
       dir="ltr"
-      className={`${inter.variable} ${notoArabic.variable}`}
+      className={`${inter.variable} ${notoArabic.variable} ${notoUrdu.variable} ${notoHindi.variable}`}
       suppressHydrationWarning
     >
       <body className="font-sans">

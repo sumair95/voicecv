@@ -7,6 +7,7 @@ function client() {
   return new OpenAI({ apiKey });
 }
 
+// Whisper supports ISO-639-1 codes. ar/en/ur/hi are all native-supported.
 export async function transcribe(
   audio: Blob,
   language: Language,
@@ -19,7 +20,7 @@ export async function transcribe(
   const transcription = await openai.audio.transcriptions.create({
     file,
     model: "whisper-1",
-    language: language === "ar" ? "ar" : "en",
+    language,
   });
 
   return transcription.text;

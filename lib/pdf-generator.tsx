@@ -8,8 +8,7 @@ import {
 } from "@react-pdf/renderer";
 import type { CVData, Language } from "@/types/cv";
 
-// Embed an Arabic-supporting font (Noto Sans Arabic) and Inter for Latin.
-// Using Google's hosted Noto Sans + Noto Sans Arabic so @react-pdf can render RTL text.
+// Register fonts. @react-pdf needs explicit registration; Google Fonts CDN URLs work.
 Font.register({
   family: "Inter",
   fonts: [
@@ -27,12 +26,85 @@ Font.register({
   ],
 });
 
+Font.register({
+  family: "NotoUrdu",
+  fonts: [
+    { src: "https://fonts.gstatic.com/s/notonastaliqurdu/v20/LhWNMUPbN-oZdNFcBy1-DJYsEoTq5pudQ9L940pGPkB3Qg.ttf", fontWeight: 400 },
+    { src: "https://fonts.gstatic.com/s/notonastaliqurdu/v20/LhWNMUPbN-oZdNFcBy1-DJYsEoTq5pudQ9L940pGPkB3Qg.ttf", fontWeight: 700 },
+  ],
+});
+
+Font.register({
+  family: "NotoDevanagari",
+  fonts: [
+    { src: "https://fonts.gstatic.com/s/notosansdevanagari/v26/TuGoUUFzXI5FBtUq5a8bjKYTZjtRU6Sgv3NaV_SNmI0b8QQCQmHn6B2OHjbL_08AlXQly-AzoFoW4Ow.ttf", fontWeight: 400 },
+    { src: "https://fonts.gstatic.com/s/notosansdevanagari/v26/TuGoUUFzXI5FBtUq5a8bjKYTZjtRU6Sgv3NaV_SNmI0b8QQCQmHn6B2OHjbL_08AlXQly-AzoFoW4Ow.ttf", fontWeight: 700 },
+  ],
+});
+
+const FONT_BY_LANG: Record<Language, string> = {
+  en: "Inter",
+  ar: "NotoArabic",
+  ur: "NotoUrdu",
+  hi: "NotoDevanagari",
+};
+
+const SECTION_LABELS: Record<Language, Record<string, string>> = {
+  en: {
+    contact: "Contact",
+    nationality: "Nationality",
+    skills: "Skills",
+    languages: "Languages",
+    hobbies: "Hobbies",
+    objective: "Objective",
+    experience: "Work Experience",
+    education: "Education",
+    certificates: "Certificates & Training",
+    achievement: "Key Achievement",
+  },
+  ar: {
+    contact: "التواصل",
+    nationality: "الجنسية",
+    skills: "المهارات",
+    languages: "اللغات",
+    hobbies: "الهوايات",
+    objective: "الهدف المهني",
+    experience: "الخبرة العملية",
+    education: "التعليم",
+    certificates: "الشهادات والتدريب",
+    achievement: "إنجاز رئيسي",
+  },
+  ur: {
+    contact: "رابطہ",
+    nationality: "قومیت",
+    skills: "مہارتیں",
+    languages: "زبانیں",
+    hobbies: "مشاغل",
+    objective: "مقصد",
+    experience: "کام کا تجربہ",
+    education: "تعلیم",
+    certificates: "سرٹیفکیٹ اور تربیت",
+    achievement: "اہم کامیابی",
+  },
+  hi: {
+    contact: "संपर्क",
+    nationality: "राष्ट्रीयता",
+    skills: "कौशल",
+    languages: "भाषाएं",
+    hobbies: "शौक़",
+    objective: "उद्देश्य",
+    experience: "कार्य अनुभव",
+    education: "शिक्षा",
+    certificates: "सर्टिफिकेट और प्रशिक्षण",
+    achievement: "मुख्य उपलब्धि",
+  },
+};
+
 const NAVY = "#0F172A";
 const TEAL = "#14B8A6";
 const MUTED = "#64748B";
 
-function styles(isRtl: boolean) {
-  const fontFamily = isRtl ? "NotoArabic" : "Inter";
+function styles(fontFamily: string) {
   return StyleSheet.create({
     page: {
       fontFamily,
@@ -63,15 +135,15 @@ function styles(isRtl: boolean) {
     },
     avatarText: { color: "#FFF", fontSize: 22, fontWeight: 700 },
     name: { fontSize: 18, fontWeight: 700, textAlign: "center", color: "#FFF" },
-    city: { fontSize: 10, color: "rgba(255,255,255,0.8)", textAlign: "center", marginTop: 4 },
+    sub: { fontSize: 10, color: "rgba(255,255,255,0.8)", textAlign: "center", marginTop: 3 },
     sectionTitleDark: {
       fontSize: 9,
       fontWeight: 700,
       color: TEAL,
       letterSpacing: 1.5,
       textTransform: "uppercase",
-      marginTop: 18,
-      marginBottom: 8,
+      marginTop: 16,
+      marginBottom: 6,
     },
     sectionTitle: {
       fontSize: 9,
@@ -80,8 +152,9 @@ function styles(isRtl: boolean) {
       letterSpacing: 1.5,
       textTransform: "uppercase",
       marginBottom: 6,
+      marginTop: 6,
     },
-    contactRow: { color: "rgba(255,255,255,0.9)", fontSize: 10, marginBottom: 4 },
+    contactRow: { color: "rgba(255,255,255,0.9)", fontSize: 10, marginBottom: 3 },
     skill: {
       backgroundColor: "rgba(20,184,166,0.25)",
       color: "#CCFBF1",
@@ -92,7 +165,24 @@ function styles(isRtl: boolean) {
       marginRight: 4,
       marginBottom: 4,
     },
-    sidebarLanguage: { color: "rgba(255,255,255,0.9)", fontSize: 10, marginBottom: 3 },
+    hobby: {
+      backgroundColor: "rgba(255,255,255,0.1)",
+      color: "rgba(255,255,255,0.9)",
+      paddingVertical: 3,
+      paddingHorizontal: 7,
+      borderRadius: 4,
+      fontSize: 9,
+      marginRight: 4,
+      marginBottom: 4,
+    },
+    sidebarLanguage: {
+      color: "rgba(255,255,255,0.9)",
+      fontSize: 10,
+      marginBottom: 3,
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    languageProf: { color: "rgba(255,255,255,0.6)", fontSize: 9 },
     divider: {
       borderBottomColor: "rgba(255,255,255,0.15)",
       borderBottomWidth: 1,
@@ -106,7 +196,7 @@ function styles(isRtl: boolean) {
       fontStyle: "italic",
       color: "#475569",
       marginTop: 4,
-      marginBottom: 16,
+      marginBottom: 12,
     },
     experienceItem: { marginBottom: 12 },
     role: { fontSize: 12, fontWeight: 700, color: NAVY },
@@ -116,28 +206,56 @@ function styles(isRtl: boolean) {
     educationItem: { marginBottom: 8 },
     educationDegree: { fontSize: 11, fontWeight: 700, color: NAVY },
     educationInstitution: { fontSize: 10, color: "#334155" },
+    certName: { fontSize: 10, fontWeight: 700, color: NAVY },
+    certIssuer: { fontSize: 10, color: MUTED },
     rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
     skillRow: { flexDirection: "row", flexWrap: "wrap" },
-    iconCircle: {
-      width: 8, height: 8, borderRadius: 4, backgroundColor: "#FFF",
-      borderColor: TEAL, borderWidth: 2,
+    starBox: {
+      backgroundColor: "#F0FDFA",
+      borderColor: "rgba(20,184,166,0.3)",
+      borderWidth: 1,
+      borderRadius: 6,
+      padding: 10,
+      marginTop: 4,
+    },
+    starRow: { flexDirection: "row", marginBottom: 4 },
+    starLabel: {
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: TEAL,
+      color: "#FFF",
+      fontSize: 8,
+      fontWeight: 700,
+      textAlign: "center",
+      lineHeight: 16,
       marginRight: 6,
     },
+    starText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
   });
 }
 
 function initials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((s) => s[0]?.toUpperCase() ?? "")
-    .join("") || "?";
+  return (
+    name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((s) => s[0]?.toUpperCase() ?? "")
+      .join("") || "?"
+  );
 }
 
-export function CVDocument({ cv, language }: { cv: CVData; language: Language }) {
-  const isRtl = language === "ar";
-  const s = styles(isRtl);
+export function CVDocument({
+  cv,
+  language,
+}: {
+  cv: CVData;
+  language: Language;
+}) {
+  const fontFamily = FONT_BY_LANG[language];
+  const s = styles(fontFamily);
+  const L = SECTION_LABELS[language];
 
   return (
     <Document>
@@ -147,19 +265,32 @@ export function CVDocument({ cv, language }: { cv: CVData; language: Language })
             <Text style={s.avatarText}>{initials(cv.personal.full_name)}</Text>
           </View>
           <Text style={s.name}>{cv.personal.full_name || ""}</Text>
-          {cv.personal.city ? <Text style={s.city}>{cv.personal.city}</Text> : null}
+          {cv.personal.city ? <Text style={s.sub}>{cv.personal.city}</Text> : null}
+          {cv.personal.nationality ? (
+            <Text style={s.sub}>{cv.personal.nationality}</Text>
+          ) : null}
           <View style={s.divider} />
 
-          <Text style={s.sectionTitleDark}>Contact</Text>
-          {cv.personal.email ? <Text style={s.contactRow}>{cv.personal.email}</Text> : null}
-          {cv.personal.phone ? <Text style={s.contactRow}>{cv.personal.phone}</Text> : null}
+          {(cv.personal.email || cv.personal.phone) && (
+            <>
+              <Text style={s.sectionTitleDark}>{L.contact}</Text>
+              {cv.personal.email ? (
+                <Text style={s.contactRow}>{cv.personal.email}</Text>
+              ) : null}
+              {cv.personal.phone ? (
+                <Text style={s.contactRow}>{cv.personal.phone}</Text>
+              ) : null}
+            </>
+          )}
 
           {cv.skills.length > 0 && (
             <>
-              <Text style={s.sectionTitleDark}>Skills</Text>
+              <Text style={s.sectionTitleDark}>{L.skills}</Text>
               <View style={s.skillRow}>
                 {cv.skills.map((skill, i) => (
-                  <Text key={i} style={s.skill}>{skill}</Text>
+                  <Text key={i} style={s.skill}>
+                    {skill}
+                  </Text>
                 ))}
               </View>
             </>
@@ -167,10 +298,26 @@ export function CVDocument({ cv, language }: { cv: CVData; language: Language })
 
           {cv.languages.length > 0 && (
             <>
-              <Text style={s.sectionTitleDark}>Languages</Text>
+              <Text style={s.sectionTitleDark}>{L.languages}</Text>
               {cv.languages.map((lng, i) => (
-                <Text key={i} style={s.sidebarLanguage}>{lng}</Text>
+                <View key={i} style={s.sidebarLanguage}>
+                  <Text>{lng.name}</Text>
+                  <Text style={s.languageProf}>{lng.proficiency}</Text>
+                </View>
               ))}
+            </>
+          )}
+
+          {cv.hobbies.length > 0 && (
+            <>
+              <Text style={s.sectionTitleDark}>{L.hobbies}</Text>
+              <View style={s.skillRow}>
+                {cv.hobbies.map((h, i) => (
+                  <Text key={i} style={s.hobby}>
+                    {h}
+                  </Text>
+                ))}
+              </View>
             </>
           )}
         </View>
@@ -178,14 +325,14 @@ export function CVDocument({ cv, language }: { cv: CVData; language: Language })
         <View style={s.main}>
           {cv.objective ? (
             <>
-              <Text style={s.sectionTitle}>{isRtl ? "الهدف المهني" : "Objective"}</Text>
+              <Text style={s.sectionTitle}>{L.objective}</Text>
               <Text style={s.objectiveBox}>{cv.objective}</Text>
             </>
           ) : null}
 
           {cv.experience.length > 0 && (
             <>
-              <Text style={s.sectionTitle}>{isRtl ? "الخبرة العملية" : "Work Experience"}</Text>
+              <Text style={s.sectionTitle}>{L.experience}</Text>
               {cv.experience.map((exp, i) => (
                 <View key={i} style={s.experienceItem}>
                   <View style={s.rowBetween}>
@@ -193,7 +340,9 @@ export function CVDocument({ cv, language }: { cv: CVData; language: Language })
                     <Text style={s.duration}>{exp.duration}</Text>
                   </View>
                   <Text style={s.company}>{exp.company}</Text>
-                  {exp.description ? <Text style={s.description}>{exp.description}</Text> : null}
+                  {exp.description ? (
+                    <Text style={s.description}>{exp.description}</Text>
+                  ) : null}
                 </View>
               ))}
             </>
@@ -201,7 +350,7 @@ export function CVDocument({ cv, language }: { cv: CVData; language: Language })
 
           {cv.education.length > 0 && (
             <>
-              <Text style={s.sectionTitle}>{isRtl ? "التعليم" : "Education"}</Text>
+              <Text style={s.sectionTitle}>{L.education}</Text>
               {cv.education.map((edu, i) => (
                 <View key={i} style={s.educationItem}>
                   <View style={s.rowBetween}>
@@ -211,6 +360,44 @@ export function CVDocument({ cv, language }: { cv: CVData; language: Language })
                   <Text style={s.educationInstitution}>{edu.institution}</Text>
                 </View>
               ))}
+            </>
+          )}
+
+          {cv.certificates.length > 0 && (
+            <>
+              <Text style={s.sectionTitle}>{L.certificates}</Text>
+              {cv.certificates.map((c, i) => (
+                <View key={i} style={s.experienceItem}>
+                  <View style={s.rowBetween}>
+                    <Text style={s.certName}>
+                      {c.name}
+                      {c.issuer ? <Text style={s.certIssuer}> · {c.issuer}</Text> : null}
+                    </Text>
+                    <Text style={s.duration}>{c.year}</Text>
+                  </View>
+                </View>
+              ))}
+            </>
+          )}
+
+          {cv.achievement && (
+            <>
+              <Text style={s.sectionTitle}>{L.achievement}</Text>
+              <View style={s.starBox}>
+                {[
+                  ["S", cv.achievement.situation],
+                  ["T", cv.achievement.task],
+                  ["A", cv.achievement.action],
+                  ["R", cv.achievement.result],
+                ]
+                  .filter(([, v]) => Boolean(v))
+                  .map(([label, txt], i) => (
+                    <View key={i} style={s.starRow}>
+                      <Text style={s.starLabel}>{label}</Text>
+                      <Text style={s.starText}>{txt}</Text>
+                    </View>
+                  ))}
+              </View>
             </>
           )}
         </View>

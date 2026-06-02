@@ -1,9 +1,10 @@
-export type Language = "en" | "ar";
+export type Language = "en" | "ar" | "ur" | "hi";
 
 export type CVStatus = "processing" | "ready" | "exported" | "failed";
 
 export interface CVPersonal {
   full_name: string;
+  nationality: string;
   city: string;
   email: string;
   phone: string;
@@ -22,13 +23,34 @@ export interface CVEducationItem {
   year: string;
 }
 
+export interface CVCertificateItem {
+  name: string;
+  issuer: string;
+  year: string;
+}
+
+export interface CVLanguageItem {
+  name: string;
+  proficiency: string; // beginner | conversational | fluent (free-text so AI can localize)
+}
+
+export interface CVAchievement {
+  situation: string;
+  task: string;
+  action: string;
+  result: string;
+}
+
 export interface CVData {
   personal: CVPersonal;
   objective: string;
   experience: CVExperienceItem[];
   education: CVEducationItem[];
+  certificates: CVCertificateItem[];
   skills: string[];
-  languages: string[];
+  languages: CVLanguageItem[];
+  hobbies: string[];
+  achievement: CVAchievement | null;
 }
 
 export interface CVRecord {
@@ -66,10 +88,13 @@ export interface QAPair {
 }
 
 export const EMPTY_CV: CVData = {
-  personal: { full_name: "", city: "", email: "", phone: "" },
+  personal: { full_name: "", nationality: "", city: "", email: "", phone: "" },
   objective: "",
   experience: [],
   education: [],
+  certificates: [],
   skills: [],
   languages: [],
+  hobbies: [],
+  achievement: null,
 };

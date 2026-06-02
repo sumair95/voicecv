@@ -3,33 +3,77 @@ import type { CVData, Language, QAPair } from "@/types/cv";
 
 const MODEL = "claude-sonnet-4-6";
 
+const LANGUAGE_NAME: Record<Language, string> = {
+  en: "English",
+  ar: "Arabic",
+  ur: "Urdu",
+  hi: "Hindi",
+};
+
 function client() {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set");
   return new Anthropic({ apiKey });
 }
 
-const SYSTEM_PROMPT = `You are a professional CV writer specializing in the Saudi Arabian and Middle East job market.
+const SYSTEM_PROMPT = `You are a professional CV writer specializing in the Saudi Arabian and Gulf job market, with deep knowledge of how to position blue-collar, technical, and skilled workers for employment.
 
 Return ONLY a valid JSON object — no markdown fences, no prose, no explanation.
 
-JSON shape:
+JSON shape (every field is required; use empty string/array/null if not provided):
 {
-  "personal": { "full_name": "string", "city": "string", "email": "", "phone": "" },
-  "objective": "2-3 sentence professional objective statement",
+  "personal": {
+    "full_name": "string",
+    "nationality": "string",
+    "city": "string",
+    "email": "string",
+    "phone": "string"
+  },
+  "objective": "2-3 sentence professional objective derived from the candidate's goals + experience",
   "experience": [
-    { "company": "string", "role": "string", "duration": "string", "description": "2-3 bullet points describing achievements" }
+    {
+      "company": "string",
+      "role": "string",
+      "duration": "string (e.g. '2 years' or 'Jan 2022 - Present')",
+      "description": "2-3 short bullet-style sentences describing responsibilities and achievements. Use \\n for line breaks if listing multiple."
+    }
   ],
-  "education": [ { "institution": "string", "degree": "string", "year": "string" } ],
-  "skills": ["skill1", "skill2"],
-  "languages": ["Arabic", "English"]
+  "education": [
+    { "institution": "string", "degree": "string", "year": "string" }
+  ],
+  "certificates": [
+    { "name": "string", "issuer": "string", "year": "string" }
+  ],
+  "skills": ["specific skill", "tool", "licence", "software"],
+  "languages": [
+    { "name": "string", "proficiency": "beginner | conversational | fluent" }
+  ],
+  "hobbies": ["hobby1", "hobby2"],
+  "achievement": null OR {
+    "situation": "string",
+    "task": "string",
+    "action": "string",
+    "result": "string"
+  }
 }
 
-Rules:
-- Fill in gaps intelligently based on context, but do not invent data.
-- If information is missing, return an empty string or empty array — do not invent it.
-- Write all natural-language content in the requested language.
-- Make the objective compelling and specific to the role they want.`;
+Mapping rules — the user has answered up to 9 questions identified by field_key:
+- personal           → personal.full_name, nationality, city, email, phone
+- recent_job         → experience[0] (most recent / current)
+- previous_roles     → experience[1..] (older jobs)
+- skills             → skills[]
+- spoken_languages   → languages[] (parse name + proficiency)
+- education          → education[]
+- certificates       → certificates[]
+- hobbies            → hobbies[]
+- achievement        → achievement (STAR object); if user skipped or said "no", return null
+
+Quality rules:
+- Write all natural-language content in {{LANGUAGE_NAME}}.
+- Do NOT invent facts (companies, dates, qualifications). If information is missing, return empty string/array/null.
+- Make the objective compelling and specific to the role + market the candidate wants.
+- Normalize phone numbers to international format if obvious (e.g. +966).
+- For skills, prefer specific items ("Toyota forklift licence", "MIG welding", "Arabic + English speaking") over vague ones ("hardworking", "team player").`;
 
 export async function generateCV(
   qaPairs: QAPair[],
@@ -40,11 +84,11 @@ export async function generateCV(
   const qaBlock = qaPairs
     .map(
       (qa, i) =>
-        `Q${i + 1} (${qa.field_key}): ${qa.question}\nA${i + 1}: ${qa.answer}`,
+        `Q${i + 1} [${qa.field_key}] ${qa.question}\nA${i + 1}: ${qa.answer}`,
     )
     .join("\n\n");
 
-  const userMessage = `Language: ${language === "ar" ? "Arabic" : "English"}
+  const userMessage = `Language: ${LANGUAGE_NAME[language]}
 
 Questions and answers from the job seeker:
 
@@ -52,10 +96,15 @@ ${qaBlock}
 
 Generate the structured CV JSON now.`;
 
+  const system = SYSTEM_PROMPT.replace(
+    "{{LANGUAGE_NAME}}",
+    LANGUAGE_NAME[language],
+  );
+
   const response = await anthropic.messages.create({
     model: MODEL,
-    max_tokens: 2000,
-    system: SYSTEM_PROMPT,
+    max_tokens: 2500,
+    system,
     messages: [{ role: "user", content: userMessage }],
   });
 
@@ -72,5 +121,22 @@ Generate the structured CV JSON now.`;
   }
 
   const parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1)) as CVData;
-  return parsed;
+  // Backfill arrays/keys in case Claude returns a sparse object.
+  return {
+    personal: {
+      full_name: parsed.personal?.full_name ?? "",
+      nationality: parsed.personal?.nationality ?? "",
+      city: parsed.personal?.city ?? "",
+      email: parsed.personal?.email ?? "",
+      phone: parsed.personal?.phone ?? "",
+    },
+    objective: parsed.objective ?? "",
+    experience: parsed.experience ?? [],
+    education: parsed.education ?? [],
+    certificates: parsed.certificates ?? [],
+    skills: parsed.skills ?? [],
+    languages: parsed.languages ?? [],
+    hobbies: parsed.hobbies ?? [],
+    achievement: parsed.achievement ?? null,
+  };
 }

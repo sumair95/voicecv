@@ -69,3 +69,43 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 
 ### Brand
 - Replaced "Powered by Claude AI" attribution with **"Developed by DevVibe AI"** (Arabic: "من تطوير DevVibe AI") in `lib/i18n.ts`. Surfaces in hero badge + footer.
+
+## 2026-06-02 — Day 2: Question set v2 + 4 languages
+
+### Done
+- Expanded supported languages: **English, Arabic, Urdu, Hindi** (was EN+AR). RTL handling now covers `ar` and `ur`; Hindi is LTR.
+- Expanded the recording flow from **5 → 9 questions**:
+  1. `personal` — full name, nationality, city, mobile, email
+  2. `recent_job` — most recent/current job
+  3. `previous_roles` — earlier roles (any duration)
+  4. `skills` — specific skills, tools, equipment, licences, software
+  5. `spoken_languages` — languages + proficiency (beginner/conversational/fluent)
+  6. `education` — highest level + institution
+  7. `certificates` — certificates / training courses
+  8. `hobbies` — hobbies / interests
+  9. `achievement` — optional STAR-method work achievement
+- All 9 questions × 4 languages = **36 question rows** seeded (`supabase/migrations/002_questions_v2.sql` for existing projects, also baked into `supabase/schema.sql` for fresh projects).
+- Hindi translations for Q6–Q9 written by Claude (Sumair's spec didn't include them).
+
+### Code changes
+- `types/cv.ts` — Language type = `en | ar | ur | hi`. Added `nationality` to CVPersonal. New CVData fields: `certificates`, `hobbies`, `achievement (STAR)`. Languages now `{ name, proficiency }`. EMPTY_CV updated.
+- `lib/i18n.ts` — every key gets EN/AR/UR/HI; added `cv.certificates`, `cv.hobbies`, `cv.achievement`, `cv.nationality`, `rec.skip` and updated `landing.subhead` to mention all 4 langs.
+- `lib/whisper.ts` — pass Language directly to Whisper (it supports ar/en/ur/hi natively).
+- `lib/claude.ts` — language name map (en→English, ar→Arabic, ur→Urdu, hi→Hindi), new SYSTEM_PROMPT with the v2 JSON schema + field_key→section mapping. Backfills sparse responses with empty defaults.
+- `lib/pdf-generator.tsx` — registered NotoUrdu (Nastaliq) + NotoDevanagari fonts. Font picked per-language. SECTION_LABELS for all 4 langs. New sections rendered: certificates, hobbies, STAR achievement.
+- `components/CVPreview.tsx` — added Nationality, Hobbies, Certificates, STAR Achievement sections. RTL check now includes `ur`. Languages row shows proficiency.
+- `components/LanguageToggle.tsx` — converted from 2-state toggle to **dropdown menu** showing all 4 languages with check mark on current.
+- `app/(auth)/onboarding/page.tsx` — now a **2×2 grid of 4 cards** instead of 2 cards.
+- `app/(dashboard)/record/page.tsx` — language picker shows 4 cards; uses LANGUAGES from i18n.
+- `app/layout.tsx` — loads `Noto Nastaliq Urdu` + `Noto Sans Devanagari` Google Fonts.
+- `app/globals.css` — `html[lang="ar|ur|hi"]` selectors swap the body font-family appropriately.
+- `tailwind.config.ts` — added `font-urdu` and `font-devanagari` family tokens.
+
+### DB migration Sumair needs to run
+- Open Supabase SQL Editor → paste `supabase/migrations/002_questions_v2.sql` → Run.
+- Verifies: `select count(*) from questions;` should return **36**.
+- Old 5-question rows are deleted by the migration (no production CV data lost — only the questions table is touched).
+
+### Validation
+- `tsc --noEmit` clean.
+- `next build` succeeds: 14 routes, build size grew ~30KB (extra fonts).

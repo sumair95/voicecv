@@ -21,12 +21,24 @@
 - `npm run dev` confirmed working at http://localhost:3001.
 - Code pushed to private repo: **https://github.com/sumair95/voicecv** (branch `main`).
 
+### Day 2 — 2026-06-02 (question set v2 + 4 languages)
+- Languages expanded EN+AR → **EN+AR+UR+HI**. Urdu joins RTL.
+- Recording flow 5 → **9 questions**. New section keys: recent_job, previous_roles, spoken_languages, certificates, hobbies, achievement.
+- CV data model + preview + PDF updated to render Nationality, Certificates, Hobbies, STAR achievement.
+- LanguageToggle is now a dropdown; onboarding + record picker show 4 language cards.
+- DB migration written: `supabase/migrations/002_questions_v2.sql`.
+
 ## 🟡 In progress (Sumair, browser)
 
 ### Step 1 — Supabase schema (one-time)
 - Open https://supabase.com/dashboard → project `ilksvltqcmcsjeappepq`.
 - SQL Editor → paste `supabase/schema.sql` → Run.
 - Confirms 3 tables exist (profiles, cvs, questions) + RLS policies + `recordings` storage bucket + auto-profile trigger.
+
+### Step 1b — Apply question-set v2 migration (REQUIRED if schema.sql was already run before 2026-06-02)
+- SQL Editor → paste `supabase/migrations/002_questions_v2.sql` → Run.
+- Verify: `select count(*) from questions;` → should return **36**.
+- Old 5-question set is replaced with new 9-question × 4-language set (36 rows total).
 
 ### Step 2 — Supabase Auth URL config (so login redirects work)
 - Authentication → URL Configuration:
