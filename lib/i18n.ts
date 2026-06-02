@@ -324,6 +324,59 @@ export const t: Dict = {
     ar: "جارٍ التحميل…",
     ur: "لوڈ ہو رہا ہے…",
   },
+
+  // Editor — add / remove
+  "edit.add.skill": { en: "Add skill", ar: "إضافة مهارة", ur: "مہارت شامل کریں" },
+  "edit.add.language": {
+    en: "Add language",
+    ar: "إضافة لغة",
+    ur: "زبان شامل کریں",
+  },
+  "edit.add.hobby": {
+    en: "Add hobby",
+    ar: "إضافة هواية",
+    ur: "مشغلہ شامل کریں",
+  },
+  "edit.add.experience": {
+    en: "Add experience",
+    ar: "إضافة خبرة",
+    ur: "تجربہ شامل کریں",
+  },
+  "edit.add.education": {
+    en: "Add education",
+    ar: "إضافة تعليم",
+    ur: "تعلیم شامل کریں",
+  },
+  "edit.add.certificate": {
+    en: "Add certificate",
+    ar: "إضافة شهادة",
+    ur: "سرٹیفکیٹ شامل کریں",
+  },
+  "edit.add.achievement": {
+    en: "Add achievement",
+    ar: "إضافة إنجاز",
+    ur: "کامیابی شامل کریں",
+  },
+  "edit.remove": { en: "Remove", ar: "حذف", ur: "حذف کریں" },
+
+  "edit.proficiency.beginner": {
+    en: "Beginner",
+    ar: "مبتدئ",
+    ur: "ابتدائی",
+  },
+  "edit.proficiency.conversational": {
+    en: "Conversational",
+    ar: "متوسط",
+    ur: "گفتگو کی سطح",
+  },
+  "edit.proficiency.fluent": {
+    en: "Fluent",
+    ar: "متقدم",
+    ur: "روانی",
+  },
+  "edit.placeholder.skill": { en: "e.g. forklift driving", ar: "مثال: قيادة الرافعة", ur: "مثال: فورک لفٹ چلانا" },
+  "edit.placeholder.hobby": { en: "e.g. reading", ar: "مثال: القراءة", ur: "مثال: مطالعہ" },
+  "edit.placeholder.langName": { en: "Language", ar: "اللغة", ur: "زبان" },
 };
 
 export function tr(

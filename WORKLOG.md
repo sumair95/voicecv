@@ -110,6 +110,18 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - `tsc --noEmit` clean.
 - `next build` succeeds: 14 routes, build size grew ~30KB (extra fonts).
 
+### Full editor — every CV field is now editable
+- Previously: text fields inside existing items were editable, but arrays couldn't grow/shrink and skills/languages/hobbies/achievement were display-only.
+- Now (in `components/CVPreview.tsx`):
+  - **Skills**: each chip is editable inline + has an X to remove; "+ Add skill" button at end. Clearing a chip auto-removes it.
+  - **Languages**: name is editable + proficiency is a `<select>` with the 3 canonical levels (Beginner / Conversational / Fluent, localized). X to remove. "+ Add language" button.
+  - **Hobbies**: same pattern as skills.
+  - **Experience / Education / Certificates**: existing inline edits preserved; each item gets a hover-revealed X for delete; "+ Add" button at the end of each section.
+  - **Achievement (STAR)**: if null, shows "+ Add achievement" → creates an empty STAR object. If present, the 4 fields are editable; X next to section title deletes the whole achievement.
+- Reused the `Editable` contentEditable component; added two new tiny helpers `RemoveButton` and `AddButton` (dark + light variants for sidebar vs main).
+- Localized add/remove copy in EN/AR/UR (`edit.add.*`, `edit.remove`, `edit.proficiency.*`, `edit.placeholder.*`).
+- `lib/i18n.ts` extended with edit-action strings.
+
 ### Reversal — Hindi removed later same day
 - Sumair clarified the original "3 languages" intent: keep **EN + AR + UR** only, drop Hindi.
 - Reverted every `hi` touchpoint:

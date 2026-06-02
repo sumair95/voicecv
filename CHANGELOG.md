@@ -29,3 +29,4 @@ All notable changes to VoiceCV will be documented in this file.
 - 2026-06-02: Onboarding + record language picker show 4 cards instead of 2.
 - 2026-06-02: Added DB migration `supabase/migrations/002_questions_v2.sql` (36 question rows).
 - 2026-06-02: Removed Hindi support — supported languages now EN + AR + UR only. Added migration `003_remove_hindi.sql` to drop `hi` rows from existing DBs. Noto Sans Devanagari font no longer loaded.
+- 2026-06-02: Full CV editor — every section now supports add / remove / inline edit, including skills, languages (name + proficiency select), hobbies, certificates, work experience, education, and the optional STAR achievement.

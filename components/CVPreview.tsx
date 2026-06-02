@@ -10,10 +10,19 @@ import {
   Award,
   Trophy,
   Flag,
+  Plus,
+  X,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/components/LanguageProvider";
-import type { CVData, Language } from "@/types/cv";
+import type {
+  CVAchievement,
+  CVCertificateItem,
+  CVData,
+  CVEducationItem,
+  CVExperienceItem,
+  CVLanguageItem,
+  Language,
+} from "@/types/cv";
 
 interface Props {
   cvData: CVData;
@@ -77,6 +86,81 @@ function Editable({
     />
   );
 }
+
+function RemoveButton({
+  onClick,
+  label,
+  dark,
+}: {
+  onClick: () => void;
+  label: string;
+  dark?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className={`grid h-5 w-5 shrink-0 place-items-center rounded-full transition ${
+        dark
+          ? "bg-white/10 text-white/70 hover:bg-red-500/40 hover:text-white"
+          : "bg-navy-50 text-navy-400 hover:bg-red-50 hover:text-red-600"
+      }`}
+    >
+      <X className="h-3 w-3" />
+    </button>
+  );
+}
+
+function AddButton({
+  onClick,
+  label,
+  dark,
+}: {
+  onClick: () => void;
+  label: string;
+  dark?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition ${
+        dark
+          ? "border border-dashed border-white/30 text-white/70 hover:border-teal hover:text-teal-100"
+          : "border border-dashed border-navy-100 text-navy-400 hover:border-teal hover:text-teal-700"
+      }`}
+    >
+      <Plus className="h-3 w-3" />
+      {label}
+    </button>
+  );
+}
+
+const EMPTY_EXPERIENCE: CVExperienceItem = {
+  company: "",
+  role: "",
+  duration: "",
+  description: "",
+};
+const EMPTY_EDUCATION: CVEducationItem = {
+  institution: "",
+  degree: "",
+  year: "",
+};
+const EMPTY_CERTIFICATE: CVCertificateItem = {
+  name: "",
+  issuer: "",
+  year: "",
+};
+const EMPTY_LANGUAGE: CVLanguageItem = { name: "", proficiency: "" };
+const EMPTY_ACHIEVEMENT: CVAchievement = {
+  situation: "",
+  task: "",
+  action: "",
+  result: "",
+};
 
 export function CVPreview({ cvData, language, editable, onChange }: Props) {
   const { t } = useLanguage();
@@ -146,6 +230,7 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
 
         <div className="my-6 h-px bg-white/10" />
 
+        {/* Contact */}
         <Section title={t("cv.contact")} dark>
           {(data.personal.email || editable) && (
             <div className="flex items-center gap-2 text-sm">
@@ -177,55 +262,175 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
           )}
         </Section>
 
+        {/* Skills */}
         {(data.skills.length > 0 || editable) && (
           <Section title={t("cv.skills")} dark>
             <div className="flex flex-wrap gap-1.5">
               {data.skills.map((skill, i) => (
-                <Badge
-                  key={`${skill}-${i}`}
-                  className="border-none bg-teal/20 font-normal text-teal-100 hover:bg-teal/30"
+                <div
+                  key={i}
+                  className="inline-flex items-center gap-1 rounded-md bg-teal/20 px-2 py-0.5"
                 >
-                  {skill}
-                </Badge>
+                  <Editable
+                    value={skill}
+                    editable={editable}
+                    placeholder={t("edit.placeholder.skill")}
+                    onChange={(v) => {
+                      const next = [...data.skills];
+                      if (!v) {
+                        next.splice(i, 1);
+                      } else {
+                        next[i] = v;
+                      }
+                      patch({ skills: next });
+                    }}
+                    className="text-xs text-teal-100"
+                  />
+                  {editable && (
+                    <RemoveButton
+                      dark
+                      label={t("edit.remove")}
+                      onClick={() => {
+                        const next = [...data.skills];
+                        next.splice(i, 1);
+                        patch({ skills: next });
+                      }}
+                    />
+                  )}
+                </div>
               ))}
             </div>
+            {editable && (
+              <AddButton
+                dark
+                label={t("edit.add.skill")}
+                onClick={() => patch({ skills: [...data.skills, ""] })}
+              />
+            )}
           </Section>
         )}
 
+        {/* Languages */}
         {(data.languages.length > 0 || editable) && (
           <Section title={t("cv.languages")} dark>
             <ul className="space-y-1.5 text-sm text-white/90">
               {data.languages.map((lng, i) => (
-                <li
-                  key={`${lng.name}-${i}`}
-                  className="flex items-center justify-between gap-2"
-                >
-                  <span>{lng.name}</span>
-                  <span className="text-xs text-white/60">{lng.proficiency}</span>
+                <li key={i} className="flex items-center gap-2">
+                  <Editable
+                    value={lng.name}
+                    editable={editable}
+                    placeholder={t("edit.placeholder.langName")}
+                    onChange={(v) => {
+                      const next = [...data.languages];
+                      next[i] = { ...next[i], name: v };
+                      patch({ languages: next });
+                    }}
+                    className="flex-1"
+                  />
+                  {editable ? (
+                    <select
+                      value={lng.proficiency}
+                      onChange={(e) => {
+                        const next = [...data.languages];
+                        next[i] = { ...next[i], proficiency: e.target.value };
+                        patch({ languages: next });
+                      }}
+                      className="rounded border border-white/20 bg-navy-900 px-1.5 py-0.5 text-xs text-white/90"
+                    >
+                      <option value="">—</option>
+                      <option value={t("edit.proficiency.beginner")}>
+                        {t("edit.proficiency.beginner")}
+                      </option>
+                      <option value={t("edit.proficiency.conversational")}>
+                        {t("edit.proficiency.conversational")}
+                      </option>
+                      <option value={t("edit.proficiency.fluent")}>
+                        {t("edit.proficiency.fluent")}
+                      </option>
+                    </select>
+                  ) : (
+                    <span className="text-xs text-white/60">
+                      {lng.proficiency}
+                    </span>
+                  )}
+                  {editable && (
+                    <RemoveButton
+                      dark
+                      label={t("edit.remove")}
+                      onClick={() => {
+                        const next = [...data.languages];
+                        next.splice(i, 1);
+                        patch({ languages: next });
+                      }}
+                    />
+                  )}
                 </li>
               ))}
             </ul>
+            {editable && (
+              <AddButton
+                dark
+                label={t("edit.add.language")}
+                onClick={() =>
+                  patch({ languages: [...data.languages, { ...EMPTY_LANGUAGE }] })
+                }
+              />
+            )}
           </Section>
         )}
 
+        {/* Hobbies */}
         {(data.hobbies.length > 0 || editable) && (
           <Section title={t("cv.hobbies")} dark>
             <div className="flex flex-wrap gap-1.5">
               {data.hobbies.map((h, i) => (
-                <Badge
-                  key={`${h}-${i}`}
-                  className="border-none bg-white/10 font-normal text-white/90 hover:bg-white/15"
+                <div
+                  key={i}
+                  className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-0.5"
                 >
-                  {h}
-                </Badge>
+                  <Editable
+                    value={h}
+                    editable={editable}
+                    placeholder={t("edit.placeholder.hobby")}
+                    onChange={(v) => {
+                      const next = [...data.hobbies];
+                      if (!v) {
+                        next.splice(i, 1);
+                      } else {
+                        next[i] = v;
+                      }
+                      patch({ hobbies: next });
+                    }}
+                    className="text-xs text-white/90"
+                  />
+                  {editable && (
+                    <RemoveButton
+                      dark
+                      label={t("edit.remove")}
+                      onClick={() => {
+                        const next = [...data.hobbies];
+                        next.splice(i, 1);
+                        patch({ hobbies: next });
+                      }}
+                    />
+                  )}
+                </div>
               ))}
             </div>
+            {editable && (
+              <AddButton
+                dark
+                label={t("edit.add.hobby")}
+                onClick={() => patch({ hobbies: [...data.hobbies, ""] })}
+              />
+            )}
           </Section>
         )}
       </aside>
 
       {/* Main */}
       <main className="col-span-12 space-y-8 p-10 md:col-span-8">
+        {/* Objective */}
         {(data.objective || editable) && (
           <section>
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
@@ -243,6 +448,7 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
           </section>
         )}
 
+        {/* Experience */}
         {(data.experience.length > 0 || editable) && (
           <section>
             <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
@@ -251,9 +457,21 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
             </h2>
             <ol className="mt-4 space-y-5 border-s border-navy-100 ps-6">
               {data.experience.map((exp, i) => (
-                <li key={i} className="relative">
+                <li key={i} className="group relative">
                   <span className="absolute -start-[28px] top-1.5 h-3 w-3 rounded-full border-2 border-teal bg-white" />
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  {editable && (
+                    <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
+                      <RemoveButton
+                        label={t("edit.remove")}
+                        onClick={() => {
+                          const next = [...data.experience];
+                          next.splice(i, 1);
+                          patch({ experience: next });
+                        }}
+                      />
+                    </div>
+                  )}
+                  <div className="flex flex-wrap items-baseline justify-between gap-2 pe-7">
                     <h3 className="text-base font-semibold text-navy-900">
                       <Editable
                         value={exp.role}
@@ -307,9 +525,22 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
                 </li>
               ))}
             </ol>
+            {editable && (
+              <div className="mt-3 ps-6">
+                <AddButton
+                  label={t("edit.add.experience")}
+                  onClick={() =>
+                    patch({
+                      experience: [...data.experience, { ...EMPTY_EXPERIENCE }],
+                    })
+                  }
+                />
+              </div>
+            )}
           </section>
         )}
 
+        {/* Education */}
         {(data.education.length > 0 || editable) && (
           <section>
             <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
@@ -318,7 +549,19 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
             </h2>
             <ul className="mt-4 space-y-3">
               {data.education.map((edu, i) => (
-                <li key={i}>
+                <li key={i} className="group relative pe-7">
+                  {editable && (
+                    <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
+                      <RemoveButton
+                        label={t("edit.remove")}
+                        onClick={() => {
+                          const next = [...data.education];
+                          next.splice(i, 1);
+                          patch({ education: next });
+                        }}
+                      />
+                    </div>
+                  )}
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <h3 className="text-base font-semibold text-navy-900">
                       <Editable
@@ -360,9 +603,20 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
                 </li>
               ))}
             </ul>
+            {editable && (
+              <AddButton
+                label={t("edit.add.education")}
+                onClick={() =>
+                  patch({
+                    education: [...data.education, { ...EMPTY_EDUCATION }],
+                  })
+                }
+              />
+            )}
           </section>
         )}
 
+        {/* Certificates */}
         {(data.certificates.length > 0 || editable) && (
           <section>
             <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
@@ -371,7 +625,22 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
             </h2>
             <ul className="mt-4 space-y-2">
               {data.certificates.map((c, i) => (
-                <li key={i} className="flex flex-wrap items-baseline justify-between gap-2">
+                <li
+                  key={i}
+                  className="group relative flex flex-wrap items-baseline justify-between gap-2 pe-7"
+                >
+                  {editable && (
+                    <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
+                      <RemoveButton
+                        label={t("edit.remove")}
+                        onClick={() => {
+                          const next = [...data.certificates];
+                          next.splice(i, 1);
+                          patch({ certificates: next });
+                        }}
+                      />
+                    </div>
+                  )}
                   <div>
                     <span className="text-sm font-semibold text-navy-900">
                       <Editable
@@ -385,9 +654,10 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
                         placeholder="Certificate name"
                       />
                     </span>
-                    {c.issuer && (
+                    {(c.issuer || editable) && (
                       <span className="ms-2 text-sm text-navy-400">
-                        · <Editable
+                        ·{" "}
+                        <Editable
                           value={c.issuer}
                           editable={editable}
                           onChange={(v) => {
@@ -415,21 +685,93 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
                 </li>
               ))}
             </ul>
+            {editable && (
+              <AddButton
+                label={t("edit.add.certificate")}
+                onClick={() =>
+                  patch({
+                    certificates: [
+                      ...data.certificates,
+                      { ...EMPTY_CERTIFICATE },
+                    ],
+                  })
+                }
+              />
+            )}
           </section>
         )}
 
-        {data.achievement && (
+        {/* Achievement */}
+        {(data.achievement || editable) && (
           <section>
-            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
-              <Trophy className="h-3.5 w-3.5" />
-              {t("cv.achievement")}
-            </h2>
-            <div className="mt-3 space-y-2 rounded-lg border border-teal/20 bg-teal/5 p-4 text-sm text-navy-600">
-              <StarRow label="S" text={data.achievement.situation} />
-              <StarRow label="T" text={data.achievement.task} />
-              <StarRow label="A" text={data.achievement.action} />
-              <StarRow label="R" text={data.achievement.result} />
+            <div className="flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
+                <Trophy className="h-3.5 w-3.5" />
+                {t("cv.achievement")}
+              </h2>
+              {editable && data.achievement && (
+                <RemoveButton
+                  label={t("edit.remove")}
+                  onClick={() => patch({ achievement: null })}
+                />
+              )}
             </div>
+
+            {data.achievement ? (
+              <div className="mt-3 space-y-2 rounded-lg border border-teal/20 bg-teal/5 p-4 text-sm text-navy-600">
+                <StarRow
+                  label="S"
+                  text={data.achievement.situation}
+                  editable={editable}
+                  onChange={(v) =>
+                    patch({
+                      achievement: { ...(data.achievement as CVAchievement), situation: v },
+                    })
+                  }
+                />
+                <StarRow
+                  label="T"
+                  text={data.achievement.task}
+                  editable={editable}
+                  onChange={(v) =>
+                    patch({
+                      achievement: { ...(data.achievement as CVAchievement), task: v },
+                    })
+                  }
+                />
+                <StarRow
+                  label="A"
+                  text={data.achievement.action}
+                  editable={editable}
+                  onChange={(v) =>
+                    patch({
+                      achievement: { ...(data.achievement as CVAchievement), action: v },
+                    })
+                  }
+                />
+                <StarRow
+                  label="R"
+                  text={data.achievement.result}
+                  editable={editable}
+                  onChange={(v) =>
+                    patch({
+                      achievement: { ...(data.achievement as CVAchievement), result: v },
+                    })
+                  }
+                />
+              </div>
+            ) : (
+              editable && (
+                <div className="mt-2">
+                  <AddButton
+                    label={t("edit.add.achievement")}
+                    onClick={() =>
+                      patch({ achievement: { ...EMPTY_ACHIEVEMENT } })
+                    }
+                  />
+                </div>
+              )
+            )}
           </section>
         )}
       </main>
@@ -437,14 +779,32 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
   );
 }
 
-function StarRow({ label, text }: { label: string; text: string }) {
-  if (!text) return null;
+function StarRow({
+  label,
+  text,
+  editable,
+  onChange,
+}: {
+  label: string;
+  text: string;
+  editable?: boolean;
+  onChange?: (next: string) => void;
+}) {
+  if (!text && !editable) return null;
   return (
     <div className="flex gap-2">
       <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-teal text-[10px] font-bold text-white">
         {label}
       </span>
-      <p className="leading-relaxed">{text}</p>
+      <p className="flex-1 leading-relaxed">
+        <Editable
+          value={text}
+          editable={editable}
+          multiline
+          onChange={onChange}
+          placeholder={`${label}…`}
+        />
+      </p>
     </div>
   );
 }
