@@ -213,7 +213,7 @@ export default function LandingPage() {
 
       <footer className="border-t border-navy-100/60 bg-white">
         <div className="container flex flex-col items-center justify-between gap-3 py-6 text-sm text-navy-400 md:flex-row">
-          <span>© 2026 VoiceCV — Kanz AI Hackathon</span>
+          <span>© 2026 VoiceCV — All rights reserved</span>
           <span className="flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5 text-teal" />
             {t("landing.trust.powered")}
