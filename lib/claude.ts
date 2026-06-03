@@ -17,6 +17,8 @@ function client() {
 
 const SYSTEM_PROMPT = `You are a professional CV writer specializing in the Saudi Arabian and Gulf job market, with deep knowledge of how to position blue-collar, technical, and skilled workers for employment.
 
+The candidate may have answered the voice questions in English, Arabic, or Urdu. You MUST write the final CV in **English** so recruiters worldwide can read it. Translate any Arabic / Urdu content into clear, professional English.
+
 Return ONLY a valid JSON object — no markdown fences, no prose, no explanation.
 
 JSON shape (every field is required; use empty string/array/null if not provided):
@@ -72,12 +74,13 @@ Mapping rules — the user has answered up to 9 questions identified by field_ke
 - achievement        → achievement (STAR object); if user skipped or said "no", return null
 
 Quality rules:
-- Write all natural-language content in {{LANGUAGE_NAME}}.
+- Write ALL natural-language content in **English**, regardless of the candidate's input language. Personal names, city names, and country names should be transliterated into Latin script (e.g. "أحمد" → "Ahmed", "ریاض" → "Riyadh").
 - Do NOT invent facts (companies, dates, qualifications). If information is missing OR the user skipped the question (empty answer), return empty string/array/null for those fields.
 - Make the objective compelling and specific to the role + market the candidate wants.
 - Normalize phone numbers to international format if obvious (e.g. +966).
 - For skills, prefer specific items ("Toyota forklift licence", "MIG welding", "Arabic + English speaking") over vague ones ("hardworking", "team player").
-- Experience descriptions MUST be newline-separated bullets, one achievement per line, no markers.`;
+- Experience descriptions MUST be newline-separated bullets, one achievement per line, no markers.
+- Languages section: if the candidate speaks Arabic / Urdu / Hindi natively, list them — that's a real CV asset, not a translation problem.`;
 
 export async function generateCV(
   qaPairs: QAPair[],
@@ -92,23 +95,19 @@ export async function generateCV(
     )
     .join("\n\n");
 
-  const userMessage = `Language: ${LANGUAGE_NAME[language]}
+  const userMessage = `The candidate answered the questions in: ${LANGUAGE_NAME[language]}.
+Write the CV in English — translate from ${LANGUAGE_NAME[language]} where needed.
 
 Questions and answers from the job seeker:
 
 ${qaBlock}
 
-Generate the structured CV JSON now.`;
-
-  const system = SYSTEM_PROMPT.replace(
-    "{{LANGUAGE_NAME}}",
-    LANGUAGE_NAME[language],
-  );
+Generate the structured CV JSON now (English).`;
 
   const response = await anthropic.messages.create({
     model: MODEL,
     max_tokens: 2500,
-    system,
+    system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userMessage }],
   });
 

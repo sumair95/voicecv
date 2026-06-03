@@ -12,7 +12,7 @@ import type { CVData, CVRecord } from "@/types/cv";
 import { EMPTY_CV, migrateCvData } from "@/types/cv";
 
 export default function CVDetailPage() {
-  const { t, lang } = useLanguage();
+  const { t } = useLanguage();
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const id = params.id;
@@ -161,7 +161,7 @@ export default function CVDetailPage() {
 
       <CVPreview
         cvData={cvData}
-        language={lang}
+        language="en"
         editable={editing}
         onChange={handleChange}
       />

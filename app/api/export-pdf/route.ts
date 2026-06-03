@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
 import { CVDocument } from "@/lib/pdf-generator";
-import type { CVRecord, Language, Profile } from "@/types/cv";
+import type { CVRecord, Language } from "@/types/cv";
 import { migrateCvData } from "@/types/cv";
 
 export const runtime = "nodejs";
@@ -21,22 +21,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "cvId required" }, { status: 400 });
     }
 
-    const [{ data: cvRow }, { data: profileRow }] = await Promise.all([
-      supabase.from("cvs").select("*").eq("id", cvId).eq("user_id", user.id).single(),
-      supabase.from("profiles").select("*").eq("id", user.id).single(),
-    ]);
+    const { data: cvRow } = await supabase
+      .from("cvs")
+      .select("*")
+      .eq("id", cvId)
+      .eq("user_id", user.id)
+      .single();
 
     if (!cvRow) {
       return NextResponse.json({ error: "CV not found" }, { status: 404 });
     }
 
     const cv = cvRow as CVRecord;
-    const profile = profileRow as Profile | null;
     if (!cv.cv_data) {
       return NextResponse.json({ error: "CV is not ready" }, { status: 409 });
     }
 
-    const language: Language = profile?.language ?? "en";
+    // The CV is always rendered in English for recruiter readability,
+    // regardless of the user's UI language.
+    const language: Language = "en";
 
     const buffer = await renderToBuffer(
       CVDocument({ cv: migrateCvData(cv.cv_data), language }),

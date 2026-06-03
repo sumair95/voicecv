@@ -24,7 +24,7 @@ import {
   FaInstagram,
   FaYoutube,
 } from "react-icons/fa";
-import { useLanguage } from "@/components/LanguageProvider";
+import { tr } from "@/lib/i18n";
 import type {
   CVAchievement,
   CVCertificateItem,
@@ -241,7 +241,12 @@ const EMPTY_ACHIEVEMENT: CVAchievement = {
 };
 
 export function CVPreview({ cvData, language, editable, onChange }: Props) {
-  const { t } = useLanguage();
+  // The CV preview always uses the *passed* language for all of its labels,
+  // not the user's UI language. The CV view page passes "en" so the CV
+  // always renders in English (for recruiter readability), independent of
+  // whatever language the user chose for the app menus.
+  const t = (key: string, vars?: Record<string, string | number>) =>
+    tr(key, language, vars);
   const [data, setData] = useState<CVData>(() => migrateCvData(cvData));
 
   useEffect(() => {
