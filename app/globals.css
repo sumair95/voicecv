@@ -76,17 +76,18 @@
   }
 }
 
-/* Empty-state placeholder for inline editable spans */
-[contenteditable="true"][data-placeholder]:empty::before {
-  content: attr(data-placeholder);
-  color: currentColor;
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-/* Make the blinking text-cursor obviously teal so editors can see where they're typing */
-[contenteditable="true"] {
+/* Inline form inputs that inherit the surrounding text style */
+.cv-input {
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  direction: inherit;
   caret-color: #14B8A6;
+}
+.cv-input::placeholder {
+  color: inherit;
+  opacity: 0.4;
+  font-style: italic;
 }
 
 @media print {

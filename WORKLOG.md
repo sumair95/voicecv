@@ -127,6 +127,18 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - Top of CV view in edit mode shows a teal info banner: *"Edit mode — click any field to change it, or use the + buttons to add more."*
 - Reinforces that **existing content stays visible and editable** (it always was, but the visual signal was weak). Banner is `no-print` so it doesn't appear in the PDF.
 
+### Editable rewrite — switch contentEditable → real `<input>`/`<textarea>`
+- Symptom Sumair reported: when editing skills / languages / hobbies / contact / education / certificates, the existing value appeared to "hide", whereas work experience stayed visible.
+- Root cause: the previous `Editable` rendered `<span contentEditable>` whose innerText was populated by `useEffect`. On mount or re-render, there was a brief moment the span was empty and the placeholder showed; for short chip-style fields this looked like content was being wiped. Also any layout reflow could make a 2-character min-width chip vanish.
+- Fix: `Editable` now renders a real `<input>` (or `<textarea>` if `multiline`). The value is a controlled prop on the element, so the current text is *always* present in the DOM the moment the field renders — no timing race, no empty flash.
+- Inherited typography via a small `.cv-input` utility (`font: inherit; color: inherit; text-align: inherit; direction: inherit;`) so the input still looks like the surrounding heading / paragraph.
+- Visual affordance: dashed border in the current text colour by default; teal hover/focus highlight; solid teal border + ring + bolder font on focus.
+- Side benefits:
+  - Saves trigger on each keystroke (debounced 1s upstream), instead of only on blur.
+  - RTL works for free because the input inherits `direction` from its container.
+  - Native HTML `placeholder` attribute, no CSS pseudo-element trickery.
+- Also stopped auto-removing skills/hobbies when the value goes empty mid-edit (otherwise the input would disappear while you're typing). Empty rows are filtered from the *display* view but kept for the editor; the X button is the only way to delete.
+
 ### Verified — every section preserves existing content in edit mode
 - Personal info: editable in place.
 - Contact (email, phone): editable in place; empty rows still visible.

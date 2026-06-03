@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Mail,
   Phone,
@@ -58,43 +58,47 @@ function Editable({
   multiline?: boolean;
   placeholder?: string;
 }) {
-  const ref = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    if (ref.current && ref.current.innerText !== value) {
-      ref.current.innerText = value;
-    }
-  }, [value]);
-
   if (!editable) {
     return <span className={className}>{value || placeholder}</span>;
   }
+
+  // Real <input>/<textarea> so the existing value is ALWAYS visible
+  // in the value attribute and there's no contentEditable timing race.
+  const base =
+    "cv-input rounded transition outline-none px-1.5 py-0.5 " +
+    "border border-dashed border-current/40 bg-current/5 " +
+    "hover:bg-teal/15 hover:border-teal/70 " +
+    "focus:bg-teal/20 focus:border-solid focus:border-teal focus:ring-2 focus:ring-teal/60 focus:font-semibold";
+
+  if (multiline) {
+    return (
+      <textarea
+        value={value || ""}
+        onChange={(e) => onChange?.(e.target.value)}
+        placeholder={placeholder}
+        rows={3}
+        spellCheck={false}
+        className={[
+          base,
+          "block w-full resize-y min-h-[72px]",
+          className ?? "",
+        ].join(" ")}
+      />
+    );
+  }
+
   return (
-    <span
-      ref={ref}
-      contentEditable
-      suppressContentEditableWarning
-      role="textbox"
-      data-placeholder={placeholder}
+    <input
+      type="text"
+      value={value || ""}
+      onChange={(e) => onChange?.(e.target.value)}
+      placeholder={placeholder}
       spellCheck={false}
       className={[
-        // base
-        "inline-block min-w-[2ch] cursor-text rounded px-1 -mx-0.5 outline-none transition",
-        // hint that this is editable: subtle dotted underline that uses the text color
-        "underline decoration-dotted decoration-current/30 underline-offset-[3px]",
-        // hover
-        "hover:bg-teal/15 hover:decoration-teal/70",
-        // focused: clear box + ring + bolder text + solid teal underline
-        "focus:bg-teal/20 focus:ring-2 focus:ring-teal focus:decoration-teal focus:decoration-solid focus:font-semibold",
+        base,
+        "inline-block w-auto min-w-[80px] max-w-full",
         className ?? "",
       ].join(" ")}
-      onBlur={(e) =>
-        onChange?.(
-          multiline
-            ? e.currentTarget.innerText
-            : e.currentTarget.innerText.replace(/\s+/g, " ").trim(),
-        )
-      }
     />
   );
 }
@@ -297,39 +301,38 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
         {(data.skills.length > 0 || editable) && (
           <Section title={t("cv.skills")} dark>
             <div className="flex flex-wrap gap-1.5">
-              {data.skills.map((skill, i) => (
-                <div
-                  key={i}
-                  className="inline-flex items-center gap-1 rounded-md bg-teal/20 px-2 py-0.5"
-                >
-                  <Editable
-                    value={skill}
-                    editable={editable}
-                    placeholder={t("edit.placeholder.skill")}
-                    onChange={(v) => {
-                      const next = [...data.skills];
-                      if (!v) {
-                        next.splice(i, 1);
-                      } else {
-                        next[i] = v;
-                      }
-                      patch({ skills: next });
-                    }}
-                    className="text-xs text-teal-100"
-                  />
-                  {editable && (
-                    <RemoveButton
-                      dark
-                      label={t("edit.remove")}
-                      onClick={() => {
+              {data.skills.map((skill, i) => {
+                if (!editable && !skill.trim()) return null;
+                return (
+                  <div
+                    key={i}
+                    className="inline-flex items-center gap-1 rounded-md bg-teal/20 px-2 py-0.5"
+                  >
+                    <Editable
+                      value={skill}
+                      editable={editable}
+                      placeholder={t("edit.placeholder.skill")}
+                      onChange={(v) => {
                         const next = [...data.skills];
-                        next.splice(i, 1);
+                        next[i] = v;
                         patch({ skills: next });
                       }}
+                      className="text-xs text-teal-100"
                     />
-                  )}
-                </div>
-              ))}
+                    {editable && (
+                      <RemoveButton
+                        dark
+                        label={t("edit.remove")}
+                        onClick={() => {
+                          const next = [...data.skills];
+                          next.splice(i, 1);
+                          patch({ skills: next });
+                        }}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
             {editable && (
               <AddButton
@@ -345,7 +348,9 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
         {(data.languages.length > 0 || editable) && (
           <Section title={t("cv.languages")} dark>
             <ul className="space-y-1.5 text-sm text-white/90">
-              {data.languages.map((lng, i) => (
+              {data.languages.map((lng, i) => {
+                if (!editable && !lng.name.trim()) return null;
+                return (
                 <li key={i} className="flex items-center gap-2">
                   <Editable
                     value={lng.name}
@@ -396,7 +401,8 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
                     />
                   )}
                 </li>
-              ))}
+                );
+              })}
             </ul>
             {editable && (
               <AddButton
@@ -414,39 +420,38 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
         {(data.hobbies.length > 0 || editable) && (
           <Section title={t("cv.hobbies")} dark>
             <div className="flex flex-wrap gap-1.5">
-              {data.hobbies.map((h, i) => (
-                <div
-                  key={i}
-                  className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-0.5"
-                >
-                  <Editable
-                    value={h}
-                    editable={editable}
-                    placeholder={t("edit.placeholder.hobby")}
-                    onChange={(v) => {
-                      const next = [...data.hobbies];
-                      if (!v) {
-                        next.splice(i, 1);
-                      } else {
-                        next[i] = v;
-                      }
-                      patch({ hobbies: next });
-                    }}
-                    className="text-xs text-white/90"
-                  />
-                  {editable && (
-                    <RemoveButton
-                      dark
-                      label={t("edit.remove")}
-                      onClick={() => {
+              {data.hobbies.map((h, i) => {
+                if (!editable && !h.trim()) return null;
+                return (
+                  <div
+                    key={i}
+                    className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-0.5"
+                  >
+                    <Editable
+                      value={h}
+                      editable={editable}
+                      placeholder={t("edit.placeholder.hobby")}
+                      onChange={(v) => {
                         const next = [...data.hobbies];
-                        next.splice(i, 1);
+                        next[i] = v;
                         patch({ hobbies: next });
                       }}
+                      className="text-xs text-white/90"
                     />
-                  )}
-                </div>
-              ))}
+                    {editable && (
+                      <RemoveButton
+                        dark
+                        label={t("edit.remove")}
+                        onClick={() => {
+                          const next = [...data.hobbies];
+                          next.splice(i, 1);
+                          patch({ hobbies: next });
+                        }}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
             {editable && (
               <AddButton
