@@ -22,6 +22,9 @@ Highlights:
 - 2026-06-03: DB migration `004_q1_city_country.sql` updates Q1 in EN/AR/UR to ask for both city and country.
 - 2026-06-03: `react-icons` dependency for brand icons (lucide v1.x dropped branded icons).
 - 2026-06-03: Claude prompt extended to extract `country` and `socials` from the user's answer when mentioned.
+- 2026-06-03: **Security** — 3-minute idle auto-logout on all authenticated pages (dashboard / record / cv view). `hooks/useInactivityLogout.ts` listens for activity events; on expiry signs the user out and redirects to /login with a toast.
+- 2026-06-03: Education + Certificates rendered with the same teal timeline bullet style as Work Experience, in both the preview and the PDF.
+- 2026-06-03: Combined the "City" and "Country" edit fields into one input in edit mode. Splits on the first comma. Removes the extra-empty-Country box that appeared on older CVs.
 
 ### Added
 - 2026-05-30: Initial Next.js 14 scaffold with TypeScript, Tailwind, App Router.

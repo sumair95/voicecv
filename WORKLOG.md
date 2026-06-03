@@ -139,6 +139,30 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - `supabase/migrations/004_q1_city_country.sql` (new) + `supabase/schema.sql` Q1 seeds updated.
 - Installed `react-icons@^5`.
 
+## 2026-06-03 (later still) — Security + readability pass
+
+### 3-minute idle auto-logout
+- New `hooks/useInactivityLogout.ts`. Sets a 3-minute timer; listens for mousemove / mousedown / keydown / scroll / touchstart / click events to reset it. On expiry → `supabase.auth.signOut()` → `router.push('/login')` → red toast "Signed out due to inactivity".
+- Mounted in `app/(dashboard)/layout.tsx`. Active everywhere a session matters (`/dashboard`, `/record`, `/cv/*`, `/onboarding`); not active on landing / auth pages.
+- Guarded with a `fired` ref so the logout call can't fire twice in a flap.
+- Timer is cancelled on unmount; events are removed.
+
+### Education + Certificates as bullet timeline
+- Mirrored the existing experience timeline pattern. Both sections now have `border-s border-navy-100 ps-6` with `h-3 w-3 rounded-full border-2 border-teal bg-white` markers at each item.
+- "+ Add" buttons aligned to `ps-6` so they sit under the column.
+- PDF: each education + certificate row now starts with a teal `•` (`timelineDot` style) followed by the existing content on the right. Page layout unchanged; bullets sit in their own column.
+
+### Combined City + Country edit field
+- The previous design had two separate inputs separated by a literal comma. On any old CV where `country` was an empty migration-backfilled value, that empty box looked like an extra field.
+- Now in edit mode the location shows ONE input pre-filled with `"City, Country"` (or just `"City"` or just `"Country"` if only one is set). On change we split on the first comma → `personal.city` + `personal.country`.
+- Display mode unchanged — still uses `[city, country].filter(Boolean).join(", ")` so empty parts never render.
+
+### Files touched
+- `hooks/useInactivityLogout.ts` (new)
+- `app/(dashboard)/layout.tsx`
+- `components/CVPreview.tsx`
+- `lib/pdf-generator.tsx`
+
 ## 🏷️ MILESTONE — v0.1.0-editor-stable (commit bdaa5fa, 2026-06-03)
 Sumair confirmed the editor is "perfect" and asked to lock the changes.
 Tagged on GitHub: https://github.com/sumair95/voicecv/releases/tag/v0.1.0-editor-stable

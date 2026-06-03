@@ -282,25 +282,22 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
             <div className="flex flex-wrap items-center justify-center gap-1.5 text-sm text-white/80">
               <MapPin className="h-3.5 w-3.5 shrink-0" />
               {editable ? (
-                <>
-                  <Editable
-                    value={data.personal.city}
-                    editable
-                    onChange={(v) =>
-                      patch({ personal: { ...data.personal, city: v } })
-                    }
-                    placeholder={t("edit.placeholder.city")}
-                  />
-                  <span className="opacity-60">,</span>
-                  <Editable
-                    value={data.personal.country}
-                    editable
-                    onChange={(v) =>
-                      patch({ personal: { ...data.personal, country: v } })
-                    }
-                    placeholder={t("edit.placeholder.country")}
-                  />
-                </>
+                <Editable
+                  value={[data.personal.city, data.personal.country]
+                    .filter(Boolean)
+                    .join(", ")}
+                  editable
+                  placeholder={`${t("edit.placeholder.city")}, ${t("edit.placeholder.country")}`}
+                  onChange={(v) => {
+                    const trimmed = v.trim();
+                    const idx = trimmed.indexOf(",");
+                    const city = idx >= 0 ? trimmed.slice(0, idx).trim() : trimmed;
+                    const country = idx >= 0 ? trimmed.slice(idx + 1).trim() : "";
+                    patch({
+                      personal: { ...data.personal, city, country },
+                    });
+                  }}
+                />
               ) : (
                 <span>
                   {[data.personal.city, data.personal.country]
@@ -705,9 +702,10 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
               <GraduationCap className="h-3.5 w-3.5" />
               {t("cv.education")}
             </h2>
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-4 space-y-4 border-s border-navy-100 ps-6">
               {data.education.map((edu, i) => (
                 <li key={i} className="group relative pe-7">
+                  <span className="absolute -start-[28px] top-1.5 h-3 w-3 rounded-full border-2 border-teal bg-white" />
                   {editable && (
                     <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
                       <RemoveButton
@@ -762,14 +760,16 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
               ))}
             </ul>
             {editable && (
-              <AddButton
-                label={t("edit.add.education")}
-                onClick={() =>
-                  patch({
-                    education: [...data.education, { ...EMPTY_EDUCATION }],
-                  })
-                }
-              />
+              <div className="mt-3 ps-6">
+                <AddButton
+                  label={t("edit.add.education")}
+                  onClick={() =>
+                    patch({
+                      education: [...data.education, { ...EMPTY_EDUCATION }],
+                    })
+                  }
+                />
+              </div>
             )}
           </section>
         )}
@@ -781,12 +781,13 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
               <Award className="h-3.5 w-3.5" />
               {t("cv.certificates")}
             </h2>
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-4 space-y-3 border-s border-navy-100 ps-6">
               {data.certificates.map((c, i) => (
                 <li
                   key={i}
                   className="group relative flex flex-wrap items-baseline justify-between gap-2 pe-7"
                 >
+                  <span className="absolute -start-[28px] top-1.5 h-3 w-3 rounded-full border-2 border-teal bg-white" />
                   {editable && (
                     <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
                       <RemoveButton
@@ -844,17 +845,19 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
               ))}
             </ul>
             {editable && (
-              <AddButton
-                label={t("edit.add.certificate")}
-                onClick={() =>
-                  patch({
-                    certificates: [
-                      ...data.certificates,
-                      { ...EMPTY_CERTIFICATE },
-                    ],
-                  })
-                }
-              />
+              <div className="mt-3 ps-6">
+                <AddButton
+                  label={t("edit.add.certificate")}
+                  onClick={() =>
+                    patch({
+                      certificates: [
+                        ...data.certificates,
+                        { ...EMPTY_CERTIFICATE },
+                      ],
+                    })
+                  }
+                />
+              </div>
             )}
           </section>
         )}

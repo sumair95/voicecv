@@ -185,9 +185,14 @@ function styles(fontFamily: string) {
     bulletRow: { flexDirection: "row", marginTop: 3 },
     bulletDot: { width: 8, fontSize: 10, color: TEAL, lineHeight: 1.4 },
     bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
-    educationItem: { marginBottom: 8 },
+    educationItem: { marginBottom: 8, flexDirection: "row" },
+    educationLeft: { flexDirection: "row", flex: 1 },
+    educationContent: { flex: 1 },
     educationDegree: { fontSize: 11, fontWeight: 700, color: NAVY },
     educationInstitution: { fontSize: 10, color: "#334155" },
+    timelineDot: {
+      width: 8, fontSize: 10, color: TEAL, lineHeight: 1.4, marginRight: 6,
+    },
     certName: { fontSize: 10, fontWeight: 700, color: NAVY },
     certIssuer: { fontSize: 10, color: MUTED },
     rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
@@ -363,11 +368,14 @@ export function CVDocument({
               <Text style={s.sectionTitle}>{L.education}</Text>
               {cv.education.map((edu, i) => (
                 <View key={i} style={s.educationItem}>
-                  <View style={s.rowBetween}>
-                    <Text style={s.educationDegree}>{edu.degree}</Text>
-                    <Text style={s.duration}>{edu.year}</Text>
+                  <Text style={s.timelineDot}>•</Text>
+                  <View style={s.educationContent}>
+                    <View style={s.rowBetween}>
+                      <Text style={s.educationDegree}>{edu.degree}</Text>
+                      <Text style={s.duration}>{edu.year}</Text>
+                    </View>
+                    <Text style={s.educationInstitution}>{edu.institution}</Text>
                   </View>
-                  <Text style={s.educationInstitution}>{edu.institution}</Text>
                 </View>
               ))}
             </>
@@ -377,13 +385,16 @@ export function CVDocument({
             <>
               <Text style={s.sectionTitle}>{L.certificates}</Text>
               {cv.certificates.map((c, i) => (
-                <View key={i} style={s.experienceItem}>
-                  <View style={s.rowBetween}>
-                    <Text style={s.certName}>
-                      {c.name}
-                      {c.issuer ? <Text style={s.certIssuer}> · {c.issuer}</Text> : null}
-                    </Text>
-                    <Text style={s.duration}>{c.year}</Text>
+                <View key={i} style={s.educationItem}>
+                  <Text style={s.timelineDot}>•</Text>
+                  <View style={s.educationContent}>
+                    <View style={s.rowBetween}>
+                      <Text style={s.certName}>
+                        {c.name}
+                        {c.issuer ? <Text style={s.certIssuer}> · {c.issuer}</Text> : null}
+                      </Text>
+                      <Text style={s.duration}>{c.year}</Text>
+                    </View>
                   </View>
                 </View>
               ))}
