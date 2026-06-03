@@ -174,13 +174,13 @@ function AddButton({
     <button
       type="button"
       onClick={onClick}
-      className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition ${
+      className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition ${
         dark
-          ? "border border-dashed border-white/30 text-white/70 hover:border-teal hover:text-teal-100"
-          : "border border-dashed border-navy-100 text-navy-400 hover:border-teal hover:text-teal-700"
+          ? "border border-dashed border-teal/60 bg-teal/10 text-teal-100 hover:bg-teal/25 hover:border-teal"
+          : "border border-dashed border-teal/50 bg-teal/5 text-teal-700 hover:bg-teal/15 hover:border-teal"
       }`}
     >
-      <Plus className="h-3 w-3" />
+      <Plus className="h-4 w-4" />
       {label}
     </button>
   );
