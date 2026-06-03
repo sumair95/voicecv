@@ -63,12 +63,13 @@ function Editable({
   }
 
   // Real <input>/<textarea> so the existing value is ALWAYS visible
-  // in the value attribute and there's no contentEditable timing race.
+  // in the value attribute. .cv-input forces transparent bg + inherited
+  // typography; teal dashed border works on both light and dark backgrounds.
   const base =
-    "cv-input rounded transition outline-none px-1.5 py-0.5 " +
-    "border border-dashed border-current/40 bg-current/5 " +
-    "hover:bg-teal/15 hover:border-teal/70 " +
-    "focus:bg-teal/20 focus:border-solid focus:border-teal focus:ring-2 focus:ring-teal/60 focus:font-semibold";
+    "cv-input rounded transition outline-none px-1 py-0.5 " +
+    "border border-dashed border-teal/50 " +
+    "hover:bg-teal/10 hover:border-teal " +
+    "focus:bg-teal/15 focus:border-solid focus:border-teal focus:ring-2 focus:ring-teal/50 focus:font-semibold";
 
   if (multiline) {
     return (
@@ -80,7 +81,7 @@ function Editable({
         spellCheck={false}
         className={[
           base,
-          "block w-full resize-y min-h-[72px]",
+          "block w-full resize-y min-h-[60px]",
           className ?? "",
         ].join(" ")}
       />
@@ -96,7 +97,7 @@ function Editable({
       spellCheck={false}
       className={[
         base,
-        "inline-block w-auto min-w-[80px] max-w-full",
+        "inline-block w-auto min-w-[60px] max-w-full",
         className ?? "",
       ].join(" ")}
     />

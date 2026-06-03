@@ -82,7 +82,10 @@
   color: inherit;
   text-align: inherit;
   direction: inherit;
+  background-color: transparent;
   caret-color: #14B8A6;
+  -webkit-appearance: none;
+  appearance: none;
 }
 .cv-input::placeholder {
   color: inherit;
