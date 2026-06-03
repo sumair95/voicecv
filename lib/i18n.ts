@@ -135,14 +135,14 @@ export const t: Dict = {
     ur: "DevVibe AI کا تیار کردہ",
   },
   "landing.trust.vision": {
-    en: "Built for Saudi Vision 2030",
-    ar: "مبني لرؤية السعودية 2030",
-    ur: "سعودی وژن 2030 کے لیے بنایا گیا",
+    en: "Speak your future",
+    ar: "تحدّث عن مستقبلك",
+    ur: "اپنے مستقبل کی بات کریں",
   },
   "landing.trust.nocode": {
-    en: "No coding required",
-    ar: "لا تحتاج برمجة",
-    ur: "کوڈنگ کی ضرورت نہیں",
+    en: "Built without barriers",
+    ar: "بلا حدود وبلا حواجز",
+    ur: "بغیر کسی رکاوٹ کے",
   },
 
   // Auth
