@@ -68,10 +68,18 @@ export default function RecordPage() {
   }
 
   function handleAnswer(_audio: Blob, transcript: string) {
+    advance(transcript);
+  }
+
+  function handleSkip() {
+    advance("");
+  }
+
+  function advance(answer: string) {
     const q = questions[currentIndex];
     const next: QAPair = {
       question: q.question_text,
-      answer: transcript,
+      answer,
       field_key: q.field_key,
     };
     const updated = [...answers, next];
@@ -192,6 +200,7 @@ export default function RecordPage() {
               questionNumber={currentIndex + 1}
               totalQuestions={questions.length}
               onComplete={handleAnswer}
+              onSkip={handleSkip}
             />
           </motion.div>
         )}

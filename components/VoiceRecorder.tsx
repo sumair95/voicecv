@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Mic, Square, RotateCcw, Check, AlertCircle, Loader2 } from "lucide-react";
+import { Mic, Square, RotateCcw, Check, AlertCircle, Loader2, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/components/LanguageProvider";
@@ -23,6 +23,7 @@ interface Props {
   questionNumber: number;
   totalQuestions: number;
   onComplete: (audioBlob: Blob, transcript: string) => void;
+  onSkip?: () => void;
 }
 
 export function VoiceRecorder({
@@ -30,6 +31,7 @@ export function VoiceRecorder({
   questionNumber,
   totalQuestions,
   onComplete,
+  onSkip,
 }: Props) {
   const { t, lang } = useLanguage();
 
@@ -243,6 +245,17 @@ export function VoiceRecorder({
             <div className="font-mono text-lg tabular-nums text-navy-900">
               {mm}:{ss}
             </div>
+          )}
+
+          {state === "idle" && onSkip && (
+            <button
+              type="button"
+              onClick={onSkip}
+              className="inline-flex items-center gap-1.5 text-sm text-navy-400 underline-offset-4 transition hover:text-teal-700 hover:underline"
+            >
+              <SkipForward className="h-4 w-4" />
+              {t("rec.skip")}
+            </button>
           )}
 
           {state === "recorded" && (

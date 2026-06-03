@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Pencil, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Download, Pencil, Check, Loader2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CVPreview } from "@/components/CVPreview";
 import { useLanguage } from "@/components/LanguageProvider";
@@ -151,6 +151,13 @@ export default function CVDetailPage() {
           </Button>
         </div>
       </div>
+
+      {editing && (
+        <div className="no-print flex items-start gap-2 rounded-xl border border-teal/30 bg-teal/5 px-4 py-3 text-sm text-teal-700">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{t("edit.banner")}</span>
+        </div>
+      )}
 
       <CVPreview
         cvData={cvData}

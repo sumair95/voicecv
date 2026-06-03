@@ -99,6 +99,25 @@ function Editable({
   );
 }
 
+function descriptionBullets(text: string): string[] {
+  return text
+    .split(/\r?\n+/)
+    .map((line) => line.replace(/^\s*[-•*·–—]\s*/, "").trim())
+    .filter((line) => line.length > 0);
+}
+
+function BulletList({ text }: { text: string }) {
+  const items = descriptionBullets(text);
+  if (items.length === 0) return null;
+  return (
+    <ul className="ms-5 mt-2 list-disc space-y-1 text-sm leading-relaxed text-navy-600 marker:text-teal">
+      {items.map((line, i) => (
+        <li key={i}>{line}</li>
+      ))}
+    </ul>
+  );
+}
+
 function RemoveButton({
   onClick,
   label,
@@ -521,19 +540,28 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
                       placeholder="Company"
                     />
                   </div>
-                  <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-navy-600">
-                    <Editable
-                      value={exp.description}
-                      editable={editable}
-                      multiline
-                      onChange={(v) => {
-                        const next = [...data.experience];
-                        next[i] = { ...next[i], description: v };
-                        patch({ experience: next });
-                      }}
-                      placeholder="Description"
-                    />
-                  </p>
+                  {editable ? (
+                    <div className="mt-2">
+                      <p className="whitespace-pre-line text-sm leading-relaxed text-navy-600">
+                        <Editable
+                          value={exp.description}
+                          editable
+                          multiline
+                          onChange={(v) => {
+                            const next = [...data.experience];
+                            next[i] = { ...next[i], description: v };
+                            patch({ experience: next });
+                          }}
+                          placeholder={t("edit.hint.bullets")}
+                        />
+                      </p>
+                      <p className="mt-1 text-xs italic text-navy-400">
+                        {t("edit.hint.bullets")}
+                      </p>
+                    </div>
+                  ) : (
+                    <BulletList text={exp.description} />
+                  )}
                 </li>
               ))}
             </ol>

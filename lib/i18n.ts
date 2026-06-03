@@ -377,6 +377,16 @@ export const t: Dict = {
   "edit.placeholder.skill": { en: "e.g. forklift driving", ar: "مثال: قيادة الرافعة", ur: "مثال: فورک لفٹ چلانا" },
   "edit.placeholder.hobby": { en: "e.g. reading", ar: "مثال: القراءة", ur: "مثال: مطالعہ" },
   "edit.placeholder.langName": { en: "Language", ar: "اللغة", ur: "زبان" },
+  "edit.hint.bullets": {
+    en: "Tip: put each bullet on its own line.",
+    ar: "نصيحة: ضع كل نقطة في سطر منفصل.",
+    ur: "تجویز: ہر نکتہ الگ سطر میں لکھیں۔",
+  },
+  "edit.banner": {
+    en: "Edit mode — click any field to change it, or use the + buttons to add more.",
+    ar: "وضع التعديل — انقر على أي حقل لتغييره، أو استخدم زر + لإضافة المزيد.",
+    ur: "ایڈٹ موڈ — کسی بھی فیلڈ پر کلک کر کے تبدیل کریں، یا + بٹن سے مزید شامل کریں۔",
+  },
 };
 
 export function tr(

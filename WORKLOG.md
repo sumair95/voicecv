@@ -110,6 +110,31 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - `tsc --noEmit` clean.
 - `next build` succeeds: 14 routes, build size grew ~30KB (extra fonts).
 
+## 2026-06-03 — Day 3: Skip questions + bullet experience + edit-mode banner
+
+### Skip question
+- `components/VoiceRecorder.tsx` accepts a new `onSkip?` prop. When in idle state, a small "Skip this question" link appears below the big record button.
+- `app/(dashboard)/record/page.tsx` handles skip by recording an empty answer for that QA pair and advancing to the next question. Claude prompt already treats empty answers as "do not invent" so the corresponding CV section stays empty.
+- Added i18n `rec.skip` (was already in place from Day 2) — wired now.
+
+### Bullet point experience descriptions
+- `lib/claude.ts`: updated system prompt — experience `description` must be newline-separated bullets, no markers; each starts with an action verb.
+- `components/CVPreview.tsx`: new `BulletList` helper splits on `\n` (and strips any stray `-•*·–—` markers) and renders `<ul class="list-disc marker:text-teal">`.
+- Display mode → bullets. Edit mode → keeps multiline contentEditable + adds an italic hint "Tip: put each bullet on its own line" so the user knows the editing convention.
+- `lib/pdf-generator.tsx`: matching `bulletsFrom()` helper + `bulletRow / bulletDot / bulletText` styles render bullet rows in the PDF as well.
+
+### Edit-mode banner
+- Top of CV view in edit mode shows a teal info banner: *"Edit mode — click any field to change it, or use the + buttons to add more."*
+- Reinforces that **existing content stays visible and editable** (it always was, but the visual signal was weak). Banner is `no-print` so it doesn't appear in the PDF.
+
+### Verified — every section preserves existing content in edit mode
+- Personal info: editable in place.
+- Contact (email, phone): editable in place; empty rows still visible.
+- Objective: editable in place with new placeholder visible when empty.
+- Experience / Education / Certificates: each item stays fully editable in place; "+ Add" button at section end.
+- Skills / Languages / Hobbies: each chip/row stays editable inline; X button per item; "+ Add" button at end.
+- Achievement (STAR): if present, all 4 fields editable; if missing, "+ Add" surfaces.
+
 ### Edit-mode visual affordance
 - Problem: contact info + objective were already editable, but it looked like static text — no visual cue that you could click into them.
 - Fix in `components/CVPreview.tsx` (`Editable` component) + `app/globals.css`:

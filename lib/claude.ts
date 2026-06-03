@@ -34,7 +34,7 @@ JSON shape (every field is required; use empty string/array/null if not provided
       "company": "string",
       "role": "string",
       "duration": "string (e.g. '2 years' or 'Jan 2022 - Present')",
-      "description": "2-3 short bullet-style sentences describing responsibilities and achievements. Use \\n for line breaks if listing multiple."
+      "description": "3-4 SHORT achievement bullets. ONE bullet per LINE, separated by \\n. Do NOT include bullet markers (-, •, *) — the renderer adds them. Start each line with an action verb (e.g. 'Operated…', 'Led…', 'Delivered…')."
     }
   ],
   "education": [
@@ -69,10 +69,11 @@ Mapping rules — the user has answered up to 9 questions identified by field_ke
 
 Quality rules:
 - Write all natural-language content in {{LANGUAGE_NAME}}.
-- Do NOT invent facts (companies, dates, qualifications). If information is missing, return empty string/array/null.
+- Do NOT invent facts (companies, dates, qualifications). If information is missing OR the user skipped the question (empty answer), return empty string/array/null for those fields.
 - Make the objective compelling and specific to the role + market the candidate wants.
 - Normalize phone numbers to international format if obvious (e.g. +966).
-- For skills, prefer specific items ("Toyota forklift licence", "MIG welding", "Arabic + English speaking") over vague ones ("hardworking", "team player").`;
+- For skills, prefer specific items ("Toyota forklift licence", "MIG welding", "Arabic + English speaking") over vague ones ("hardworking", "team player").
+- Experience descriptions MUST be newline-separated bullets, one achievement per line, no markers.`;
 
 export async function generateCV(
   qaPairs: QAPair[],

@@ -182,6 +182,9 @@ function styles(fontFamily: string) {
     company: { fontSize: 10, fontWeight: 600, color: "#0F766E", marginTop: 2 },
     duration: { fontSize: 9, color: MUTED },
     description: { fontSize: 10, color: "#334155", marginTop: 4, lineHeight: 1.4 },
+    bulletRow: { flexDirection: "row", marginTop: 3 },
+    bulletDot: { width: 8, fontSize: 10, color: TEAL, lineHeight: 1.4 },
+    bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
     educationItem: { marginBottom: 8 },
     educationDegree: { fontSize: 11, fontWeight: 700, color: NAVY },
     educationInstitution: { fontSize: 10, color: "#334155" },
@@ -212,6 +215,13 @@ function styles(fontFamily: string) {
     },
     starText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
   });
+}
+
+function bulletsFrom(text: string): string[] {
+  return text
+    .split(/\r?\n+/)
+    .map((line) => line.replace(/^\s*[-•*·–—]\s*/, "").trim())
+    .filter((line) => line.length > 0);
 }
 
 function initials(name: string) {
@@ -319,9 +329,12 @@ export function CVDocument({
                     <Text style={s.duration}>{exp.duration}</Text>
                   </View>
                   <Text style={s.company}>{exp.company}</Text>
-                  {exp.description ? (
-                    <Text style={s.description}>{exp.description}</Text>
-                  ) : null}
+                  {bulletsFrom(exp.description).map((line, bi) => (
+                    <View key={bi} style={s.bulletRow}>
+                      <Text style={s.bulletDot}>•</Text>
+                      <Text style={s.bulletText}>{line}</Text>
+                    </View>
+                  ))}
                 </View>
               ))}
             </>
