@@ -134,6 +134,11 @@ export const t: Dict = {
     ar: "من تطوير DevVibe AI",
     ur: "DevVibe AI کا تیار کردہ",
   },
+  "landing.samples.caption": {
+    en: "Real CVs, ready in minutes",
+    ar: "سير ذاتية حقيقية، جاهزة خلال دقائق",
+    ur: "حقیقی CVs، چند منٹوں میں تیار",
+  },
   "landing.trust.vision": {
     en: "Speak your future",
     ar: "تحدّث عن مستقبلك",

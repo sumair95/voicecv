@@ -8,6 +8,42 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { useLanguage } from "@/components/LanguageProvider";
 
+function SampleCVs({ caption }: { caption: string }) {
+  // Three tiny decorative "CV" cards fanned out — fills the empty space
+  // above the hero tagline and hints at the variety of CVs the app can
+  // produce. Pure CSS, no real data.
+  const cards = [
+    { rotate: "-rotate-[8deg]", header: "bg-navy-900", accent: "bg-teal" },
+    { rotate: "rotate-[1deg]", header: "bg-teal", accent: "bg-navy-900" },
+    { rotate: "rotate-[10deg]", header: "bg-navy-900", accent: "bg-teal-400" },
+  ];
+  return (
+    <div className="mb-2 flex items-center gap-4">
+      <div className="flex -space-x-3">
+        {cards.map((c, i) => (
+          <div
+            key={i}
+            className={`relative h-20 w-14 shrink-0 overflow-hidden rounded-md bg-white shadow-md ring-1 ring-navy-100 transition hover:z-10 hover:-translate-y-1 hover:rotate-0 ${c.rotate}`}
+            style={{ zIndex: 5 - i }}
+            aria-hidden
+          >
+            <div className={`h-4 w-full ${c.header}`} />
+            <div className="space-y-1 p-1.5">
+              <div className="h-1 w-2/3 rounded-full bg-navy-100" />
+              <div className="h-1 w-3/4 rounded-full bg-navy-100" />
+              <div className={`h-1 w-1/2 rounded-full ${c.accent}`} />
+              <div className="h-1 w-2/3 rounded-full bg-navy-100" />
+              <div className="h-1 w-3/5 rounded-full bg-navy-100" />
+              <div className={`h-1 w-2/5 rounded-full ${c.accent}`} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <span className="text-xs font-medium text-navy-400">{caption}</span>
+    </div>
+  );
+}
+
 export default function LandingPage() {
   const { t, lang } = useLanguage();
 
@@ -47,7 +83,8 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal/5 px-3 py-1 text-xs font-medium text-teal-700">
+              <SampleCVs caption={t("landing.samples.caption")} />
+              <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal/5 px-3 py-1 text-xs font-medium text-teal-700">
                 <Sparkles className="h-3.5 w-3.5" />
                 {t("landing.trust.powered")}
               </div>
