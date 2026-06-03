@@ -254,13 +254,18 @@ export function CVDocument({
             <Text style={s.avatarText}>{initials(cv.personal.full_name)}</Text>
           </View>
           <Text style={s.name}>{cv.personal.full_name || ""}</Text>
-          {cv.personal.city ? <Text style={s.sub}>{cv.personal.city}</Text> : null}
+          {(() => {
+            const location = [cv.personal.city, cv.personal.country]
+              .filter(Boolean)
+              .join(", ");
+            return location ? <Text style={s.sub}>{location}</Text> : null;
+          })()}
           {cv.personal.nationality ? (
             <Text style={s.sub}>{cv.personal.nationality}</Text>
           ) : null}
           <View style={s.divider} />
 
-          {(cv.personal.email || cv.personal.phone) && (
+          {(cv.personal.email || cv.personal.phone || cv.socials.length > 0) && (
             <>
               <Text style={s.sectionTitleDark}>{L.contact}</Text>
               {cv.personal.email ? (
@@ -269,6 +274,19 @@ export function CVDocument({
               {cv.personal.phone ? (
                 <Text style={s.contactRow}>{cv.personal.phone}</Text>
               ) : null}
+              {cv.socials
+                .filter((soc) => soc.url.trim())
+                .map((soc, i) => {
+                  try {
+                    const u = new URL(
+                      soc.url.startsWith("http") ? soc.url : `https://${soc.url}`,
+                    );
+                    const txt = (u.hostname.replace(/^www\./, "") + u.pathname).replace(/\/$/, "");
+                    return <Text key={i} style={s.contactRow}>{txt}</Text>;
+                  } catch {
+                    return <Text key={i} style={s.contactRow}>{soc.url}</Text>;
+                  }
+                })}
             </>
           )}
 

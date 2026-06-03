@@ -49,6 +49,11 @@
 - Verify: the verification query at the bottom returns `ar=9, en=9, ur=9` (27 rows total).
 - Hindi rows are dropped; any user profile that was on `hi` is reset to `en`.
 
+### Step 1d — Apply Q1 city+country update (REQUIRED for new CVs to ask about country)
+- SQL Editor → paste `supabase/migrations/004_q1_city_country.sql` → Run.
+- Q1 in EN/AR/UR now asks for "city AND country" instead of just "city".
+- Existing CVs are unaffected; their `country` field is backfilled to empty on load.
+
 ### Step 2 — Supabase Auth URL config (so login redirects work)
 - Authentication → URL Configuration:
   - **Site URL:** `http://localhost:3001`

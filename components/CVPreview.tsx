@@ -12,7 +12,18 @@ import {
   Flag,
   Plus,
   X,
+  Globe,
+  Link as LinkIcon,
 } from "lucide-react";
+import type { IconType } from "react-icons";
+import {
+  FaGithub,
+  FaLinkedin,
+  FaTwitter,
+  FaFacebook,
+  FaInstagram,
+  FaYoutube,
+} from "react-icons/fa";
 import { useLanguage } from "@/components/LanguageProvider";
 import type {
   CVAchievement,
@@ -21,6 +32,7 @@ import type {
   CVEducationItem,
   CVExperienceItem,
   CVLanguageItem,
+  CVSocialLink,
   Language,
 } from "@/types/cv";
 import { migrateCvData } from "@/types/cv";
@@ -191,6 +203,36 @@ const EMPTY_CERTIFICATE: CVCertificateItem = {
   year: "",
 };
 const EMPTY_LANGUAGE: CVLanguageItem = { name: "", proficiency: "" };
+const EMPTY_SOCIAL: CVSocialLink = { url: "" };
+
+function detectPlatform(url: string): {
+  name: string;
+  Icon: IconType | typeof Globe;
+} {
+  const u = url.toLowerCase();
+  if (u.includes("github.com")) return { name: "GitHub", Icon: FaGithub };
+  if (u.includes("linkedin.com")) return { name: "LinkedIn", Icon: FaLinkedin };
+  if (u.includes("twitter.com") || u.includes("://x.com") || u.endsWith("x.com"))
+    return { name: "Twitter", Icon: FaTwitter };
+  if (u.includes("facebook.com") || u.includes("fb.com"))
+    return { name: "Facebook", Icon: FaFacebook };
+  if (u.includes("instagram.com"))
+    return { name: "Instagram", Icon: FaInstagram };
+  if (u.includes("youtube.com") || u.includes("youtu.be"))
+    return { name: "YouTube", Icon: FaYoutube };
+  if (u.length === 0) return { name: "", Icon: LinkIcon };
+  return { name: "Website", Icon: Globe };
+}
+
+function shortDisplay(url: string): string {
+  if (!url) return "";
+  try {
+    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+    return (u.hostname.replace(/^www\./, "") + u.pathname).replace(/\/$/, "");
+  } catch {
+    return url;
+  }
+}
 const EMPTY_ACHIEVEMENT: CVAchievement = {
   situation: "",
   task: "",
@@ -236,17 +278,36 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
               placeholder={t("auth.fullName")}
             />
           </h1>
-          {(data.personal.city || editable) && (
-            <div className="flex items-center gap-1.5 text-sm text-white/80">
-              <MapPin className="h-3.5 w-3.5" />
-              <Editable
-                value={data.personal.city}
-                editable={editable}
-                onChange={(v) =>
-                  patch({ personal: { ...data.personal, city: v } })
-                }
-                placeholder="City"
-              />
+          {(data.personal.city || data.personal.country || editable) && (
+            <div className="flex flex-wrap items-center justify-center gap-1.5 text-sm text-white/80">
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              {editable ? (
+                <>
+                  <Editable
+                    value={data.personal.city}
+                    editable
+                    onChange={(v) =>
+                      patch({ personal: { ...data.personal, city: v } })
+                    }
+                    placeholder={t("edit.placeholder.city")}
+                  />
+                  <span className="opacity-60">,</span>
+                  <Editable
+                    value={data.personal.country}
+                    editable
+                    onChange={(v) =>
+                      patch({ personal: { ...data.personal, country: v } })
+                    }
+                    placeholder={t("edit.placeholder.country")}
+                  />
+                </>
+              ) : (
+                <span>
+                  {[data.personal.city, data.personal.country]
+                    .filter(Boolean)
+                    .join(", ")}
+                </span>
+              )}
             </div>
           )}
           {(data.personal.nationality || editable) && (
@@ -270,7 +331,7 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
         <Section title={t("cv.contact")} dark>
           {(data.personal.email || editable) && (
             <div className="flex items-center gap-2 text-sm">
-              <Mail className="h-3.5 w-3.5 text-teal-400" />
+              <Mail className="h-3.5 w-3.5 shrink-0 text-teal-400" />
               <Editable
                 value={data.personal.email}
                 editable={editable}
@@ -284,7 +345,7 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
           )}
           {(data.personal.phone || editable) && (
             <div className="flex items-center gap-2 text-sm">
-              <Phone className="h-3.5 w-3.5 text-teal-400" />
+              <Phone className="h-3.5 w-3.5 shrink-0 text-teal-400" />
               <Editable
                 value={data.personal.phone}
                 editable={editable}
@@ -295,6 +356,57 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
                 className="text-white/90"
               />
             </div>
+          )}
+          {data.socials.map((s, i) => {
+            if (!editable && !s.url.trim()) return null;
+            const { Icon } = detectPlatform(s.url);
+            return (
+              <div key={i} className="flex items-center gap-2 text-sm">
+                <Icon className="h-3.5 w-3.5 shrink-0 text-teal-400" />
+                {editable ? (
+                  <Editable
+                    value={s.url}
+                    editable
+                    onChange={(v) => {
+                      const next = [...data.socials];
+                      next[i] = { url: v };
+                      patch({ socials: next });
+                    }}
+                    placeholder={t("edit.placeholder.socialUrl")}
+                    className="text-white/90"
+                  />
+                ) : (
+                  <a
+                    href={s.url.startsWith("http") ? s.url : `https://${s.url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate text-white/90 hover:text-teal-200 hover:underline"
+                  >
+                    {shortDisplay(s.url)}
+                  </a>
+                )}
+                {editable && (
+                  <RemoveButton
+                    dark
+                    label={t("edit.remove")}
+                    onClick={() => {
+                      const next = [...data.socials];
+                      next.splice(i, 1);
+                      patch({ socials: next });
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })}
+          {editable && (
+            <AddButton
+              dark
+              label={t("edit.add.social")}
+              onClick={() =>
+                patch({ socials: [...data.socials, { ...EMPTY_SOCIAL }] })
+              }
+            />
           )}
         </Section>
 

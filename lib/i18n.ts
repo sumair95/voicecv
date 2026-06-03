@@ -289,6 +289,8 @@ export const t: Dict = {
   },
   "cv.contact": { en: "Contact", ar: "التواصل", ur: "رابطہ" },
   "cv.nationality": { en: "Nationality", ar: "الجنسية", ur: "قومیت" },
+  "cv.location": { en: "Location", ar: "الموقع", ur: "مقام" },
+  "cv.socials": { en: "Links", ar: "روابط", ur: "لنکس" },
   "cv.download": {
     en: "Download PDF",
     ar: "تحميل PDF",
@@ -357,6 +359,11 @@ export const t: Dict = {
     ar: "إضافة إنجاز",
     ur: "کامیابی شامل کریں",
   },
+  "edit.add.social": {
+    en: "Add link",
+    ar: "إضافة رابط",
+    ur: "لنک شامل کریں",
+  },
   "edit.remove": { en: "Remove", ar: "حذف", ur: "حذف کریں" },
 
   "edit.proficiency.beginner": {
@@ -377,6 +384,13 @@ export const t: Dict = {
   "edit.placeholder.skill": { en: "e.g. forklift driving", ar: "مثال: قيادة الرافعة", ur: "مثال: فورک لفٹ چلانا" },
   "edit.placeholder.hobby": { en: "e.g. reading", ar: "مثال: القراءة", ur: "مثال: مطالعہ" },
   "edit.placeholder.langName": { en: "Language", ar: "اللغة", ur: "زبان" },
+  "edit.placeholder.city": { en: "City", ar: "المدينة", ur: "شہر" },
+  "edit.placeholder.country": { en: "Country", ar: "الدولة", ur: "ملک" },
+  "edit.placeholder.socialUrl": {
+    en: "https://github.com/yourname",
+    ar: "https://github.com/yourname",
+    ur: "https://github.com/yourname",
+  },
   "edit.hint.bullets": {
     en: "Tip: put each bullet on its own line.",
     ar: "نصيحة: ضع كل نقطة في سطر منفصل.",

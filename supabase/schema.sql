@@ -35,7 +35,7 @@ create table if not exists questions (
 delete from questions;
 insert into questions (language, order_index, question_text, field_key) values
 -- English
-('en', 1, 'Please tell us your full name, nationality, the city you live in, and your mobile number and email if you have one.', 'personal'),
+('en', 1, 'Please tell us your full name, nationality, the city and country you live in, and your mobile number and email if you have one.', 'personal'),
 ('en', 2, 'Tell us about your most recent or current job — the company name, your job title, how long you worked there.', 'recent_job'),
 ('en', 3, 'List any previous roles, even short-term or casual work, and how long you did them.', 'previous_roles'),
 ('en', 4, 'What specific skills, tools, equipment, licences, or software do you know how to use? Be as specific as possible.', 'skills'),
@@ -45,7 +45,7 @@ insert into questions (language, order_index, question_text, field_key) values
 ('en', 8, 'What are your hobbies?', 'hobbies'),
 ('en', 9, 'Do you want to describe a work achievement using the STAR method? Tell us the Situation, Task, Action, and Result.', 'achievement'),
 -- Arabic
-('ar', 1, 'من فضلك أخبرنا باسمك الكامل، جنسيتك، المدينة التي تسكن فيها، ورقم جوالك وبريدك الإلكتروني إن وجد.', 'personal'),
+('ar', 1, 'من فضلك أخبرنا باسمك الكامل، جنسيتك، المدينة والدولة التي تسكن فيها، ورقم جوالك وبريدك الإلكتروني إن وجد.', 'personal'),
 ('ar', 2, 'أخبرنا عن آخر وظيفة لك — اسم الشركة، مسمى وظيفتك، وكم مدة عملك هناك.', 'recent_job'),
 ('ar', 3, 'اذكر أي وظائف سابقة، حتى لو كانت مؤقتة أو غير رسمية، وكم المدة لكل منها.', 'previous_roles'),
 ('ar', 4, 'ما هي المهارات والأدوات والمعدات والرخص أو البرامج التي تتقن استخدامها؟ كن محدداً.', 'skills'),
@@ -55,7 +55,7 @@ insert into questions (language, order_index, question_text, field_key) values
 ('ar', 8, 'ما هي هواياتك واهتماماتك في وقت الفراغ؟', 'hobbies'),
 ('ar', 9, 'هل تريد وصف إنجاز باستخدام أسلوب STAR؟ الموقف، المهمة، الإجراء، والنتيجة.', 'achievement'),
 -- Urdu
-('ur', 1, 'براہ کرم ہمیں اپنا پورا نام، قومیت، جس شہر میں آپ رہتے ہیں، اپنا موبائل نمبر اور ای میل بتائیں اگر ہو تو۔', 'personal'),
+('ur', 1, 'براہ کرم ہمیں اپنا پورا نام، قومیت، جس شہر اور ملک میں آپ رہتے ہیں، اپنا موبائل نمبر اور ای میل بتائیں اگر ہو تو۔', 'personal'),
 ('ur', 2, 'ہمیں اپنی سب سے حالیہ نوکری کے بارے میں بتائیں — کمپنی کا نام، آپ کی پوزیشن، اور کتنے عرصے کام کیا۔', 'recent_job'),
 ('ur', 3, 'اپنی کوئی بھی پرانی ملازمتیں بتائیں، چاہے عارضی ہوں، اور ہر ایک میں کتنا عرصہ کام کیا۔', 'previous_roles'),
 ('ur', 4, 'آپ کون سی مخصوص مہارتیں، آلات، لائسنس یا سافٹ ویئر جانتے ہیں؟ تفصیل سے بتائیں۔', 'skills'),

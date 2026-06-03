@@ -6,8 +6,13 @@ export interface CVPersonal {
   full_name: string;
   nationality: string;
   city: string;
+  country: string;
   email: string;
   phone: string;
+}
+
+export interface CVSocialLink {
+  url: string;
 }
 
 export interface CVExperienceItem {
@@ -43,6 +48,7 @@ export interface CVAchievement {
 
 export interface CVData {
   personal: CVPersonal;
+  socials: CVSocialLink[];
   objective: string;
   experience: CVExperienceItem[];
   education: CVEducationItem[];
@@ -88,7 +94,15 @@ export interface QAPair {
 }
 
 export const EMPTY_CV: CVData = {
-  personal: { full_name: "", nationality: "", city: "", email: "", phone: "" },
+  personal: {
+    full_name: "",
+    nationality: "",
+    city: "",
+    country: "",
+    email: "",
+    phone: "",
+  },
+  socials: [],
   objective: "",
   experience: [],
   education: [],
@@ -112,9 +126,22 @@ export function migrateCvData(raw: unknown): CVData {
     full_name: src.personal?.full_name ?? "",
     nationality: src.personal?.nationality ?? "",
     city: src.personal?.city ?? "",
+    country: src.personal?.country ?? "",
     email: src.personal?.email ?? "",
     phone: src.personal?.phone ?? "",
   };
+
+  const socials: CVSocialLink[] = Array.isArray(src.socials)
+    ? src.socials
+        .map((entry) => {
+          if (typeof entry === "string") return { url: entry };
+          if (entry && typeof entry === "object") {
+            return { url: (entry as { url?: string }).url ?? "" };
+          }
+          return { url: "" };
+        })
+        .filter((s) => typeof s.url === "string")
+    : [];
 
   // languages used to be string[]; normalize to {name, proficiency}[].
   let languages: CVLanguageItem[] = [];
@@ -131,6 +158,7 @@ export function migrateCvData(raw: unknown): CVData {
 
   return {
     personal,
+    socials,
     objective: src.objective ?? "",
     experience: Array.isArray(src.experience) ? src.experience : [],
     education: Array.isArray(src.education) ? src.education : [],

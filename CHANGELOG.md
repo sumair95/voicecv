@@ -17,6 +17,13 @@ Highlights:
 ## [Unreleased]
 
 ### Added
+- 2026-06-03: `country` field on `CVPersonal`. The CV header shows `City, Country` on one line; if only one is provided, only that one renders.
+- 2026-06-03: Social links on Contact — array of `{ url }` with auto-detected brand icons (GitHub, LinkedIn, Twitter, Facebook, Instagram, YouTube, generic Website). Add/edit/remove like other arrays.
+- 2026-06-03: DB migration `004_q1_city_country.sql` updates Q1 in EN/AR/UR to ask for both city and country.
+- 2026-06-03: `react-icons` dependency for brand icons (lucide v1.x dropped branded icons).
+- 2026-06-03: Claude prompt extended to extract `country` and `socials` from the user's answer when mentioned.
+
+### Added
 - 2026-05-30: Initial Next.js 14 scaffold with TypeScript, Tailwind, App Router.
 - 2026-05-30: shadcn/ui base components installed.
 - 2026-05-30: Supabase schema (profiles, cvs, questions, RLS, recordings bucket).

@@ -110,6 +110,35 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - `tsc --noEmit` clean.
 - `next build` succeeds: 14 routes, build size grew ~30KB (extra fonts).
 
+## 2026-06-03 — Day 3 (later): Country field + social links
+
+### City + Country combined
+- Added `country: string` to `CVPersonal`. Now displays as `City, Country` (single line, comma separator). If only one is provided, only that one shows; no stranded comma.
+- Edit mode: two `<input>` fields side-by-side with a faint "," separator. Placeholder uses the new `edit.placeholder.city` and `edit.placeholder.country` i18n keys.
+- Updated Q1 in all 3 languages (EN/AR/UR) to ask for both city AND country.
+- `lib/claude.ts` prompt: country is now part of the personal block and explicitly noted as distinct from nationality.
+- `migrateCvData` backfills empty `country` on any old CV.
+- DB migration `004_q1_city_country.sql` rewrites Q1 in place (idempotent).
+
+### Social links in Contact
+- Added `socials: CVSocialLink[]` to `CVData` where each item is `{ url }`.
+- Auto-detects platform from URL host: GitHub / LinkedIn / Twitter / Facebook / Instagram / YouTube / generic Website.
+- Brand icons via `react-icons/fa` (lucide v1.x stripped branded icons — switched only the social platforms; rest of the app stays on lucide).
+- Display: `[brand icon] [shortened host/path]` linking to the full URL.
+- Edit: URL input + X to remove + "+ Add link" button at the bottom of the Contact section.
+- PDF renders shortened URL text under Contact (no icons in PDF — keeps it simple and language-font safe).
+- `migrateCvData` backfills empty `socials` array on any old CV.
+- Claude prompt extended to capture URLs if the speaker mentions them, but does not invent ones.
+
+### Files touched
+- `types/cv.ts` — CVPersonal+country, new CVSocialLink, CVData+socials, migration backfill.
+- `lib/i18n.ts` — added `cv.location`, `cv.socials`, `edit.add.social`, `edit.placeholder.city/country/socialUrl`.
+- `lib/claude.ts` — JSON shape now includes country + socials.
+- `lib/pdf-generator.tsx` — location combines city+country; socials list under Contact.
+- `components/CVPreview.tsx` — detectPlatform()+shortDisplay() helpers; rewrote the location row and the Contact section.
+- `supabase/migrations/004_q1_city_country.sql` (new) + `supabase/schema.sql` Q1 seeds updated.
+- Installed `react-icons@^5`.
+
 ## 🏷️ MILESTONE — v0.1.0-editor-stable (commit bdaa5fa, 2026-06-03)
 Sumair confirmed the editor is "perfect" and asked to lock the changes.
 Tagged on GitHub: https://github.com/sumair95/voicecv/releases/tag/v0.1.0-editor-stable

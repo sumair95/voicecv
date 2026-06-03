@@ -25,9 +25,13 @@ JSON shape (every field is required; use empty string/array/null if not provided
     "full_name": "string",
     "nationality": "string",
     "city": "string",
+    "country": "string (country of residence — distinct from nationality)",
     "email": "string",
     "phone": "string"
   },
+  "socials": [
+    { "url": "string (full https URL to a portfolio / GitHub / LinkedIn / etc. — extract only if the user explicitly mentioned a link or handle)" }
+  ],
   "objective": "2-3 sentence professional objective derived from the candidate's goals + experience",
   "experience": [
     {
@@ -127,9 +131,11 @@ Generate the structured CV JSON now.`;
       full_name: parsed.personal?.full_name ?? "",
       nationality: parsed.personal?.nationality ?? "",
       city: parsed.personal?.city ?? "",
+      country: parsed.personal?.country ?? "",
       email: parsed.personal?.email ?? "",
       phone: parsed.personal?.phone ?? "",
     },
+    socials: Array.isArray(parsed.socials) ? parsed.socials : [],
     objective: parsed.objective ?? "",
     experience: parsed.experience ?? [],
     education: parsed.education ?? [],
