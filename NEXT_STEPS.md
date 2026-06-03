@@ -2,6 +2,11 @@
 
 > **For future sessions:** read this file + `WORKLOG.md` first to pick up exactly where we left off. `.env.local` holds real keys and is gitignored — values still live on Sumair's machine.
 
+## 🏷️ Stable checkpoint to roll back to
+**`v0.1.0-editor-stable`** (commit `bdaa5fa`, 2026-06-03)
+- Confirmed working end-to-end by Sumair.
+- `git checkout v0.1.0-editor-stable` if any future change breaks the CV editor.
+
 ## ✅ Done so far
 
 ### Day 0 — 2026-05-30 (code scaffold)

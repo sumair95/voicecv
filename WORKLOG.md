@@ -110,6 +110,11 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - `tsc --noEmit` clean.
 - `next build` succeeds: 14 routes, build size grew ~30KB (extra fonts).
 
+## 🏷️ MILESTONE — v0.1.0-editor-stable (commit bdaa5fa, 2026-06-03)
+Sumair confirmed the editor is "perfect" and asked to lock the changes.
+Tagged on GitHub: https://github.com/sumair95/voicecv/releases/tag/v0.1.0-editor-stable
+Roll back to this tag if any future change regresses the editor.
+
 ## 2026-06-03 — Day 3: Skip questions + bullet experience + edit-mode banner
 
 ### Skip question

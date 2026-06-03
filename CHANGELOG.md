@@ -2,6 +2,18 @@
 
 All notable changes to VoiceCV will be documented in this file.
 
+## [v0.1.0-editor-stable] — 2026-06-03
+First stable milestone of the CV editor. Confirmed working end-to-end by Sumair.
+Tag: https://github.com/sumair95/voicecv/releases/tag/v0.1.0-editor-stable
+
+Highlights:
+- Voice flow: 9 questions × 3 languages (EN/AR/UR) with skip per question.
+- AI: Whisper-1 transcribe + Claude Sonnet 4.6 CV generation.
+- Editor: full inline add / edit / remove on every CV section (contact, objective, experience, education, certificates, skills, languages, hobbies, STAR achievement).
+- Bullet-point work experience in preview + PDF.
+- v1 CVs auto-migrate to v2 schema on load.
+- Edit affordance: dashed teal border + teal caret + hover/focus highlights, no white bleed-through on the navy sidebar.
+
 ## [Unreleased]
 
 ### Added
