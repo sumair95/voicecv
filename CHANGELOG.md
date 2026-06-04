@@ -2,6 +2,17 @@
 
 All notable changes to VoiceCV will be documented in this file.
 
+## [v0.2.0-pdf-stable] — 2026-06-04
+Second stable milestone. PDF works end-to-end after multiple fixes; English-only CV output is the new default. Confirmed by Sumair.
+Tag: https://github.com/sumair95/voicecv/releases/tag/v0.2.0-pdf-stable
+
+Highlights:
+- **Security:** 3-minute idle auto-logout on authenticated pages.
+- **English-only CV:** Whisper still transcribes in the speaker's language; Claude translates and writes the CV (and PDF + preview) in English regardless of input language. UI menus continue in the user's chosen language.
+- **CV content:** city+country combined edit, nationality hidden, social links with brand icons, education + certs in bullet timeline like work experience, no white bleed-through on the navy sidebar.
+- **Hero refresh:** sample CV decoration cards, new trust badges ("Speak your future" / "Built without barriers"), no "Kanz AI Hackathon" wording.
+- **PDF works:** refreshed Google Fonts URLs to current v20/v33/v23; dropped italic on objective (Inter italic wasn't registered); better error messaging for both PDF and Google OAuth.
+
 ## [v0.1.0-editor-stable] — 2026-06-03
 First stable milestone of the CV editor. Confirmed working end-to-end by Sumair.
 Tag: https://github.com/sumair95/voicecv/releases/tag/v0.1.0-editor-stable

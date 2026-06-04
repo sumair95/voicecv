@@ -163,6 +163,20 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - `components/CVPreview.tsx`
 - `lib/pdf-generator.tsx`
 
+## 🏷️ MILESTONE — v0.2.0-pdf-stable (commit 9f37281, 2026-06-04)
+Sumair confirmed PDF download and the full English-only flow work end-to-end.
+Tag on GitHub: https://github.com/sumair95/voicecv/releases/tag/v0.2.0-pdf-stable
+
+Captures everything since v0.1.0:
+- 3-min idle auto-logout, English-only CV output, hidden nationality
+- City+country combined field, social links with brand icons
+- Education + certs bullet timeline (preview + PDF)
+- Refreshed Google Fonts URLs (v20/v33/v23) so PDF generation no longer 404s
+- Hero refresh: sample CV cards, new trust badges, no hackathon mention
+- Better error messaging for PDF download + Google OAuth
+
+Roll back to this tag if any future change breaks PDF or English-only CV.
+
 ## 🏷️ MILESTONE — v0.1.0-editor-stable (commit bdaa5fa, 2026-06-03)
 Sumair confirmed the editor is "perfect" and asked to lock the changes.
 Tagged on GitHub: https://github.com/sumair95/voicecv/releases/tag/v0.1.0-editor-stable
