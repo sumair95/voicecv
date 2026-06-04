@@ -72,16 +72,32 @@ export default function CVDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cvId: id }),
       });
-      if (!res.ok) throw new Error("PDF generation failed");
+      if (!res.ok) {
+        const ct = res.headers.get("content-type") ?? "";
+        let detail = `HTTP ${res.status}`;
+        if (ct.includes("application/json")) {
+          const data = await res.json().catch(() => null);
+          if (data?.error) detail = data.error;
+        } else {
+          const text = await res.text().catch(() => "");
+          if (text) detail = text.slice(0, 200);
+        }
+        console.error("[downloadPdf] server error:", detail);
+        throw new Error(detail);
+      }
       const blob = await res.blob();
+      if (blob.size === 0) throw new Error("PDF was empty");
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `${cv.cv_data?.personal?.full_name || "CV"}.pdf`;
+      document.body.appendChild(a);
       a.click();
+      a.remove();
       URL.revokeObjectURL(url);
       toast.success("PDF downloaded");
     } catch (err) {
+      console.error("[downloadPdf]", err);
       toast.error(err instanceof Error ? err.message : "Download failed");
     } finally {
       setDownloading(false);

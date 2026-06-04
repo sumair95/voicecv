@@ -259,14 +259,10 @@ export function CVDocument({
             <Text style={s.avatarText}>{initials(cv.personal.full_name)}</Text>
           </View>
           <Text style={s.name}>{cv.personal.full_name || ""}</Text>
-          {(() => {
-            const location = [cv.personal.city, cv.personal.country]
-              .filter(Boolean)
-              .join(", ");
-            return location ? <Text style={s.sub}>{location}</Text> : null;
-          })()}
-          {cv.personal.nationality ? (
-            <Text style={s.sub}>{cv.personal.nationality}</Text>
+          {[cv.personal.city, cv.personal.country].filter(Boolean).length > 0 ? (
+            <Text style={s.sub}>
+              {[cv.personal.city, cv.personal.country].filter(Boolean).join(", ")}
+            </Text>
           ) : null}
           <View style={s.divider} />
 

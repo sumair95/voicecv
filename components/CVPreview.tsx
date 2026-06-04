@@ -9,7 +9,6 @@ import {
   GraduationCap,
   Award,
   Trophy,
-  Flag,
   Plus,
   X,
   Globe,
@@ -310,19 +309,6 @@ export function CVPreview({ cvData, language, editable, onChange }: Props) {
                     .join(", ")}
                 </span>
               )}
-            </div>
-          )}
-          {(data.personal.nationality || editable) && (
-            <div className="flex items-center gap-1.5 text-sm text-white/80">
-              <Flag className="h-3.5 w-3.5" />
-              <Editable
-                value={data.personal.nationality}
-                editable={editable}
-                onChange={(v) =>
-                  patch({ personal: { ...data.personal, nationality: v } })
-                }
-                placeholder={t("cv.nationality")}
-              />
             </div>
           )}
         </div>

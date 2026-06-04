@@ -39,10 +39,18 @@ function LoginForm() {
 
   async function signInWithGoogle() {
     const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback?next=${redirectTo}` },
     });
+    if (error) {
+      console.error("[google-signin]", error);
+      toast.error(
+        error.message.toLowerCase().includes("provider")
+          ? "Google sign-in is not enabled yet. Enable Google in Supabase → Auth → Providers."
+          : error.message,
+      );
+    }
   }
 
   return (
