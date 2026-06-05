@@ -402,9 +402,9 @@ function SectionHeader({
   dark?: boolean;
   rule?: boolean;
 }) {
-  // Dark sidebar keeps teal so it shows on the navy background. Main column
-  // uses navy so the title clearly outranks the sub-item text below it.
-  const titleColor = dark ? TEAL : NAVY;
+  // Match the on-screen CV: section titles are teal on both the navy sidebar
+  // (light teal) and the white main column (teal-700, slightly darker).
+  const titleColor = dark ? TEAL : "#0F766E";
   return (
     <View>
       <View

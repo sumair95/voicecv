@@ -1181,7 +1181,7 @@ export function CVPreview({
         {/* Objective */}
         {(data.objective || editable) && (
           <section>
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
               {t("cv.objective")}
             </h2>
             <p className="mt-2 border-s-2 border-teal/40 ps-4 text-sm italic leading-relaxed text-navy-600">
@@ -1199,7 +1199,7 @@ export function CVPreview({
         {/* Experience */}
         {(data.experience.length > 0 || editable) && (
           <section>
-            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
+            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
               <Briefcase className="h-3.5 w-3.5" />
               {t("cv.experience")}
             </h2>
@@ -1300,7 +1300,7 @@ export function CVPreview({
         {/* Education */}
         {(data.education.length > 0 || editable) && (
           <section>
-            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
+            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
               <GraduationCap className="h-3.5 w-3.5" />
               {t("cv.education")}
             </h2>
@@ -1379,7 +1379,7 @@ export function CVPreview({
         {/* Certificates */}
         {(data.certificates.length > 0 || editable) && (
           <section>
-            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
+            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
               <Award className="h-3.5 w-3.5" />
               {t("cv.certificates")}
             </h2>
@@ -1468,7 +1468,7 @@ export function CVPreview({
         {(data.achievement || editable) && (
           <section>
             <div className="flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
+              <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
                 <Trophy className="h-3.5 w-3.5" />
                 {t("cv.achievement")}
               </h2>
@@ -1584,7 +1584,7 @@ function MinSection({
   return (
     <section className="mt-7">
       <div className="flex items-baseline justify-between border-b border-navy-100 pb-1">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.25em] text-navy-700">
+        <h2 className="text-sm font-bold uppercase tracking-[0.25em] text-teal-700">
           {title}
         </h2>
         {right}
@@ -1606,7 +1606,7 @@ function Section({
   return (
     <section className="mt-5">
       <h3
-        className={`text-xs font-bold uppercase tracking-[0.2em] ${
+        className={`text-sm font-bold uppercase tracking-[0.2em] ${
           dark ? "text-teal-400" : "text-teal-700"
         }`}
       >
