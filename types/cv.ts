@@ -2,6 +2,45 @@ export type Language = "en" | "ar" | "ur";
 
 export type CVStatus = "processing" | "ready" | "exported" | "failed";
 
+export type TemplateId = "modern" | "minimalist" | "classic" | "executive";
+
+export interface TemplateInfo {
+  id: TemplateId;
+  name: string;
+  description: string;
+  /** Whether this template is part of the premium plan. */
+  premium: boolean;
+}
+
+export const TEMPLATES: TemplateInfo[] = [
+  {
+    id: "modern",
+    name: "Modern",
+    description: "Navy sidebar with teal accents — the default.",
+    premium: false,
+  },
+  {
+    id: "minimalist",
+    name: "Minimalist",
+    description: "Single column, lots of whitespace, light typography.",
+    premium: false,
+  },
+  {
+    id: "classic",
+    name: "Classic",
+    description: "Centered traditional layout — coming soon.",
+    premium: true,
+  },
+  {
+    id: "executive",
+    name: "Executive",
+    description: "Bold left accent bar — coming soon.",
+    premium: true,
+  },
+];
+
+export const DEFAULT_TEMPLATE: TemplateId = "modern";
+
 export interface CVPersonal {
   full_name: string;
   nationality: string;
@@ -66,6 +105,7 @@ export interface CVRecord {
   audio_url: string | null;
   transcript: string | null;
   cv_data: CVData | null;
+  template: TemplateId | null;
   status: CVStatus;
   created_at: string;
   updated_at: string;

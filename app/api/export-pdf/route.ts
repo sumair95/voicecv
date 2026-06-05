@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
 import { CVDocument } from "@/lib/pdf-generator";
-import type { CVRecord, Language } from "@/types/cv";
-import { migrateCvData } from "@/types/cv";
+import type { CVRecord, Language, TemplateId } from "@/types/cv";
+import { DEFAULT_TEMPLATE, migrateCvData } from "@/types/cv";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -40,9 +40,11 @@ export async function POST(req: Request) {
     // The CV is always rendered in English for recruiter readability,
     // regardless of the user's UI language.
     const language: Language = "en";
+    const template = ((cv as unknown as { template?: TemplateId }).template ??
+      DEFAULT_TEMPLATE) as TemplateId;
 
     const buffer = await renderToBuffer(
-      CVDocument({ cv: migrateCvData(cv.cv_data), language }),
+      CVDocument({ cv: migrateCvData(cv.cv_data), language, template }),
     );
 
     await supabase

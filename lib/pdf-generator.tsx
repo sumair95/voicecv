@@ -6,7 +6,7 @@ import {
   StyleSheet,
   Font,
 } from "@react-pdf/renderer";
-import type { CVData, Language } from "@/types/cv";
+import type { CVData, Language, TemplateId } from "@/types/cv";
 
 // Register fonts. @react-pdf needs explicit registration; Google Fonts CDN URLs work.
 // Current Google Fonts TTF URLs (verified 2026-06-04). Google rotates
@@ -94,6 +94,11 @@ function styles(fontFamily: string) {
       fontSize: 10,
       color: "#1E293B",
       flexDirection: "row",
+      // Page-level padding gives every page (including page 2+) a clean
+      // top/bottom margin so continuation pages don't start flush at the
+      // edge of the paper.
+      paddingTop: 30,
+      paddingBottom: 30,
     },
     sidebar: {
       width: "32%",
@@ -245,6 +250,21 @@ function initials(name: string) {
 }
 
 export function CVDocument({
+  cv,
+  language,
+  template = "modern",
+}: {
+  cv: CVData;
+  language: Language;
+  template?: TemplateId;
+}) {
+  if (template === "minimalist") {
+    return <MinimalistDocument cv={cv} language={language} />;
+  }
+  return <ModernDocument cv={cv} language={language} />;
+}
+
+function ModernDocument({
   cv,
   language,
 }: {
@@ -422,6 +442,226 @@ export function CVDocument({
             </>
           )}
         </View>
+      </Page>
+    </Document>
+  );
+}
+
+// ─── Minimalist template ───────────────────────────────────────────
+const minStyles = (fontFamily: string) =>
+  StyleSheet.create({
+    page: {
+      fontFamily,
+      fontSize: 10,
+      color: NAVY,
+      paddingTop: 40,
+      paddingBottom: 40,
+      paddingLeft: 56,
+      paddingRight: 56,
+    },
+    name: {
+      fontSize: 22,
+      fontWeight: 400,
+      textAlign: "center",
+      letterSpacing: 1.5,
+      color: NAVY,
+    },
+    headerContact: {
+      marginTop: 8,
+      fontSize: 9,
+      color: MUTED,
+      textAlign: "center",
+    },
+    headerRule: {
+      marginTop: 14,
+      borderBottomColor: "#CBD5E1",
+      borderBottomWidth: 1,
+      marginBottom: 6,
+    },
+    sectionTitle: {
+      fontSize: 9,
+      fontWeight: 700,
+      color: "#1E293B",
+      letterSpacing: 2,
+      textTransform: "uppercase",
+      borderBottomColor: "#E2E8F0",
+      borderBottomWidth: 1,
+      paddingBottom: 3,
+      marginTop: 18,
+      marginBottom: 8,
+    },
+    body: { fontSize: 10, color: "#334155", lineHeight: 1.5 },
+    rowBetween: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "baseline",
+    },
+    expRole: { fontSize: 11, fontWeight: 700, color: NAVY },
+    expCompany: { fontSize: 10, fontWeight: 600, color: "#0F766E", marginTop: 1 },
+    expDuration: {
+      fontSize: 8,
+      color: MUTED,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+    },
+    expBlock: { marginBottom: 10 },
+    bulletRow: { flexDirection: "row", marginTop: 2 },
+    bulletDot: { width: 8, fontSize: 10, color: TEAL },
+    bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
+    listRow: { marginBottom: 4, flexDirection: "row", justifyContent: "space-between" },
+    skillsLine: { fontSize: 10, color: "#334155", lineHeight: 1.5 },
+  });
+
+function MinimalistDocument({
+  cv,
+  language,
+}: {
+  cv: CVData;
+  language: Language;
+}) {
+  const fontFamily = FONT_BY_LANG[language];
+  const s = minStyles(fontFamily);
+  const L = SECTION_LABELS[language];
+
+  const location = [cv.personal.city, cv.personal.country]
+    .filter(Boolean)
+    .join(", ");
+  const contactBits = [
+    cv.personal.email,
+    cv.personal.phone,
+    location,
+  ].filter(Boolean);
+  const socialBits = cv.socials
+    .filter((s) => s.url.trim())
+    .map((s) => {
+      try {
+        const u = new URL(s.url.startsWith("http") ? s.url : `https://${s.url}`);
+        return (u.hostname.replace(/^www\./, "") + u.pathname).replace(/\/$/, "");
+      } catch {
+        return s.url;
+      }
+    });
+
+  return (
+    <Document>
+      <Page size="A4" style={s.page}>
+        <Text style={s.name}>{cv.personal.full_name || ""}</Text>
+        {contactBits.length > 0 ? (
+          <Text style={s.headerContact}>{contactBits.join("   •   ")}</Text>
+        ) : null}
+        {socialBits.length > 0 ? (
+          <Text style={s.headerContact}>{socialBits.join("   •   ")}</Text>
+        ) : null}
+        <View style={s.headerRule} />
+
+        {cv.objective ? (
+          <>
+            <Text style={s.sectionTitle}>{L.objective}</Text>
+            <Text style={s.body}>{cv.objective}</Text>
+          </>
+        ) : null}
+
+        {cv.experience.length > 0 && (
+          <>
+            <Text style={s.sectionTitle}>{L.experience}</Text>
+            {cv.experience.map((exp, i) => (
+              <View key={i} style={s.expBlock}>
+                <View style={s.rowBetween}>
+                  <Text style={s.expRole}>{exp.role}</Text>
+                  <Text style={s.expDuration}>{exp.duration}</Text>
+                </View>
+                <Text style={s.expCompany}>{exp.company}</Text>
+                {bulletsFrom(exp.description).map((line, bi) => (
+                  <View key={bi} style={s.bulletRow}>
+                    <Text style={s.bulletDot}>•</Text>
+                    <Text style={s.bulletText}>{line}</Text>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </>
+        )}
+
+        {cv.education.length > 0 && (
+          <>
+            <Text style={s.sectionTitle}>{L.education}</Text>
+            {cv.education.map((edu, i) => (
+              <View key={i} style={s.expBlock}>
+                <View style={s.rowBetween}>
+                  <Text style={s.expRole}>{edu.degree}</Text>
+                  <Text style={s.expDuration}>{edu.year}</Text>
+                </View>
+                <Text style={s.expCompany}>{edu.institution}</Text>
+              </View>
+            ))}
+          </>
+        )}
+
+        {cv.certificates.length > 0 && (
+          <>
+            <Text style={s.sectionTitle}>{L.certificates}</Text>
+            {cv.certificates.map((c, i) => (
+              <View key={i} style={s.listRow}>
+                <Text style={s.body}>
+                  {c.name}
+                  {c.issuer ? ` · ${c.issuer}` : ""}
+                </Text>
+                <Text style={s.expDuration}>{c.year}</Text>
+              </View>
+            ))}
+          </>
+        )}
+
+        {cv.skills.length > 0 && (
+          <>
+            <Text style={s.sectionTitle}>{L.skills}</Text>
+            <Text style={s.skillsLine}>
+              {cv.skills.filter((sk) => sk.trim()).join("  ·  ")}
+            </Text>
+          </>
+        )}
+
+        {cv.languages.length > 0 && (
+          <>
+            <Text style={s.sectionTitle}>{L.languages}</Text>
+            <Text style={s.skillsLine}>
+              {cv.languages
+                .filter((l) => l.name.trim())
+                .map((l) =>
+                  l.proficiency ? `${l.name} (${l.proficiency})` : l.name,
+                )
+                .join("  ·  ")}
+            </Text>
+          </>
+        )}
+
+        {cv.hobbies.length > 0 && (
+          <>
+            <Text style={s.sectionTitle}>{L.hobbies}</Text>
+            <Text style={s.skillsLine}>
+              {cv.hobbies.filter((h) => h.trim()).join("  ·  ")}
+            </Text>
+          </>
+        )}
+
+        {cv.achievement && (
+          <>
+            <Text style={s.sectionTitle}>{L.achievement}</Text>
+            {[
+              ["S", cv.achievement.situation],
+              ["T", cv.achievement.task],
+              ["A", cv.achievement.action],
+              ["R", cv.achievement.result],
+            ]
+              .filter(([, v]) => Boolean(v))
+              .map(([label, txt], i) => (
+                <View key={i} style={s.bulletRow}>
+                  <Text style={[s.bulletDot, { fontWeight: 700 }]}>{label}</Text>
+                  <Text style={s.bulletText}>{txt}</Text>
+                </View>
+              ))}
+          </>
+        )}
       </Page>
     </Document>
   );

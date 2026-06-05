@@ -28,6 +28,10 @@ Highlights:
 ## [Unreleased]
 
 ### Added
+- 2026-06-05: PDF pages now have a 30pt top + bottom padding, so multi-page CVs have proper breathing room on continuation pages.
+- 2026-06-05: Template system foundation — `TemplateId` type, `TEMPLATES` catalog with premium flag, `template` column on `cvs` (migration 005), `TemplatePicker` UI on the CV view page.
+- 2026-06-05: **Minimalist template** — single-column, clean typography, both preview + PDF. Selectable from the picker; saved per-CV.
+- 2026-06-05: Classic + Executive templates listed in the picker as **Premium — coming soon** placeholders, in preparation for paid tier.
 - 2026-06-03: `country` field on `CVPersonal`. The CV header shows `City, Country` on one line; if only one is provided, only that one renders.
 - 2026-06-03: Social links on Contact — array of `{ url }` with auto-detected brand icons (GitHub, LinkedIn, Twitter, Facebook, Instagram, YouTube, generic Website). Add/edit/remove like other arrays.
 - 2026-06-03: DB migration `004_q1_city_country.sql` updates Q1 in EN/AR/UR to ask for both city and country.

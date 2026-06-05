@@ -18,6 +18,7 @@ create table if not exists cvs (
   audio_url text,
   transcript text,
   cv_data jsonb,
+  template text not null default 'modern',
   status text default 'processing',
   created_at timestamp with time zone default timezone('utc', now()),
   updated_at timestamp with time zone default timezone('utc', now())

@@ -163,6 +163,54 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - `components/CVPreview.tsx`
 - `lib/pdf-generator.tsx`
 
+## 2026-06-05 — Day 5: Multi-page PDF margins + template system
+
+### PDF top + bottom margin on every page
+- `lib/pdf-generator.tsx` `page` style now includes `paddingTop: 30` and `paddingBottom: 30`.
+- Applies to every page including continuation pages, so multi-page CVs no longer have content flush against the top edge on page 2+.
+
+### Template system foundation (in preparation for premium tier)
+- New `TemplateId = "modern" | "minimalist" | "classic" | "executive"` type and `TEMPLATES` catalog with `premium: boolean` flag on each (Classic + Executive marked as premium "coming soon").
+- `DEFAULT_TEMPLATE = "modern"`.
+- `template` field added to `CVRecord` interface.
+- DB migration `005_template_column.sql` adds a `template text not null default 'modern'` column to `cvs`. Existing rows backfilled.
+- `migrateCvData` doesn't touch template — it lives on the row, not in `cv_data`.
+
+### Minimalist template (first non-default option)
+- Single-column layout, lots of whitespace, light typography.
+- Header: centered name + horizontal contact line + thin bottom rule.
+- Sections use small uppercase tracking-widest titles with `border-bottom border-navy-100` divider.
+- Skills / Languages / Hobbies render as one comma-separated line for compactness.
+- Experience uses the same bullet rendering as Modern.
+- Achievement (STAR) inline rows.
+- New `MinSection` helper at module level in `CVPreview.tsx` wraps the section title + content with the divider.
+- Both display and edit modes work — uses the same `Editable` / `AddButton` / `RemoveButton` primitives so edits flow through the same `patch()` and debounced auto-save.
+
+### Minimalist PDF document
+- New `MinimalistDocument` in `lib/pdf-generator.tsx`. `CVDocument` now dispatches based on `template` prop.
+- Generous 56pt left/right margins, 40pt top/bottom.
+- Centered name + horizontal contact rule.
+- Compact list rendering matches the preview (· separators).
+- Bullets for experience and STAR letters preserved.
+
+### TemplatePicker UI on CV view page
+- New `components/TemplatePicker.tsx`. Renders one button per template; active button highlighted in teal; premium templates show a small amber crown/lock badge and are disabled.
+- Mounted on `app/(dashboard)/cv/[id]/page.tsx` above the CVPreview. Saves `template` change to Supabase immediately (no debounce — template switch is intentional, not typing).
+- The selection feeds both the preview (`CVPreview` receives `template` prop) and the PDF export (`/api/export-pdf` reads the saved `template` from the row).
+
+### Files touched
+- `types/cv.ts` — TemplateId, TEMPLATES, DEFAULT_TEMPLATE, CVRecord.template.
+- `supabase/migrations/005_template_column.sql` (new) + `supabase/schema.sql`.
+- `components/CVPreview.tsx` — `template` prop + Minimalist render branch + MinSection helper.
+- `lib/pdf-generator.tsx` — `template` prop + dispatcher + MinimalistDocument + min styles + Page padding.
+- `components/TemplatePicker.tsx` (new).
+- `app/(dashboard)/cv/[id]/page.tsx` — TemplatePicker + changeTemplate handler.
+- `app/api/export-pdf/route.ts` — reads template from row.
+
+### What's not done yet
+- Classic + Executive templates not built. Marked as premium "coming soon" in the picker so they're visible but disabled. Will build when Sumair confirms the architecture is right after seeing Minimalist live.
+- No actual premium gating yet (just the visual badge). Real gating comes when Sumair sets up the paid tier.
+
 ## 🏷️ MILESTONE — v0.2.0-pdf-stable (commit 9f37281, 2026-06-04)
 Sumair confirmed PDF download and the full English-only flow work end-to-end.
 Tag on GitHub: https://github.com/sumair95/voicecv/releases/tag/v0.2.0-pdf-stable

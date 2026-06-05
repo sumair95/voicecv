@@ -6,10 +6,11 @@ import { toast } from "sonner";
 import { ArrowLeft, Download, Pencil, Check, Loader2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CVPreview } from "@/components/CVPreview";
+import { TemplatePicker } from "@/components/TemplatePicker";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
-import type { CVData, CVRecord } from "@/types/cv";
-import { EMPTY_CV, migrateCvData } from "@/types/cv";
+import type { CVData, CVRecord, TemplateId } from "@/types/cv";
+import { DEFAULT_TEMPLATE, EMPTY_CV, migrateCvData } from "@/types/cv";
 
 export default function CVDetailPage() {
   const { t } = useLanguage();
@@ -61,6 +62,16 @@ export default function CVDetailPage() {
         .eq("id", id);
       if (error) toast.error("Save failed: " + error.message);
     }, 1000);
+  }
+
+  async function changeTemplate(next: TemplateId) {
+    setCv((prev) => (prev ? { ...prev, template: next } : prev));
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("cvs")
+      .update({ template: next, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) toast.error("Template change failed: " + error.message);
   }
 
   async function downloadPdf() {
@@ -175,11 +186,17 @@ export default function CVDetailPage() {
         </div>
       )}
 
+      <TemplatePicker
+        value={(cv.template as TemplateId | null) ?? DEFAULT_TEMPLATE}
+        onChange={changeTemplate}
+      />
+
       <CVPreview
         cvData={cvData}
         language="en"
         editable={editing}
         onChange={handleChange}
+        template={(cv.template as TemplateId | null) ?? DEFAULT_TEMPLATE}
       />
     </div>
   );

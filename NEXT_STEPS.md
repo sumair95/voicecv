@@ -58,6 +58,11 @@
 - Q1 in EN/AR/UR now asks for "city AND country" instead of just "city".
 - Existing CVs are unaffected; their `country` field is backfilled to empty on load.
 
+### Step 1e — Apply template column migration (REQUIRED for the new template picker)
+- SQL Editor → paste `supabase/migrations/005_template_column.sql` → Run.
+- Adds a `template text not null default 'modern'` column to `cvs`. Existing rows get backfilled.
+- Verify: `select template, count(*) from cvs group by template;` should show all rows as `modern`.
+
 ### Step 2 — Supabase Auth URL config (so login redirects work)
 - Authentication → URL Configuration:
   - **Site URL:** `http://localhost:3001`
