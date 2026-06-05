@@ -88,7 +88,7 @@ export default function LandingPage() {
                 <Sparkles className="h-3.5 w-3.5" />
                 {t("landing.trust.powered")}
               </div>
-              <h1 className="mt-5 text-4xl font-bold leading-tight tracking-tight text-navy-900 md:text-6xl">
+              <h1 className="mt-5 text-5xl font-extrabold leading-[1.05] tracking-tight text-navy-900 md:text-7xl">
                 {t("landing.tagline")}
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-relaxed text-navy-400 md:text-xl">

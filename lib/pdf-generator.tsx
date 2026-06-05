@@ -5,6 +5,10 @@ import {
   View,
   StyleSheet,
   Font,
+  Svg,
+  Path,
+  Circle,
+  Line,
 } from "@react-pdf/renderer";
 import type { CVData, Language, TemplateId } from "@/types/cv";
 
@@ -124,14 +128,30 @@ function styles(fontFamily: string) {
     avatarText: { color: "#FFF", fontSize: 22, fontWeight: 700 },
     name: { fontSize: 18, fontWeight: 700, textAlign: "center", color: "#FFF" },
     sub: { fontSize: 10, color: "rgba(255,255,255,0.8)", textAlign: "center", marginTop: 3 },
+    sectionTitleRowDark: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 16,
+      marginBottom: 4,
+    },
     sectionTitleDark: {
       fontSize: 9,
       fontWeight: 700,
       color: TEAL,
       letterSpacing: 1.5,
       textTransform: "uppercase",
-      marginTop: 16,
+      marginLeft: 4,
+    },
+    sectionTitleRuleDark: {
+      borderBottomColor: "rgba(20, 184, 166, 0.3)",
+      borderBottomWidth: 1,
       marginBottom: 6,
+    },
+    sectionTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 10,
+      marginBottom: 4,
     },
     sectionTitle: {
       fontSize: 9,
@@ -139,10 +159,26 @@ function styles(fontFamily: string) {
       color: "#0F766E",
       letterSpacing: 1.5,
       textTransform: "uppercase",
-      marginBottom: 6,
-      marginTop: 6,
+      marginLeft: 4,
     },
-    contactRow: { color: "rgba(255,255,255,0.9)", fontSize: 10, marginBottom: 3 },
+    sectionTitleRule: {
+      borderBottomColor: "rgba(20, 184, 166, 0.35)",
+      borderBottomWidth: 1,
+      marginBottom: 8,
+    },
+    contactRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      color: "rgba(255,255,255,0.9)",
+      fontSize: 10,
+      marginBottom: 4,
+    },
+    contactRowText: {
+      color: "rgba(255,255,255,0.9)",
+      fontSize: 9,
+      marginLeft: 5,
+      flex: 1,
+    },
     skill: {
       backgroundColor: "rgba(20,184,166,0.25)",
       color: "#CCFBF1",
@@ -231,6 +267,207 @@ function styles(fontFamily: string) {
   });
 }
 
+// ─── PDF icon primitives ───────────────────────────────────────────
+// @react-pdf doesn't accept React/lucide icons — we render inline SVG.
+// Sized to match the 9-10pt text around them.
+
+interface IconProps {
+  size?: number;
+  color?: string;
+}
+
+function MailIcon({ size = 10, color = TEAL }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"
+        stroke={color}
+        strokeWidth={2}
+        fill="none"
+      />
+      <Path d="M2 6l10 7 10-7" stroke={color} strokeWidth={2} fill="none" />
+    </Svg>
+  );
+}
+
+function PhoneIcon({ size = 10, color = TEAL }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"
+        stroke={color}
+        strokeWidth={2}
+        fill="none"
+      />
+    </Svg>
+  );
+}
+
+function GlobeIcon({ size = 10, color = TEAL }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Circle cx={12} cy={12} r={10} stroke={color} strokeWidth={2} fill="none" />
+      <Line x1={2} y1={12} x2={22} y2={12} stroke={color} strokeWidth={2} />
+      <Path
+        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+        stroke={color}
+        strokeWidth={2}
+        fill="none"
+      />
+    </Svg>
+  );
+}
+
+function BriefcaseIcon({ size = 10, color = TEAL }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M20 7h-4V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"
+        stroke={color}
+        strokeWidth={2}
+        fill="none"
+      />
+      <Line x1={2} y1={13} x2={22} y2={13} stroke={color} strokeWidth={2} />
+    </Svg>
+  );
+}
+
+function GraduationCapIcon({ size = 10, color = TEAL }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M2 9l10-5 10 5-10 5L2 9z"
+        stroke={color}
+        strokeWidth={2}
+        fill="none"
+      />
+      <Path
+        d="M6 11v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5"
+        stroke={color}
+        strokeWidth={2}
+        fill="none"
+      />
+    </Svg>
+  );
+}
+
+function AwardIcon({ size = 10, color = TEAL }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Circle cx={12} cy={9} r={6} stroke={color} strokeWidth={2} fill="none" />
+      <Path
+        d="M8.21 13.89L7 22l5-3 5 3-1.21-8.11"
+        stroke={color}
+        strokeWidth={2}
+        fill="none"
+      />
+    </Svg>
+  );
+}
+
+function TrophyIcon({ size = 10, color = TEAL }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 4h3v3a3 3 0 0 1-3 3M7 4H4v3a3 3 0 0 0 3 3"
+        stroke={color}
+        strokeWidth={2}
+        fill="none"
+      />
+    </Svg>
+  );
+}
+
+function StarIcon({ size = 10, color = TEAL }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+        fill={color}
+      />
+    </Svg>
+  );
+}
+
+// Reusable section header: icon + uppercase title + thin teal rule below.
+function SectionHeader({
+  icon: Icon,
+  title,
+  dark,
+}: {
+  icon: React.ComponentType<IconProps>;
+  title: string;
+  dark?: boolean;
+}) {
+  const titleColor = dark ? TEAL : "#0F766E";
+  return (
+    <View>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginTop: dark ? 16 : 12,
+          marginBottom: 4,
+        }}
+      >
+        <Icon color={titleColor} />
+        <Text
+          style={{
+            fontSize: 9,
+            fontWeight: 700,
+            color: titleColor,
+            letterSpacing: 1.5,
+            textTransform: "uppercase",
+            marginLeft: 6,
+          }}
+        >
+          {title}
+        </Text>
+      </View>
+      <View
+        style={{
+          borderBottomColor: dark
+            ? "rgba(20,184,166,0.35)"
+            : "rgba(20,184,166,0.35)",
+          borderBottomWidth: 1,
+          marginBottom: 8,
+        }}
+      />
+    </View>
+  );
+}
+
+// Contact row: icon + text on a single line (used in the dark sidebar).
+function ContactRow({
+  icon: Icon,
+  text,
+}: {
+  icon: React.ComponentType<IconProps>;
+  text: string;
+}) {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 4,
+      }}
+    >
+      <Icon color={TEAL} />
+      <Text
+        style={{
+          color: "rgba(255,255,255,0.9)",
+          fontSize: 9,
+          marginLeft: 6,
+          flex: 1,
+        }}
+      >
+        {text}
+      </Text>
+    </View>
+  );
+}
+
 function bulletsFrom(text: string): string[] {
   return text
     .split(/\r?\n+/)
@@ -292,32 +529,31 @@ function ModernDocument({
 
           {(cv.personal.email || cv.personal.phone || cv.socials.length > 0) && (
             <>
-              <Text style={s.sectionTitleDark}>{L.contact}</Text>
+              <SectionHeader icon={MailIcon} title={L.contact} dark />
               {cv.personal.email ? (
-                <Text style={s.contactRow}>{cv.personal.email}</Text>
+                <ContactRow icon={MailIcon} text={cv.personal.email} />
               ) : null}
               {cv.personal.phone ? (
-                <Text style={s.contactRow}>{cv.personal.phone}</Text>
+                <ContactRow icon={PhoneIcon} text={cv.personal.phone} />
               ) : null}
               {cv.socials
                 .filter((soc) => soc.url.trim())
                 .map((soc, i) => {
+                  let txt = soc.url;
                   try {
                     const u = new URL(
                       soc.url.startsWith("http") ? soc.url : `https://${soc.url}`,
                     );
-                    const txt = (u.hostname.replace(/^www\./, "") + u.pathname).replace(/\/$/, "");
-                    return <Text key={i} style={s.contactRow}>{txt}</Text>;
-                  } catch {
-                    return <Text key={i} style={s.contactRow}>{soc.url}</Text>;
-                  }
+                    txt = (u.hostname.replace(/^www\./, "") + u.pathname).replace(/\/$/, "");
+                  } catch {}
+                  return <ContactRow key={i} icon={GlobeIcon} text={txt} />;
                 })}
             </>
           )}
 
           {cv.skills.length > 0 && (
             <>
-              <Text style={s.sectionTitleDark}>{L.skills}</Text>
+              <SectionHeader icon={StarIcon} title={L.skills} dark />
               <View style={s.skillRow}>
                 {cv.skills.map((skill, i) => (
                   <Text key={i} style={s.skill}>
@@ -330,7 +566,7 @@ function ModernDocument({
 
           {cv.languages.length > 0 && (
             <>
-              <Text style={s.sectionTitleDark}>{L.languages}</Text>
+              <SectionHeader icon={GlobeIcon} title={L.languages} dark />
               {cv.languages.map((lng, i) => (
                 <View key={i} style={s.sidebarLanguage}>
                   <Text>{lng.name}</Text>
@@ -342,7 +578,7 @@ function ModernDocument({
 
           {cv.hobbies.length > 0 && (
             <>
-              <Text style={s.sectionTitleDark}>{L.hobbies}</Text>
+              <SectionHeader icon={TrophyIcon} title={L.hobbies} dark />
               <View style={s.skillRow}>
                 {cv.hobbies.map((h, i) => (
                   <Text key={i} style={s.hobby}>
@@ -357,14 +593,14 @@ function ModernDocument({
         <View style={s.main}>
           {cv.objective ? (
             <>
-              <Text style={s.sectionTitle}>{L.objective}</Text>
+              <SectionHeader icon={StarIcon} title={L.objective} />
               <Text style={s.objectiveBox}>{cv.objective}</Text>
             </>
           ) : null}
 
           {cv.experience.length > 0 && (
             <>
-              <Text style={s.sectionTitle}>{L.experience}</Text>
+              <SectionHeader icon={BriefcaseIcon} title={L.experience} />
               {cv.experience.map((exp, i) => (
                 <View key={i} style={s.experienceItem}>
                   <View style={s.rowBetween}>
@@ -385,7 +621,7 @@ function ModernDocument({
 
           {cv.education.length > 0 && (
             <>
-              <Text style={s.sectionTitle}>{L.education}</Text>
+              <SectionHeader icon={GraduationCapIcon} title={L.education} />
               {cv.education.map((edu, i) => (
                 <View key={i} style={s.educationItem}>
                   <Text style={s.timelineDot}>•</Text>
@@ -403,7 +639,7 @@ function ModernDocument({
 
           {cv.certificates.length > 0 && (
             <>
-              <Text style={s.sectionTitle}>{L.certificates}</Text>
+              <SectionHeader icon={AwardIcon} title={L.certificates} />
               {cv.certificates.map((c, i) => (
                 <View key={i} style={s.educationItem}>
                   <Text style={s.timelineDot}>•</Text>
@@ -423,7 +659,7 @@ function ModernDocument({
 
           {cv.achievement && (
             <>
-              <Text style={s.sectionTitle}>{L.achievement}</Text>
+              <SectionHeader icon={TrophyIcon} title={L.achievement} />
               <View style={s.starBox}>
                 {[
                   ["S", cv.achievement.situation],
@@ -556,14 +792,14 @@ function MinimalistDocument({
 
         {cv.objective ? (
           <>
-            <Text style={s.sectionTitle}>{L.objective}</Text>
+            <SectionHeader icon={StarIcon} title={L.objective} />
             <Text style={s.body}>{cv.objective}</Text>
           </>
         ) : null}
 
         {cv.experience.length > 0 && (
           <>
-            <Text style={s.sectionTitle}>{L.experience}</Text>
+            <SectionHeader icon={BriefcaseIcon} title={L.experience} />
             {cv.experience.map((exp, i) => (
               <View key={i} style={s.expBlock}>
                 <View style={s.rowBetween}>
@@ -584,7 +820,7 @@ function MinimalistDocument({
 
         {cv.education.length > 0 && (
           <>
-            <Text style={s.sectionTitle}>{L.education}</Text>
+            <SectionHeader icon={GraduationCapIcon} title={L.education} />
             {cv.education.map((edu, i) => (
               <View key={i} style={s.expBlock}>
                 <View style={s.rowBetween}>
@@ -599,7 +835,7 @@ function MinimalistDocument({
 
         {cv.certificates.length > 0 && (
           <>
-            <Text style={s.sectionTitle}>{L.certificates}</Text>
+            <SectionHeader icon={AwardIcon} title={L.certificates} />
             {cv.certificates.map((c, i) => (
               <View key={i} style={s.listRow}>
                 <Text style={s.body}>
@@ -614,7 +850,7 @@ function MinimalistDocument({
 
         {cv.skills.length > 0 && (
           <>
-            <Text style={s.sectionTitle}>{L.skills}</Text>
+            <SectionHeader icon={StarIcon} title={L.skills} />
             <Text style={s.skillsLine}>
               {cv.skills.filter((sk) => sk.trim()).join("  ·  ")}
             </Text>
@@ -623,7 +859,7 @@ function MinimalistDocument({
 
         {cv.languages.length > 0 && (
           <>
-            <Text style={s.sectionTitle}>{L.languages}</Text>
+            <SectionHeader icon={GlobeIcon} title={L.languages} />
             <Text style={s.skillsLine}>
               {cv.languages
                 .filter((l) => l.name.trim())
@@ -637,7 +873,7 @@ function MinimalistDocument({
 
         {cv.hobbies.length > 0 && (
           <>
-            <Text style={s.sectionTitle}>{L.hobbies}</Text>
+            <SectionHeader icon={TrophyIcon} title={L.hobbies} />
             <Text style={s.skillsLine}>
               {cv.hobbies.filter((h) => h.trim()).join("  ·  ")}
             </Text>
@@ -646,7 +882,7 @@ function MinimalistDocument({
 
         {cv.achievement && (
           <>
-            <Text style={s.sectionTitle}>{L.achievement}</Text>
+            <SectionHeader icon={TrophyIcon} title={L.achievement} />
             {[
               ["S", cv.achievement.situation],
               ["T", cv.achievement.task],
