@@ -378,17 +378,6 @@ function TrophyIcon({ size = 10, color = TEAL }: IconProps) {
   );
 }
 
-function StarIcon({ size = 10, color = TEAL }: IconProps) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path
-        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-        fill={color}
-      />
-    </Svg>
-  );
-}
-
 // Reusable section header: icon + uppercase title.
 // `rule` (used by Minimalist) adds a subtle gray underline.
 function SectionHeader({
@@ -397,7 +386,7 @@ function SectionHeader({
   dark,
   rule,
 }: {
-  icon: React.ComponentType<IconProps>;
+  icon?: React.ComponentType<IconProps>;
   title: string;
   dark?: boolean;
   rule?: boolean;
@@ -415,7 +404,7 @@ function SectionHeader({
           marginBottom: rule ? 4 : 6,
         }}
       >
-        <Icon color={titleColor} size={dark ? 9 : 11} />
+        {Icon && <Icon color={titleColor} size={dark ? 9 : 11} />}
         <Text
           style={{
             fontSize: dark ? 10 : 13,
@@ -423,7 +412,7 @@ function SectionHeader({
             color: titleColor,
             letterSpacing: dark ? 1.5 : 1,
             textTransform: "uppercase",
-            marginLeft: 6,
+            marginLeft: Icon ? 6 : 0,
           }}
         >
           {title}
@@ -573,7 +562,7 @@ function ModernDocument({
 
           {(cv.personal.email || cv.personal.phone || cv.socials.length > 0) && (
             <>
-              <SectionHeader icon={MailIcon} title={L.contact} dark />
+              <SectionHeader title={L.contact} dark />
               {cv.personal.email ? (
                 <ContactRow icon={MailIcon} text={cv.personal.email} />
               ) : null}
@@ -597,7 +586,7 @@ function ModernDocument({
 
           {cv.skills.length > 0 && (
             <>
-              <SectionHeader icon={StarIcon} title={L.skills} dark />
+              <SectionHeader title={L.skills} dark />
               <View style={s.skillRow}>
                 {cv.skills.map((skill, i) => (
                   <Text key={i} style={s.skill}>
@@ -610,7 +599,7 @@ function ModernDocument({
 
           {cv.languages.length > 0 && (
             <>
-              <SectionHeader icon={GlobeIcon} title={L.languages} dark />
+              <SectionHeader title={L.languages} dark />
               {cv.languages.map((lng, i) => (
                 <View key={i} style={s.sidebarLanguage}>
                   <Text>{lng.name}</Text>
@@ -622,7 +611,7 @@ function ModernDocument({
 
           {cv.hobbies.length > 0 && (
             <>
-              <SectionHeader icon={TrophyIcon} title={L.hobbies} dark />
+              <SectionHeader title={L.hobbies} dark />
               <View style={s.skillRow}>
                 {cv.hobbies.map((h, i) => (
                   <Text key={i} style={s.hobby}>
@@ -637,7 +626,7 @@ function ModernDocument({
         <View style={s.main}>
           {cv.objective ? (
             <>
-              <SectionHeader icon={StarIcon} title={L.objective} />
+              <SectionHeader title={L.objective} />
               <Text style={s.objectiveBox}>{cv.objective}</Text>
             </>
           ) : null}
@@ -830,14 +819,14 @@ function MinimalistDocument({
 
         {cv.objective ? (
           <>
-            <SectionHeader icon={StarIcon} title={L.objective} />
+            <SectionHeader title={L.objective} />
             <Text style={s.body}>{cv.objective}</Text>
           </>
         ) : null}
 
         {cv.experience.length > 0 && (
           <>
-            <SectionHeader icon={BriefcaseIcon} title={L.experience} />
+            <SectionHeader title={L.experience} />
             {cv.experience.map((exp, i) => (
               <View key={i} style={s.expBlock}>
                 <View style={s.rowBetween}>
@@ -858,7 +847,7 @@ function MinimalistDocument({
 
         {cv.education.length > 0 && (
           <>
-            <SectionHeader icon={GraduationCapIcon} title={L.education} />
+            <SectionHeader title={L.education} />
             {cv.education.map((edu, i) => (
               <View key={i} style={s.expBlock}>
                 <View style={s.rowBetween}>
@@ -873,7 +862,7 @@ function MinimalistDocument({
 
         {cv.certificates.length > 0 && (
           <>
-            <SectionHeader icon={AwardIcon} title={L.certificates} />
+            <SectionHeader title={L.certificates} />
             {cv.certificates.map((c, i) => (
               <View key={i} style={s.listRow}>
                 <Text style={s.body}>
@@ -888,7 +877,7 @@ function MinimalistDocument({
 
         {cv.skills.length > 0 && (
           <>
-            <SectionHeader icon={StarIcon} title={L.skills} />
+            <SectionHeader title={L.skills} />
             <Text style={s.skillsLine}>
               {cv.skills.filter((sk) => sk.trim()).join("  ·  ")}
             </Text>
@@ -897,7 +886,7 @@ function MinimalistDocument({
 
         {cv.languages.length > 0 && (
           <>
-            <SectionHeader icon={GlobeIcon} title={L.languages} />
+            <SectionHeader title={L.languages} />
             <Text style={s.skillsLine}>
               {cv.languages
                 .filter((l) => l.name.trim())
@@ -911,7 +900,7 @@ function MinimalistDocument({
 
         {cv.hobbies.length > 0 && (
           <>
-            <SectionHeader icon={TrophyIcon} title={L.hobbies} />
+            <SectionHeader title={L.hobbies} />
             <Text style={s.skillsLine}>
               {cv.hobbies.filter((h) => h.trim()).join("  ·  ")}
             </Text>
@@ -920,7 +909,7 @@ function MinimalistDocument({
 
         {cv.achievement && (
           <>
-            <SectionHeader icon={TrophyIcon} title={L.achievement} />
+            <SectionHeader title={L.achievement} />
             {[
               ["S", cv.achievement.situation],
               ["T", cv.achievement.task],
