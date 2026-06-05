@@ -389,34 +389,39 @@ function StarIcon({ size = 10, color = TEAL }: IconProps) {
   );
 }
 
-// Reusable section header: icon + uppercase title + thin teal rule below.
+// Reusable section header: icon + uppercase title.
+// `rule` (used by Minimalist) adds a subtle gray underline.
 function SectionHeader({
   icon: Icon,
   title,
   dark,
+  rule,
 }: {
   icon: React.ComponentType<IconProps>;
   title: string;
   dark?: boolean;
+  rule?: boolean;
 }) {
-  const titleColor = dark ? TEAL : "#0F766E";
+  // Dark sidebar keeps teal so it shows on the navy background. Main column
+  // uses navy so the title clearly outranks the sub-item text below it.
+  const titleColor = dark ? TEAL : NAVY;
   return (
     <View>
       <View
         style={{
           flexDirection: "row",
           alignItems: "center",
-          marginTop: dark ? 16 : 12,
-          marginBottom: 4,
+          marginTop: dark ? 16 : 14,
+          marginBottom: rule ? 4 : 6,
         }}
       >
-        <Icon color={titleColor} />
+        <Icon color={titleColor} size={dark ? 9 : 11} />
         <Text
           style={{
-            fontSize: 9,
+            fontSize: dark ? 10 : 13,
             fontWeight: 700,
             color: titleColor,
-            letterSpacing: 1.5,
+            letterSpacing: dark ? 1.5 : 1,
             textTransform: "uppercase",
             marginLeft: 6,
           }}
@@ -424,15 +429,54 @@ function SectionHeader({
           {title}
         </Text>
       </View>
-      <View
-        style={{
-          borderBottomColor: dark
-            ? "rgba(20,184,166,0.35)"
-            : "rgba(20,184,166,0.35)",
-          borderBottomWidth: 1,
-          marginBottom: 8,
-        }}
-      />
+      {rule && (
+        <View
+          style={{
+            borderBottomColor: "#E2E8F0",
+            borderBottomWidth: 0.7,
+            marginBottom: 8,
+          }}
+        />
+      )}
+    </View>
+  );
+}
+
+// Timeline item — hollow teal circle + vertical line connecting to the
+// next item, matching the web preview's `border-s + dot marker` pattern.
+function TimelineItem({
+  isLast,
+  children,
+}: {
+  isLast?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <View style={{ flexDirection: "row", marginBottom: 10 }}>
+      <View style={{ width: 14, alignItems: "center" }}>
+        <View
+          style={{
+            width: 7,
+            height: 7,
+            borderRadius: 3.5,
+            borderWidth: 1.5,
+            borderColor: TEAL,
+            backgroundColor: "white",
+            marginTop: 3,
+          }}
+        />
+        {!isLast && (
+          <View
+            style={{
+              width: 1,
+              flex: 1,
+              backgroundColor: "#E2E8F0",
+              marginTop: 2,
+            }}
+          />
+        )}
+      </View>
+      <View style={{ flex: 1, paddingLeft: 6 }}>{children}</View>
     </View>
   );
 }
@@ -602,7 +646,7 @@ function ModernDocument({
             <>
               <SectionHeader icon={BriefcaseIcon} title={L.experience} />
               {cv.experience.map((exp, i) => (
-                <View key={i} style={s.experienceItem}>
+                <TimelineItem key={i} isLast={i === cv.experience.length - 1}>
                   <View style={s.rowBetween}>
                     <Text style={s.role}>{exp.role}</Text>
                     <Text style={s.duration}>{exp.duration}</Text>
@@ -614,7 +658,7 @@ function ModernDocument({
                       <Text style={s.bulletText}>{line}</Text>
                     </View>
                   ))}
-                </View>
+                </TimelineItem>
               ))}
             </>
           )}
@@ -623,16 +667,13 @@ function ModernDocument({
             <>
               <SectionHeader icon={GraduationCapIcon} title={L.education} />
               {cv.education.map((edu, i) => (
-                <View key={i} style={s.educationItem}>
-                  <Text style={s.timelineDot}>•</Text>
-                  <View style={s.educationContent}>
-                    <View style={s.rowBetween}>
-                      <Text style={s.educationDegree}>{edu.degree}</Text>
-                      <Text style={s.duration}>{edu.year}</Text>
-                    </View>
-                    <Text style={s.educationInstitution}>{edu.institution}</Text>
+                <TimelineItem key={i} isLast={i === cv.education.length - 1}>
+                  <View style={s.rowBetween}>
+                    <Text style={s.educationDegree}>{edu.degree}</Text>
+                    <Text style={s.duration}>{edu.year}</Text>
                   </View>
-                </View>
+                  <Text style={s.educationInstitution}>{edu.institution}</Text>
+                </TimelineItem>
               ))}
             </>
           )}
@@ -641,18 +682,15 @@ function ModernDocument({
             <>
               <SectionHeader icon={AwardIcon} title={L.certificates} />
               {cv.certificates.map((c, i) => (
-                <View key={i} style={s.educationItem}>
-                  <Text style={s.timelineDot}>•</Text>
-                  <View style={s.educationContent}>
-                    <View style={s.rowBetween}>
-                      <Text style={s.certName}>
-                        {c.name}
-                        {c.issuer ? <Text style={s.certIssuer}> · {c.issuer}</Text> : null}
-                      </Text>
-                      <Text style={s.duration}>{c.year}</Text>
-                    </View>
+                <TimelineItem key={i} isLast={i === cv.certificates.length - 1}>
+                  <View style={s.rowBetween}>
+                    <Text style={s.certName}>
+                      {c.name}
+                      {c.issuer ? <Text style={s.certIssuer}> · {c.issuer}</Text> : null}
+                    </Text>
+                    <Text style={s.duration}>{c.year}</Text>
                   </View>
-                </View>
+                </TimelineItem>
               ))}
             </>
           )}
