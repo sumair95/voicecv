@@ -2,6 +2,8 @@ import { generateCV } from "@/lib/claude";
 import { createClient } from "@/lib/supabase/server";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, unauthorized } from "@/lib/api/respond";
+import { LIMITS, take } from "@/lib/rate-limit";
+import { NextResponse } from "next/server";
 import type { Language, QAPair } from "@/types/cv";
 
 export const runtime = "nodejs";
@@ -19,6 +21,17 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return unauthorized();
+
+  const rate = take(`gen:${user.id}`, LIMITS.generateCv);
+  if (!rate.ok) {
+    return NextResponse.json(
+      { error: "Too many CV generations. Try again in a minute." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(Math.ceil((rate.resetAt - Date.now()) / 1000)) },
+      },
+    );
+  }
 
   const body = (await req.json()) as RequestBody;
   if (!Array.isArray(body.qaPairs) || body.qaPairs.length === 0) {
