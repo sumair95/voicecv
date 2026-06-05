@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, Download, Pencil, Check, Loader2, Info } from "lucide-react";
@@ -9,8 +9,10 @@ import { CVPreview } from "@/components/CVPreview";
 import { TemplatePicker } from "@/components/TemplatePicker";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
+import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import type { CVData, CVRecord, TemplateId } from "@/types/cv";
-import { DEFAULT_TEMPLATE, EMPTY_CV, migrateCvData } from "@/types/cv";
+import { DEFAULT_TEMPLATE, EMPTY_CV } from "@/types/cv";
+import { migrateCvData } from "@/lib/cv/migrate";
 
 export default function CVDetailPage() {
   const { t } = useLanguage();
@@ -22,10 +24,9 @@ export default function CVDetailPage() {
   const [editing, setEditing] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const supabase = useMemo(() => createClient(), []);
 
   const fetchCv = useCallback(async () => {
-    const supabase = createClient();
     const { data, error } = await supabase
       .from("cvs")
       .select("*")
@@ -41,32 +42,35 @@ export default function CVDetailPage() {
     }
     setCv(record);
     setLoading(false);
-  }, [id]);
+  }, [id, supabase]);
 
   useEffect(() => {
     fetchCv();
   }, [fetchCv]);
 
+  // Debounced save that always reads the *latest* cv state inside the
+  // timer body — fixes the stale-closure bug where rapid typing across
+  // the name + objective fields could save an old title.
+  const scheduleSave = useDebouncedSave<CVData>(async (updated) => {
+    const fallbackTitle = updated.personal?.full_name || cv?.title || "My CV";
+    const { error } = await supabase
+      .from("cvs")
+      .update({
+        cv_data: updated,
+        title: fallbackTitle,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+    if (error) toast.error("Save failed: " + error.message);
+  });
+
   function handleChange(updated: CVData) {
     setCv((prev) => (prev ? { ...prev, cv_data: updated } : prev));
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(async () => {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("cvs")
-        .update({
-          cv_data: updated,
-          title: updated.personal?.full_name || cv?.title || "My CV",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id);
-      if (error) toast.error("Save failed: " + error.message);
-    }, 1000);
+    scheduleSave(updated);
   }
 
   async function changeTemplate(next: TemplateId) {
     setCv((prev) => (prev ? { ...prev, template: next } : prev));
-    const supabase = createClient();
     const { error } = await supabase
       .from("cvs")
       .update({ template: next, updated_at: new Date().toISOString() })
@@ -88,7 +92,7 @@ export default function CVDetailPage() {
         let detail = `HTTP ${res.status}`;
         if (ct.includes("application/json")) {
           const data = await res.json().catch(() => null);
-          if (data?.error) detail = data.error;
+          if (data?.error) detail = String(data.error);
         } else {
           const text = await res.text().catch(() => "");
           if (text) detail = text.slice(0, 200);

@@ -1,5 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { CVData, Language, QAPair } from "@/types/cv";
+import { withRetry } from "@/lib/ai/retry";
+import { logger } from "@/lib/log";
 
 const MODEL = "claude-sonnet-4-6";
 
@@ -104,12 +106,19 @@ ${qaBlock}
 
 Generate the structured CV JSON now (English).`;
 
-  const response = await anthropic.messages.create({
-    model: MODEL,
-    max_tokens: 2500,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: userMessage }],
-  });
+  const response = await withRetry(
+    () =>
+      anthropic.messages.create({
+        model: MODEL,
+        max_tokens: 2500,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: "user", content: userMessage }],
+      }),
+    {
+      onRetry: (err, attempt) =>
+        logger.warn("claude retry", { attempt, err }),
+    },
+  );
 
   const textBlock = response.content.find((b) => b.type === "text");
   if (!textBlock || textBlock.type !== "text") {

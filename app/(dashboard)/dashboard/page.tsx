@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Plus, FileText, Sparkles } from "lucide-react";
+import { Plus, FileText, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,28 +12,60 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import type { CVRecord, Profile } from "@/types/cv";
 
+const PAGE_SIZE = 20;
+
 export default function DashboardPage() {
   const { t, lang } = useLanguage();
   const [cvs, setCvs] = useState<CVRecord[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const supabase = useMemo(() => createClient(), []);
+
+  const loadPage = useCallback(
+    async (cursor?: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return { rows: [], hasMore: false };
+      let q = supabase
+        .from("cvs")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(PAGE_SIZE + 1);
+      if (cursor) q = q.lt("created_at", cursor);
+      const { data } = await q;
+      const rows = (data as CVRecord[]) ?? [];
+      const trimmed = rows.slice(0, PAGE_SIZE);
+      return { rows: trimmed, hasMore: rows.length > PAGE_SIZE };
+    },
+    [supabase],
+  );
 
   useEffect(() => {
     (async () => {
-      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
-      const [{ data: profileRow }, { data: cvRows }] = await Promise.all([
+      const [{ data: profileRow }, page] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).single(),
-        supabase.from("cvs").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        loadPage(),
       ]);
-
       setProfile(profileRow as Profile | null);
-      setCvs((cvRows as CVRecord[]) ?? []);
+      setCvs(page.rows);
+      setHasMore(page.hasMore);
       setLoading(false);
     })();
-  }, []);
+  }, [supabase, loadPage]);
+
+  async function loadMore() {
+    if (cvs.length === 0) return;
+    setLoadingMore(true);
+    const last = cvs[cvs.length - 1];
+    const page = await loadPage(last.created_at);
+    setCvs((prev) => [...prev, ...page.rows]);
+    setHasMore(page.hasMore);
+    setLoadingMore(false);
+  }
 
   const greetingName = profile?.full_name?.split(" ")[0] ?? "";
 
@@ -79,6 +111,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       ) : (
+        <>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {cvs.map((cv, i) => (
             <motion.div
@@ -112,6 +145,19 @@ export default function DashboardPage() {
             </motion.div>
           ))}
         </div>
+        {hasMore && (
+          <div className="mt-6 flex justify-center">
+            <Button
+              variant="outline"
+              onClick={loadMore}
+              disabled={loadingMore}
+            >
+              {loadingMore && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+              Load more
+            </Button>
+          </div>
+        )}
+        </>
       )}
     </div>
   );

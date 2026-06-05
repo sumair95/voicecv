@@ -1,5 +1,7 @@
 import OpenAI from "openai";
 import type { Language } from "@/types/cv";
+import { withRetry } from "@/lib/ai/retry";
+import { logger } from "@/lib/log";
 
 function client() {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -7,7 +9,7 @@ function client() {
   return new OpenAI({ apiKey });
 }
 
-// Whisper supports ISO-639-1 codes. ar/en/ur/hi are all native-supported.
+// Whisper supports ISO-639-1 codes. ar/en/ur are all native-supported.
 export async function transcribe(
   audio: Blob,
   language: Language,
@@ -17,11 +19,18 @@ export async function transcribe(
     type: audio.type || "audio/webm",
   });
 
-  const transcription = await openai.audio.transcriptions.create({
-    file,
-    model: "whisper-1",
-    language,
-  });
+  const transcription = await withRetry(
+    () =>
+      openai.audio.transcriptions.create({
+        file,
+        model: "whisper-1",
+        language,
+      }),
+    {
+      onRetry: (err, attempt) =>
+        logger.warn("whisper retry", { attempt, err }),
+    },
+  );
 
   return transcription.text;
 }
