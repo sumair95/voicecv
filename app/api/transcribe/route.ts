@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { transcribe } from "@/lib/whisper";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/api/auth";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, unauthorized } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
@@ -10,8 +10,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export const POST = handle("transcribe", async ({ req, log }) => {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user } = await getAuthContext(req);
   if (!user) return unauthorized();
 
   const rate = take(`stt:${user.id}`, LIMITS.transcribe);

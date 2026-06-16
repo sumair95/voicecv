@@ -1,5 +1,5 @@
 import { renderToBuffer } from "@react-pdf/renderer";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/api/auth";
 import { CVDocument } from "@/lib/pdf-generator";
 import { migrateCvData } from "@/lib/cv/migrate";
 import { isUserEntitled, DEFAULT_TEMPLATE } from "@/lib/cv/templates";
@@ -13,8 +13,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export const POST = handle("export-pdf", async ({ req, log }) => {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user, supabase } = await getAuthContext(req);
   if (!user) return unauthorized();
 
   const rate = take(`pdf:${user.id}`, LIMITS.exportPdf);

@@ -177,6 +177,76 @@ export const t: Dict = {
     ar: "ليس لديك حساب؟",
     ur: "اکاؤنٹ نہیں ہے؟",
   },
+  "auth.forgot.link": {
+    en: "Forgot password?",
+    ar: "نسيت كلمة المرور؟",
+    ur: "پاس ورڈ بھول گئے؟",
+  },
+  "auth.forgot.title": {
+    en: "Reset your password",
+    ar: "إعادة تعيين كلمة المرور",
+    ur: "پاس ورڈ ری سیٹ کریں",
+  },
+  "auth.forgot.desc": {
+    en: "Enter your email and we'll send you a reset link.",
+    ar: "أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين.",
+    ur: "اپنا ای میل درج کریں، ہم ری سیٹ لنک بھیجیں گے۔",
+  },
+  "auth.forgot.send": {
+    en: "Send reset link",
+    ar: "إرسال الرابط",
+    ur: "ری سیٹ لنک بھیجیں",
+  },
+  "auth.forgot.sent": {
+    en: "Check your inbox",
+    ar: "تحقق من بريدك الوارد",
+    ur: "اپنا انباکس چیک کریں",
+  },
+  "auth.forgot.checkInbox": {
+    en: "If an account exists for that email, a password reset link is on its way. The link expires in 1 hour.",
+    ar: "إذا كان هناك حساب بهذا البريد، فقد أُرسل رابط إعادة التعيين. تنتهي صلاحية الرابط خلال ساعة واحدة.",
+    ur: "اگر اس ای میل پر کوئی اکاؤنٹ ہے تو ری سیٹ لنک بھیج دیا گیا ہے۔ لنک 1 گھنٹے میں ختم ہو جائے گا۔",
+  },
+  "auth.forgot.backToLogin": {
+    en: "Back to sign in",
+    ar: "العودة إلى تسجيل الدخول",
+    ur: "سائن ان پر واپس جائیں",
+  },
+  "auth.reset.title": {
+    en: "Choose a new password",
+    ar: "اختر كلمة مرور جديدة",
+    ur: "نیا پاس ورڈ منتخب کریں",
+  },
+  "auth.reset.desc": {
+    en: "Pick something at least 6 characters long.",
+    ar: "اختر كلمة مرور لا تقل عن 6 أحرف.",
+    ur: "کم از کم 6 حروف کا پاس ورڈ منتخب کریں۔",
+  },
+  "auth.reset.waiting": {
+    en: "Verifying your reset link…",
+    ar: "نتحقق من رابط إعادة التعيين…",
+    ur: "ری سیٹ لنک کی تصدیق…",
+  },
+  "auth.reset.newPassword": {
+    en: "New password",
+    ar: "كلمة المرور الجديدة",
+    ur: "نیا پاس ورڈ",
+  },
+  "auth.reset.confirm": {
+    en: "Confirm new password",
+    ar: "تأكيد كلمة المرور",
+    ur: "پاس ورڈ کی تصدیق کریں",
+  },
+  "auth.reset.update": {
+    en: "Update password",
+    ar: "تحديث كلمة المرور",
+    ur: "پاس ورڈ اپڈیٹ کریں",
+  },
+  "auth.signup.alreadyExists": {
+    en: "An account already exists with this email. Try signing in instead, or reset your password.",
+    ar: "يوجد حساب مسجل بهذا البريد. حاول تسجيل الدخول أو إعادة تعيين كلمة المرور.",
+    ur: "اس ای میل پر اکاؤنٹ پہلے سے موجود ہے۔ سائن ان کریں یا پاس ورڈ ری سیٹ کریں۔",
+  },
 
   // Dashboard
   "dashboard.welcome": { en: "Welcome", ar: "أهلاً", ur: "خوش آمدید" },

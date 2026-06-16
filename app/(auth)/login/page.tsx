@@ -88,6 +88,15 @@ function LoginForm() {
           >
             {loading ? t("common.loading") : t("auth.signIn")}
           </Button>
+
+          <div className="mt-3 text-center">
+            <Link
+              href="/forgot-password"
+              className="text-sm font-medium text-teal-700 hover:underline"
+            >
+              {t("auth.forgot.link")}
+            </Link>
+          </div>
         </form>
 
         <div className="my-6 flex items-center gap-3">

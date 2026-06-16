@@ -1,5 +1,5 @@
 import { generateCV } from "@/lib/claude";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/api/auth";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, unauthorized } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
@@ -16,10 +16,7 @@ interface RequestBody {
 }
 
 export const POST = handle("generate-cv", async ({ req, log }) => {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getAuthContext(req);
   if (!user) return unauthorized();
 
   const rate = take(`gen:${user.id}`, LIMITS.generateCv);

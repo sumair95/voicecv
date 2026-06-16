@@ -31,7 +31,12 @@ export async function updateSession(request: NextRequest) {
 
   const url = request.nextUrl;
   const isAuthRoute =
-    url.pathname.startsWith("/login") || url.pathname.startsWith("/signup");
+    url.pathname.startsWith("/login") ||
+    url.pathname.startsWith("/signup") ||
+    url.pathname.startsWith("/forgot-password");
+  // /reset-password is intentionally NOT in the bounce list: it carries
+  // an auth-recovery token in the URL fragment that Supabase parses
+  // client-side, so logged-in users must still be able to reach it.
   const isProtected =
     url.pathname.startsWith("/dashboard") ||
     url.pathname.startsWith("/record") ||

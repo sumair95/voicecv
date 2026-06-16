@@ -34,7 +34,20 @@ export default function SignupPage() {
     setLoading(false);
 
     if (error) {
-      toast.error(error.message);
+      const msg = error.message.toLowerCase();
+      if (msg.includes("already") || msg.includes("registered")) {
+        toast.error(t("auth.signup.alreadyExists"));
+      } else {
+        toast.error(error.message);
+      }
+      return;
+    }
+
+    // Supabase deliberately doesn't error on duplicate emails (anti-enumeration).
+    // Instead, when the email is already registered, `data.user.identities`
+    // comes back empty. Detect that and steer the user to login.
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      toast.error(t("auth.signup.alreadyExists"));
       return;
     }
 
