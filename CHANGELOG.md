@@ -2,6 +2,10 @@
 
 All notable changes to VoiceCV will be documented in this file.
 
+## [Unreleased]
+- **Delete CV:** dashboard cards now have a trash button with an inline "Delete this CV?" confirm step (no accidental deletes), optimistic removal with exit animation, and a success/error toast. Localized EN/AR/UR. Deletes the `cvs` row via the existing `own cvs` RLS policy (`for all` already covers DELETE — no migration needed); no orphaned storage since recordings are never persisted. Reduces DB clutter.
+- **Deploy fix:** `start` script no longer hardcodes `-p 3001` so Railway binds to its injected `$PORT`.
+
 ## [v0.2.0-pdf-stable] — 2026-06-04
 Second stable milestone. PDF works end-to-end after multiple fixes; English-only CV output is the new default. Confirmed by Sumair.
 Tag: https://github.com/sumair95/voicecv/releases/tag/v0.2.0-pdf-stable

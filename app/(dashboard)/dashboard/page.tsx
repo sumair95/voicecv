@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { format } from "date-fns";
-import { Plus, FileText, Sparkles, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { Plus, FileText, Sparkles, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const supabase = useMemo(() => createClient(), []);
 
   const loadPage = useCallback(
@@ -65,6 +68,30 @@ export default function DashboardPage() {
     setCvs((prev) => [...prev, ...page.rows]);
     setHasMore(page.hasMore);
     setLoadingMore(false);
+  }
+
+  async function deleteCV(id: string) {
+    setDeletingId(id);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setDeletingId(null);
+      return;
+    }
+    // RLS (`own cvs` policy) also scopes this to the owner; the explicit
+    // user_id filter is belt-and-suspenders.
+    const { error } = await supabase
+      .from("cvs")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id);
+    setDeletingId(null);
+    setConfirmingId(null);
+    if (error) {
+      toast.error(t("dashboard.delete.error"));
+      return;
+    }
+    setCvs((prev) => prev.filter((cv) => cv.id !== id));
+    toast.success(t("dashboard.delete.success"));
   }
 
   const greetingName = profile?.full_name?.split(" ")[0] ?? "";
@@ -113,12 +140,16 @@ export default function DashboardPage() {
       ) : (
         <>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <AnimatePresence mode="popLayout">
           {cvs.map((cv, i) => (
             <motion.div
               key={cv.id}
+              layout
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.04 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ delay: confirmingId || deletingId ? 0 : i * 0.04 }}
+              className="relative"
             >
               <Link href={`/cv/${cv.id}`}>
                 <Card className="h-full border-navy-100/60 transition hover:-translate-y-0.5 hover:border-teal/50 hover:shadow-md">
@@ -132,7 +163,7 @@ export default function DashboardPage() {
                       </Badge>
                     </div>
                     <div>
-                      <div className="line-clamp-1 font-semibold text-navy-900">
+                      <div className="line-clamp-1 pe-7 font-semibold text-navy-900">
                         {cv.title ?? cv.cv_data?.personal?.full_name ?? "Untitled CV"}
                       </div>
                       <div className="mt-1 text-sm text-navy-400">
@@ -142,8 +173,61 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
               </Link>
+
+              <button
+                type="button"
+                aria-label={t("dashboard.delete")}
+                title={t("dashboard.delete")}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setConfirmingId(cv.id);
+                }}
+                className="absolute bottom-4 end-4 grid h-8 w-8 place-items-center rounded-lg text-navy-300 transition hover:bg-red-50 hover:text-red-600"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+
+              {confirmingId === cv.id && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="absolute inset-0 z-10 flex flex-col justify-center gap-3 rounded-xl border border-navy-100/60 bg-white/95 p-6 text-center backdrop-blur"
+                >
+                  <div>
+                    <div className="font-semibold text-navy-900">
+                      {t("dashboard.delete.confirmTitle")}
+                    </div>
+                    <div className="mt-1 text-sm text-navy-400">
+                      {t("dashboard.delete.confirmDesc")}
+                    </div>
+                  </div>
+                  <div className="flex justify-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setConfirmingId(null)}
+                      disabled={deletingId === cv.id}
+                    >
+                      {t("common.cancel")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="bg-red-600 hover:bg-red-700"
+                      onClick={() => deleteCV(cv.id)}
+                      disabled={deletingId === cv.id}
+                    >
+                      {deletingId === cv.id && (
+                        <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                      )}
+                      {t("dashboard.delete.confirm")}
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           ))}
+          </AnimatePresence>
         </div>
         {hasMore && (
           <div className="mt-6 flex justify-center">

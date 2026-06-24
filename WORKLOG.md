@@ -2,6 +2,11 @@
 
 Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 
+## 2026-06-24 — Custom domain + delete-CV feature
+- **Domain:** Sumair purchased `vocv.app` and pointed it at the Railway deploy (DNS auto-configured by Railway, SSL auto-provisioned — `.app` is HSTS-preload so HTTPS-only). `NEXT_PUBLIC_APP_URL` → `https://vocv.app`; Supabase Site URL + redirect URLs updated to the domain.
+- **Deploy fix:** dropped hardcoded `-p 3001` from `package.json` `start` so Railway binds its injected `$PORT` (commit on `main`). Local `npm run dev` still pinned to 3001.
+- **Delete CV (new feature):** dashboard CV cards get a trash button → inline "Delete this CV?" confirm overlay → optimistic removal + toast. Row delete via existing `own cvs` RLS policy (already `for all`, covers DELETE). No migration. Investigated storage cleanup: `audio_url` is never populated and there's no upload code, so no orphaned recordings to clean. New i18n keys `dashboard.delete*` in EN/AR/UR. `tsc --noEmit` + `next lint` clean.
+
 ## 2026-05-30 — Day 0: Foundation
 - Scaffolded Next.js 14 (App Router, TypeScript, Tailwind) at `C:\Users\admin\AI Agent\voicecv`.
 - Installed deps: `@supabase/supabase-js`, `@supabase/ssr`, `@anthropic-ai/sdk`, `openai`, `@react-pdf/renderer`, `framer-motion`, `react-hook-form`, `zod`, `@hookform/resolvers`, `canvas-confetti`.

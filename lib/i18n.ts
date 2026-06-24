@@ -266,6 +266,28 @@ export const t: Dict = {
     ar: "أجب عن بعض الأسئلة الصوتية ودع الذكاء الاصطناعي يقوم بالباقي.",
     ur: "چند آواز کے سوالات کا جواب دیں، باقی AI کرے گا۔",
   },
+  "dashboard.delete": { en: "Delete CV", ar: "حذف السيرة", ur: "CV حذف کریں" },
+  "dashboard.delete.confirmTitle": {
+    en: "Delete this CV?",
+    ar: "حذف هذه السيرة الذاتية؟",
+    ur: "یہ CV حذف کریں؟",
+  },
+  "dashboard.delete.confirmDesc": {
+    en: "This permanently removes the CV. This can't be undone.",
+    ar: "سيؤدي هذا إلى حذف السيرة الذاتية نهائياً. لا يمكن التراجع عن هذا.",
+    ur: "یہ CV مستقل طور پر حذف ہو جائے گا۔ اسے واپس نہیں کیا جا سکتا۔",
+  },
+  "dashboard.delete.confirm": { en: "Delete", ar: "حذف", ur: "حذف کریں" },
+  "dashboard.delete.success": {
+    en: "CV deleted",
+    ar: "تم حذف السيرة الذاتية",
+    ur: "CV حذف ہو گیا",
+  },
+  "dashboard.delete.error": {
+    en: "Couldn't delete the CV. Please try again.",
+    ar: "تعذّر حذف السيرة الذاتية. حاول مرة أخرى.",
+    ur: "CV حذف نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+  },
 
   // Status
   "status.processing": {
