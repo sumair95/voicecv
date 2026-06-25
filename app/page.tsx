@@ -62,7 +62,7 @@ export default function LandingPage() {
 
   const stats = [
     { value: "5", labelKey: "landing.stats.minutes" },
-    { value: "3", labelKey: "landing.stats.languages" },
+    { value: "4", labelKey: "landing.stats.languages" },
     { value: "0", labelKey: "landing.stats.notyping" },
     { value: "100%", labelKey: "landing.stats.free" },
   ];

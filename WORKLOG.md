@@ -6,6 +6,24 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - **Domain:** Sumair purchased `vocv.app` and pointed it at the Railway deploy (DNS auto-configured by Railway, SSL auto-provisioned — `.app` is HSTS-preload so HTTPS-only). `NEXT_PUBLIC_APP_URL` → `https://vocv.app`; Supabase Site URL + redirect URLs updated to the domain.
 - **Deploy fix:** dropped hardcoded `-p 3001` from `package.json` `start` so Railway binds its injected `$PORT` (commit on `main`). Local `npm run dev` still pinned to 3001.
 - **Delete CV (new feature):** dashboard CV cards get a trash button → inline "Delete this CV?" confirm overlay → optimistic removal + toast. Row delete via existing `own cvs` RLS policy (already `for all`, covers DELETE). No migration. Investigated storage cleanup: `audio_url` is never populated and there's no upload code, so no orphaned recordings to clean. New i18n keys `dashboard.delete*` in EN/AR/UR. `tsc --noEmit` + `next lint` clean.
+## 2026-06-26 — Italian (it) language support
+- Motivation: Sumair collaborating with an Italian partner to offer VoiceCV on their job-search platform.
+- Decision (Sumair): Italian users get a **full Italian CV** (content + headings). EN/AR/UR keep English output (Gulf decision). `outputLanguageFor(input) = it ? 'it' : 'en'` in `lib/claude.ts`.
+- Changes:
+  - `types/cv.ts`: `Language` += `'it'`; `CVRecord.language` field added.
+  - `lib/i18n.ts`: `it` added to all 138 entries + `LANGUAGES` (Italiano, ltr). Subhead enumerations updated.
+  - `lib/claude.ts`: `LANGUAGE_NAME.it`; SYSTEM_PROMPT → `buildSystemPrompt(outputLanguage)`; user message + quality rules parameterized.
+  - `lib/pdf-generator.tsx`: `FONT_BY_LANG.it = Inter` (Latin); `SECTION_LABELS.it` block.
+  - `app/api/generate-cv`: stores `language = outputLanguageFor(input)` on insert + update.
+  - `app/api/export-pdf` + `app/(dashboard)/cv/[id]`: render in `cv.language ?? 'en'` (was hardcoded 'en') — within Sumair's Full-Italian approval to touch CVPreview path.
+  - `components/VoiceRecorder.tsx`: `SPEECH_LANG.it = it-IT`.
+  - `components/LanguageProvider.tsx`: restore `it` from localStorage.
+  - `app/page.tsx`: languages stat 3 → 4. Record + onboarding pickers → 2×2/4-col for 4 langs.
+  - `lib/supabase/types.gen.ts`: `cvs.language` added (client is untyped, so not enforced — kept accurate anyway).
+- DB migrations (MUST run before deploy): `007_italian_questions.sql` (9 Italian questions), `008_cv_language.sql` (cvs.language column, default 'en').
+- ⚠️ Deploy ordering: new generate-cv insert references `cvs.language`; deploying before `008` breaks ALL CV generation. Hold push until migrations applied.
+- Verified: `tsc` + `next lint` + `npm run build` clean (15 routes).
+
 ## 2026-06-25 — Samples gallery + video scaffold + TTS fallback
 - **TTS Arabic/Urdu reality:** not a bug — browser `SpeechSynthesis` needs an OS-installed voice; Windows/Chrome lacks ar/ur. Per Sumair's call: graceful-hide now (button only shows when a voice for the active language exists; re-checks on `voiceschanged`). Proper fix deferred = pre-generate 27 clips (9q×3 lang) via OpenAI TTS, serve static, play.
 - **Sample gallery `/samples`:** public (not in middleware protected list). Two real personas in `lib/cv/samples.ts` (Mohammed Imran — construction/Modern; Maria Santos — housekeeping/Minimalist), rendered with real `CVPreview` (read-only) for true WYSIWYG. Only 2 templates actually render (modern, minimalist — both free); Classic/Executive are premium "coming soon" stubs that fall back to modern, so shown as honest locked cards, NOT faked. Linked from hero sample-cards + "See Demo" CTA (repointed `#how` → `/samples`).

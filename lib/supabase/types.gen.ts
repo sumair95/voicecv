@@ -51,6 +51,7 @@ export interface Database {
           transcript: string | null;
           cv_data: Json | null;
           template: string;
+          language: string;
           status: string;
           created_at: string;
           updated_at: string;
@@ -63,6 +64,7 @@ export interface Database {
           transcript?: string | null;
           cv_data?: Json | null;
           template?: string;
+          language?: string;
           status?: string;
           created_at?: string;
           updated_at?: string;
@@ -75,6 +77,7 @@ export interface Database {
           transcript?: string | null;
           cv_data?: Json | null;
           template?: string;
+          language?: string;
           status?: string;
           created_at?: string;
           updated_at?: string;

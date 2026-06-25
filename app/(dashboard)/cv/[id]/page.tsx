@@ -197,7 +197,7 @@ export default function CVDetailPage() {
 
       <CVPreview
         cvData={cvData}
-        language="en"
+        language={cv.language ?? "en"}
         editable={editing}
         onChange={handleChange}
         template={(cv.template as TemplateId | null) ?? DEFAULT_TEMPLATE}

@@ -39,9 +39,10 @@ export const POST = handle("export-pdf", async ({ req, log }) => {
   const cv = cvRow as CVRecord;
   if (!cv.cv_data) return conflict("CV is not ready");
 
-  // The CV is always rendered in English for recruiter readability,
-  // regardless of the user's UI language.
-  const language: Language = "en";
+  // Render the CV in the language it was written in (Italian → Italian,
+  // everything else → English). Stored on the row at generation time;
+  // older rows without the column fall back to English.
+  const language: Language = cv.language ?? "en";
 
   let template = ((cv as unknown as { template?: TemplateId }).template ??
     DEFAULT_TEMPLATE) as TemplateId;

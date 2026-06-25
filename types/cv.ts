@@ -1,4 +1,4 @@
-export type Language = "en" | "ar" | "ur";
+export type Language = "en" | "ar" | "ur" | "it";
 
 export type CVStatus = "processing" | "ready" | "exported" | "failed";
 
@@ -106,6 +106,8 @@ export interface CVRecord {
   transcript: string | null;
   cv_data: CVData | null;
   template: TemplateId | null;
+  /** Language the CV text is written in (drives preview + PDF headings). */
+  language: Language | null;
   status: CVStatus;
   created_at: string;
   updated_at: string;

@@ -1,4 +1,4 @@
-import { generateCV } from "@/lib/claude";
+import { generateCV, outputLanguageFor } from "@/lib/claude";
 import { getAuthContext } from "@/lib/api/auth";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, unauthorized } from "@/lib/api/respond";
@@ -48,6 +48,8 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
   });
   const cvData = await generateCV(body.qaPairs, body.language);
   const title = cvData.personal?.full_name || "My CV";
+  // Language the CV text was actually written in — drives preview + PDF headings.
+  const cvLanguage = outputLanguageFor(body.language);
 
   let cvId = body.cvId;
   if (!cvId) {
@@ -59,6 +61,7 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
         transcript,
         cv_data: cvData,
         title,
+        language: cvLanguage,
       })
       .select("id")
       .single();
@@ -72,6 +75,7 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
         transcript,
         title,
         status: "ready",
+        language: cvLanguage,
         updated_at: new Date().toISOString(),
       })
       .eq("id", cvId)

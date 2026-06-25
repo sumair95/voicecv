@@ -7,9 +7,21 @@ const MODEL = "claude-sonnet-4-6";
 
 const LANGUAGE_NAME: Record<Language, string> = {
   en: "English",
+  it: "Italian",
   ar: "Arabic",
   ur: "Urdu",
 };
+
+/**
+ * Which language the finished CV is written in.
+ * - Italian input → Italian CV (for the Italian job market).
+ * - Everything else (English / Arabic / Urdu) → English CV, so Gulf recruiters
+ *   worldwide can read it (the original product decision).
+ * Both outputs are Latin-script and LTR, so PDF/preview rendering is unaffected.
+ */
+export function outputLanguageFor(input: Language): Language {
+  return input === "it" ? "it" : "en";
+}
 
 function client() {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -17,9 +29,10 @@ function client() {
   return new Anthropic({ apiKey });
 }
 
-const SYSTEM_PROMPT = `You are a professional CV writer specializing in the Saudi Arabian and Gulf job market, with deep knowledge of how to position blue-collar, technical, and skilled workers for employment.
+const buildSystemPrompt = (outputLanguage: string) =>
+  `You are a professional CV writer who knows how to position blue-collar, technical, and skilled workers for employment in both the Gulf and European job markets.
 
-The candidate may have answered the voice questions in English, Arabic, or Urdu. You MUST write the final CV in **English** so recruiters worldwide can read it. Translate any Arabic / Urdu content into clear, professional English.
+The candidate may have answered the voice questions in any language. You MUST write the final CV in **${outputLanguage}** so the target recruiters can read it. Translate any other-language content into clear, professional ${outputLanguage}.
 
 Return ONLY a valid JSON object — no markdown fences, no prose, no explanation.
 
@@ -76,13 +89,13 @@ Mapping rules — the user has answered up to 9 questions identified by field_ke
 - achievement        → achievement (STAR object); if user skipped or said "no", return null
 
 Quality rules:
-- Write ALL natural-language content in **English**, regardless of the candidate's input language. Personal names, city names, and country names should be transliterated into Latin script (e.g. "أحمد" → "Ahmed", "ریاض" → "Riyadh").
+- Write ALL natural-language content in **${outputLanguage}**, regardless of the candidate's input language. Personal names, city names, and country names should be written in Latin script (e.g. "أحمد" → "Ahmed", "ریاض" → "Riyadh").
 - Do NOT invent facts (companies, dates, qualifications). If information is missing OR the user skipped the question (empty answer), return empty string/array/null for those fields.
 - Make the objective compelling and specific to the role + market the candidate wants.
-- Normalize phone numbers to international format if obvious (e.g. +966).
-- For skills, prefer specific items ("Toyota forklift licence", "MIG welding", "Arabic + English speaking") over vague ones ("hardworking", "team player").
+- Normalize phone numbers to international format if obvious (e.g. +966, +39).
+- For skills, prefer specific items ("Toyota forklift licence", "MIG welding", "fluent in English + Italian") over vague ones ("hardworking", "team player").
 - Experience descriptions MUST be newline-separated bullets, one achievement per line, no markers.
-- Languages section: if the candidate speaks Arabic / Urdu / Hindi natively, list them — that's a real CV asset, not a translation problem.`;
+- Languages section: if the candidate natively speaks a language other than the CV language, list it — that's a real CV asset, not a translation problem.`;
 
 export async function generateCV(
   qaPairs: QAPair[],
@@ -97,21 +110,23 @@ export async function generateCV(
     )
     .join("\n\n");
 
+  const outputName = LANGUAGE_NAME[outputLanguageFor(language)];
+
   const userMessage = `The candidate answered the questions in: ${LANGUAGE_NAME[language]}.
-Write the CV in English — translate from ${LANGUAGE_NAME[language]} where needed.
+Write the CV in ${outputName} — translate from ${LANGUAGE_NAME[language]} where needed.
 
 Questions and answers from the job seeker:
 
 ${qaBlock}
 
-Generate the structured CV JSON now (English).`;
+Generate the structured CV JSON now (${outputName}).`;
 
   const response = await withRetry(
     () =>
       anthropic.messages.create({
         model: MODEL,
         max_tokens: 2500,
-        system: SYSTEM_PROMPT,
+        system: buildSystemPrompt(outputName),
         messages: [{ role: "user", content: userMessage }],
       }),
     {

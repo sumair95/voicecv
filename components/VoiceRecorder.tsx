@@ -11,6 +11,7 @@ import { useLanguage } from "@/components/LanguageProvider";
 // back to its best-available voice when an exact match isn't installed.
 const SPEECH_LANG: Record<string, string> = {
   en: "en-US",
+  it: "it-IT",
   ar: "ar-SA",
   ur: "ur-PK",
 };

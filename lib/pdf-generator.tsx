@@ -44,6 +44,7 @@ Font.register({
 
 const FONT_BY_LANG: Record<Language, string> = {
   en: "Inter",
+  it: "Inter",
   ar: "NotoArabic",
   ur: "NotoUrdu",
 };
@@ -60,6 +61,18 @@ const SECTION_LABELS: Record<Language, Record<string, string>> = {
     education: "Education",
     certificates: "Certificates & Training",
     achievement: "Key Achievement",
+  },
+  it: {
+    contact: "Contatti",
+    nationality: "Nazionalità",
+    skills: "Competenze",
+    languages: "Lingue",
+    hobbies: "Hobby",
+    objective: "Obiettivo",
+    experience: "Esperienza lavorativa",
+    education: "Istruzione",
+    certificates: "Certificati e formazione",
+    achievement: "Risultato principale",
   },
   ar: {
     contact: "التواصل",
