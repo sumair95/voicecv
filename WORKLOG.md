@@ -6,6 +6,14 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - **Domain:** Sumair purchased `vocv.app` and pointed it at the Railway deploy (DNS auto-configured by Railway, SSL auto-provisioned — `.app` is HSTS-preload so HTTPS-only). `NEXT_PUBLIC_APP_URL` → `https://vocv.app`; Supabase Site URL + redirect URLs updated to the domain.
 - **Deploy fix:** dropped hardcoded `-p 3001` from `package.json` `start` so Railway binds its injected `$PORT` (commit on `main`). Local `npm run dev` still pinned to 3001.
 - **Delete CV (new feature):** dashboard CV cards get a trash button → inline "Delete this CV?" confirm overlay → optimistic removal + toast. Row delete via existing `own cvs` RLS policy (already `for all`, covers DELETE). No migration. Investigated storage cleanup: `audio_url` is never populated and there's no upload code, so no orphaned recordings to clean. New i18n keys `dashboard.delete*` in EN/AR/UR. `tsc --noEmit` + `next lint` clean.
+## 2026-06-26 — CV output-language picker (EN/IT)
+- Decision (Sumair): build a general output-language chooser (not Italian-only), scoped to EN+IT now; AR/UR output deferred pending RTL PDF verification. Placement: record flow.
+- `types/cv.ts`: `OUTPUT_LANGUAGES = ['en','it']` (client-safe; record page must NOT import server-only claude.ts).
+- `lib/claude.ts`: `generateCV(qa, language, outputLanguage = outputLanguageFor(language))` — explicit target.
+- `app/api/generate-cv`: body `outputLanguage?`; validated against OUTPUT_LANGUAGES, else falls back to per-input default; stored as `cvs.language`.
+- `app/(dashboard)/record`: new `outputLang` state + selector card group on the language stage; input-card click suggests a matching output; passes `outputLanguage` to the API. New i18n `rec.outputLang.*` (4 langs).
+- No new migration (reuses 008's `cvs.language`). Verified: tsc + lint + build clean (17 routes).
+
 ## 2026-06-26 — Italian (it) language support
 - Motivation: Sumair collaborating with an Italian partner to offer VoiceCV on their job-search platform.
 - Decision (Sumair): Italian users get a **full Italian CV** (content + headings). EN/AR/UR keep English output (Gulf decision). `outputLanguageFor(input) = it ? 'it' : 'en'` in `lib/claude.ts`.

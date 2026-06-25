@@ -1,5 +1,12 @@
 export type Language = "en" | "ar" | "ur" | "it";
 
+/**
+ * Languages a CV can be *written in*. A user can record in any language but
+ * choose the CV output among these. Limited to LTR/Latin scripts for now;
+ * Arabic/Urdu output is deferred until the PDF templates are RTL-verified.
+ */
+export const OUTPUT_LANGUAGES: Language[] = ["en", "it"];
+
 export type CVStatus = "processing" | "ready" | "exported" | "failed";
 
 export type TemplateId = "modern" | "minimalist" | "classic" | "executive";

@@ -457,6 +457,18 @@ export const t: Dict = {
     ur: "مائیک دبائیں اور بول کر جواب دیں",
     it: "Tocca il microfono e rispondi a voce",
   },
+  "rec.outputLang.title": {
+    en: "What language should your CV be in?",
+    ar: "بأي لغة تريد سيرتك الذاتية؟",
+    ur: "آپ اپنا CV کس زبان میں چاہتے ہیں؟",
+    it: "In che lingua vuoi il tuo CV?",
+  },
+  "rec.outputLang.desc": {
+    en: "Speak in any language — choose the language for your finished CV.",
+    ar: "تحدّث بأي لغة — اختر لغة سيرتك الذاتية النهائية.",
+    ur: "کسی بھی زبان میں بولیں — اپنے حتمی CV کی زبان منتخب کریں۔",
+    it: "Parla in qualsiasi lingua — scegli la lingua del CV finale.",
+  },
   "rec.stop": { en: "Stop", ar: "إيقاف", ur: "روکیں", it: "Ferma" },
   "rec.rerecord": {
     en: "Re-record",

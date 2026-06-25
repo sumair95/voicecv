@@ -13,6 +13,7 @@ import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import type { Language, QAPair, QuestionRow } from "@/types/cv";
+import { OUTPUT_LANGUAGES } from "@/types/cv";
 import { LANGUAGES } from "@/lib/i18n";
 
 type Stage = "language" | "recording" | "processing" | "done" | "error";
@@ -29,6 +30,8 @@ export default function RecordPage() {
 
   const [stage, setStage] = useState<Stage>("language");
   const [pickedLang, setPickedLang] = useState<Language>(lang);
+  // Language the finished CV is written in (independent of recording language).
+  const [outputLang, setOutputLang] = useState<Language>(lang === "it" ? "it" : "en");
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<QAPair[]>([]);
@@ -99,7 +102,7 @@ export default function RecordPage() {
       const res = await fetch("/api/generate-cv", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ qaPairs: qa, language: pickedLang }),
+        body: JSON.stringify({ qaPairs: qa, language: pickedLang, outputLanguage: outputLang }),
       });
       if (!res.ok) throw new Error((await res.json()).error ?? "Generation failed");
       const { cvId: id } = (await res.json()) as { cvId: string };
@@ -149,7 +152,12 @@ export default function RecordPage() {
                     return (
                       <button
                         key={l.code}
-                        onClick={() => setPickedLang(l.code as Language)}
+                        onClick={() => {
+                          const code = l.code as Language;
+                          setPickedLang(code);
+                          // Suggest a matching CV language; user can override below.
+                          setOutputLang(code === "it" ? "it" : "en");
+                        }}
                         className={`rounded-xl border-2 p-5 transition ${
                           active
                             ? "border-teal bg-teal/5"
@@ -163,8 +171,38 @@ export default function RecordPage() {
                     );
                   })}
                 </div>
+
+                <div className="mt-8">
+                  <h2 className="text-lg font-semibold text-navy-900">
+                    {t("rec.outputLang.title")}
+                  </h2>
+                  <p className="mt-1 text-sm text-navy-400">
+                    {t("rec.outputLang.desc")}
+                  </p>
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    {LANGUAGES.filter((l) => OUTPUT_LANGUAGES.includes(l.code)).map((l) => {
+                      const active = outputLang === l.code;
+                      return (
+                        <button
+                          key={l.code}
+                          onClick={() => setOutputLang(l.code)}
+                          className={`rounded-xl border-2 p-4 text-start transition ${
+                            active
+                              ? "border-teal bg-teal/5"
+                              : "border-navy-100 hover:border-teal/40"
+                          }`}
+                          dir={l.dir}
+                        >
+                          <div className="font-bold text-navy-900">{l.label}</div>
+                          <div className="mt-0.5 text-xs text-navy-400">{l.english}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 <Button
-                  className="mt-6 w-full bg-teal hover:bg-teal-600"
+                  className="mt-8 w-full bg-teal hover:bg-teal-600"
                   size="lg"
                   onClick={startRecording}
                 >

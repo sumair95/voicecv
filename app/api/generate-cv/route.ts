@@ -5,6 +5,7 @@ import { badRequest, ok, unauthorized } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import type { Language, QAPair } from "@/types/cv";
+import { OUTPUT_LANGUAGES } from "@/types/cv";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -13,6 +14,8 @@ interface RequestBody {
   cvId?: string;
   qaPairs: QAPair[];
   language: Language;
+  /** Optional CV output language chosen by the user; defaults per input. */
+  outputLanguage?: Language;
 }
 
 export const POST = handle("generate-cv", async ({ req, log }) => {
@@ -46,10 +49,16 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
     cvId: body.cvId ?? null,
     questions: body.qaPairs.length,
   });
-  const cvData = await generateCV(body.qaPairs, body.language);
+  // Language the CV text is written in: honour the user's explicit choice if
+  // it's a supported output language, otherwise fall back to the per-input
+  // default (Italian input → Italian, everything else → English).
+  const cvLanguage =
+    body.outputLanguage && OUTPUT_LANGUAGES.includes(body.outputLanguage)
+      ? body.outputLanguage
+      : outputLanguageFor(body.language);
+
+  const cvData = await generateCV(body.qaPairs, body.language, cvLanguage);
   const title = cvData.personal?.full_name || "My CV";
-  // Language the CV text was actually written in — drives preview + PDF headings.
-  const cvLanguage = outputLanguageFor(body.language);
 
   let cvId = body.cvId;
   if (!cvId) {

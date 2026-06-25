@@ -100,6 +100,7 @@ Quality rules:
 export async function generateCV(
   qaPairs: QAPair[],
   language: Language,
+  outputLanguage: Language = outputLanguageFor(language),
 ): Promise<CVData> {
   const anthropic = client();
 
@@ -110,7 +111,7 @@ export async function generateCV(
     )
     .join("\n\n");
 
-  const outputName = LANGUAGE_NAME[outputLanguageFor(language)];
+  const outputName = LANGUAGE_NAME[outputLanguage];
 
   const userMessage = `The candidate answered the questions in: ${LANGUAGE_NAME[language]}.
 Write the CV in ${outputName} — translate from ${LANGUAGE_NAME[language]} where needed.
