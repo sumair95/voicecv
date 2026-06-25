@@ -36,7 +36,7 @@ export default function OnboardingPage() {
         <h1 className="text-center text-3xl font-bold text-navy-900 md:text-4xl">
           {t("onb.title")}
         </h1>
-        <div className="mt-10 grid w-full max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid w-full max-w-3xl gap-4 sm:grid-cols-3">
           {LANGUAGES.map((l) => {
             const active = picked === l.code;
             return (

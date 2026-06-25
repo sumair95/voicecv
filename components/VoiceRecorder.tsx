@@ -2,10 +2,18 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Mic, Square, RotateCcw, Check, AlertCircle, Loader2, SkipForward } from "lucide-react";
+import { Mic, Square, RotateCcw, Check, AlertCircle, Loader2, SkipForward, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/components/LanguageProvider";
+
+// BCP-47 voice tags for the browser's speech synthesizer. The engine falls
+// back to its best-available voice when an exact match isn't installed.
+const SPEECH_LANG: Record<string, string> = {
+  en: "en-US",
+  ar: "ar-SA",
+  ur: "ur-PK",
+};
 
 type RecorderState =
   | "idle"
@@ -41,6 +49,8 @@ export function VoiceRecorder({
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [bars, setBars] = useState<number[]>(() => Array(BAR_COUNT).fill(0.2));
+  const [speaking, setSpeaking] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -65,6 +75,36 @@ export function VoiceRecorder({
   useEffect(() => {
     if (audioUrl) return () => URL.revokeObjectURL(audioUrl);
   }, [audioUrl]);
+
+  // Text-to-speech: read the question aloud so users who can't read still
+  // understand it. Stops any narration when the question changes / unmounts.
+  useEffect(() => {
+    setSpeechSupported(
+      typeof window !== "undefined" && "speechSynthesis" in window,
+    );
+    return () => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [question]);
+
+  function toggleSpeak() {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    if (speaking) {
+      setSpeaking(false);
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(question);
+    utterance.lang = SPEECH_LANG[lang] ?? "en-US";
+    utterance.rate = 0.95;
+    utterance.onend = () => setSpeaking(false);
+    utterance.onerror = () => setSpeaking(false);
+    setSpeaking(true);
+    synth.speak(utterance);
+  }
 
   function tickWaveform() {
     const analyser = analyserRef.current;
@@ -199,6 +239,21 @@ export function VoiceRecorder({
         <p className="mt-3 text-xl font-semibold leading-relaxed text-navy-900 md:text-2xl">
           {question}
         </p>
+        {speechSupported && (
+          <button
+            type="button"
+            onClick={toggleSpeak}
+            aria-label={t("rec.listen")}
+            className={`mt-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${
+              speaking
+                ? "border-teal bg-teal/10 text-teal-700"
+                : "border-navy-100 text-navy-400 hover:border-teal/40 hover:text-teal-700"
+            }`}
+          >
+            <Volume2 className={`h-4 w-4 ${speaking ? "animate-pulse" : ""}`} />
+            {t("rec.listen")}
+          </button>
+        )}
 
         <div
           aria-live="polite"
@@ -291,7 +346,7 @@ export function VoiceRecorder({
           )}
 
           {state === "idle" && (
-            <p className="text-sm text-navy-400">{t("rec.start")}</p>
+            <p className="text-sm text-navy-400">{t("rec.idleHint")}</p>
           )}
         </div>
       </CardContent>

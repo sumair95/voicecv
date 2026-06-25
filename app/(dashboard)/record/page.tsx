@@ -143,7 +143,7 @@ export default function RecordPage() {
             <Card className="border-navy-100/60">
               <CardContent className="p-8">
                 <h1 className="text-2xl font-bold text-navy-900">{t("onb.title")}</h1>
-                <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="mt-6 grid gap-3 sm:grid-cols-3">
                   {LANGUAGES.map((l) => {
                     const active = pickedLang === l.code;
                     return (

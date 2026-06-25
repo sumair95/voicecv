@@ -3,6 +3,12 @@
 All notable changes to VoiceCV will be documented in this file.
 
 ## [Unreleased]
+- **Design/UX polish pass (pre-recruiter demo):**
+  - **"Listen to the question" (TTS):** speaker button on each recording question reads it aloud in EN/AR/UR via browser `SpeechSynthesis` (free, no API key) — directly serves the literacy-barrier mission. Stops on question change/unmount.
+  - **Honest stats:** landing stats fixed — "2 Languages" → "3", removed fabricated "10,000+ CVs"; now 5 min / 3 languages / 0 typing / 100% free.
+  - **Urdu persistence bug fix:** `LanguageProvider` was dropping `ur` from localStorage on reload (only restored `ar`/`en`); now restores all three.
+  - **Polish:** 3-col language pickers (no empty 4th cell), real `ArrowRight` CTA icon (RTL-aware) instead of a literal arrow char, gradient-mesh on auth pages, localized footer copyright, "Sample stories" label on testimonials, warmer recorder idle hint.
+  - Checkpoint tag `v0.3.1-pre-design-audit` created for instant revert.
 - **Download CV from dashboard:** download (PDF) button next to the delete button on each ready card — exports straight from the dashboard via `/api/export-pdf` without opening the CV first. Per-card spinner, success/error toast, localized EN/AR/UR. Hidden for CVs still processing (no `cv_data`).
 - **Delete CV:** dashboard cards now have a trash button with an inline "Delete this CV?" confirm step (no accidental deletes), optimistic removal with exit animation, and a success/error toast. Localized EN/AR/UR. Deletes the `cvs` row via the existing `own cvs` RLS policy (`for all` already covers DELETE — no migration needed); no orphaned storage since recordings are never persisted. Reduces DB clutter.
 - **Deploy fix:** `start` script no longer hardcodes `-p 3001` so Railway binds to its injected `$PORT`.

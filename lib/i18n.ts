@@ -56,6 +56,21 @@ export const t: Dict = {
     ur: "زبانیں دستیاب",
   },
   "landing.stats.free": { en: "Free", ar: "مجاني", ur: "مفت" },
+  "landing.stats.notyping": {
+    en: "Typing Required",
+    ar: "كتابة مطلوبة",
+    ur: "ٹائپنگ درکار",
+  },
+  "landing.testimonials.sample": {
+    en: "Sample stories",
+    ar: "قصص نموذجية",
+    ur: "نمونہ کہانیاں",
+  },
+  "landing.footer.copyright": {
+    en: "© 2026 VoiceCV — All rights reserved",
+    ar: "© 2026 VoiceCV — جميع الحقوق محفوظة",
+    ur: "© 2026 VoiceCV — جملہ حقوق محفوظ ہیں",
+  },
 
   "landing.steps.title": {
     en: "How it works",
@@ -323,6 +338,16 @@ export const t: Dict = {
     en: "Start Recording",
     ar: "ابدأ التسجيل",
     ur: "ریکارڈنگ شروع کریں",
+  },
+  "rec.listen": {
+    en: "Listen to the question",
+    ar: "استمع إلى السؤال",
+    ur: "سوال سنیں",
+  },
+  "rec.idleHint": {
+    en: "Tap the mic and answer out loud",
+    ar: "اضغط على الميكروفون وأجب بصوتك",
+    ur: "مائیک دبائیں اور بول کر جواب دیں",
   },
   "rec.stop": { en: "Stop", ar: "إيقاف", ur: "روکیں" },
   "rec.rerecord": {

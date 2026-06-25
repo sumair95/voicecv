@@ -6,6 +6,14 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - **Domain:** Sumair purchased `vocv.app` and pointed it at the Railway deploy (DNS auto-configured by Railway, SSL auto-provisioned — `.app` is HSTS-preload so HTTPS-only). `NEXT_PUBLIC_APP_URL` → `https://vocv.app`; Supabase Site URL + redirect URLs updated to the domain.
 - **Deploy fix:** dropped hardcoded `-p 3001` from `package.json` `start` so Railway binds its injected `$PORT` (commit on `main`). Local `npm run dev` still pinned to 3001.
 - **Delete CV (new feature):** dashboard CV cards get a trash button → inline "Delete this CV?" confirm overlay → optimistic removal + toast. Row delete via existing `own cvs` RLS policy (already `for all`, covers DELETE). No migration. Investigated storage cleanup: `audio_url` is never populated and there's no upload code, so no orphaned recordings to clean. New i18n keys `dashboard.delete*` in EN/AR/UR. `tsc --noEmit` + `next lint` clean.
+## 2026-06-25 — Design/UX audit + polish pass (pre-recruiter demo)
+- Audited full front-end as a design engineer. Verdict: strong existing design system, no redesign needed — targeted polish + credibility fixes only. Tagged `v0.3.1-pre-design-audit` first for instant revert.
+- **TTS "Listen to the question":** speaker button in `VoiceRecorder` reads each question aloud in EN/AR/UR via browser `SpeechSynthesis` (BCP-47 map en-US/ar-SA/ur-PK, rate 0.95). On-mission for the literacy-barrier audience; free, no API. Cancels on question change/unmount.
+- **Stats credibility:** landing stats were "2 Languages" (product is 3) + fake "10,000+ CVs". Now 5 min / 3 languages / 0 typing / 100% free. New i18n `landing.stats.notyping`.
+- **Bug fix:** `LanguageProvider` localStorage restore dropped `ur` (only matched ar/en) — Urdu users reset to English on reload. Fixed.
+- **Polish:** language pickers 3-col (was lg:grid-cols-4 with empty cell) on record + onboarding; CTA arrow now real `ArrowRight` icon w/ `rtl:-scale-x-100`; gradient-mesh overlay on login+signup; localized footer copyright; "Sample stories" caption on testimonials; warmer `rec.idleHint`.
+- Verified: `tsc --noEmit` + `next lint` clean, `npm run build` green (14 routes).
+
 - **Direct download from dashboard (new feature):** download button sits left of the trash button on each ready card; reuses the cv/[id] download flow (POST `{cvId}` → `/api/export-pdf` → save blob) so users export without opening the CV. Per-card spinner via `downloadingId`, success/error toast, localized `dashboard.download.*`. Button only renders when `cv.cv_data` exists (skips still-processing CVs, which the export route couldn't render anyway). `tsc` + lint clean.
 
 ## 2026-05-30 — Day 0: Foundation

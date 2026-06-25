@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Mic, Sparkles, FileDown, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Mic, Sparkles, FileDown, CheckCircle2, ShieldCheck, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
@@ -60,9 +60,9 @@ export default function LandingPage() {
   ];
 
   const stats = [
-    { value: "10,000+", labelKey: "landing.stats.cvs" },
     { value: "5", labelKey: "landing.stats.minutes" },
-    { value: "2", labelKey: "landing.stats.languages" },
+    { value: "3", labelKey: "landing.stats.languages" },
+    { value: "0", labelKey: "landing.stats.notyping" },
     { value: "100%", labelKey: "landing.stats.free" },
   ];
 
@@ -97,7 +97,8 @@ export default function LandingPage() {
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button asChild size="lg" className="bg-teal hover:bg-teal-600">
                   <Link href="/signup">
-                    {t("landing.cta.primary")} {lang === "ar" ? "←" : "→"}
+                    {t("landing.cta.primary")}
+                    <ArrowRight className="ms-2 h-5 w-5 rtl:-scale-x-100" />
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="border-navy-100">
@@ -211,6 +212,9 @@ export default function LandingPage() {
           <h2 className="text-center text-3xl font-bold tracking-tight text-navy-900 md:text-4xl">
             {t("landing.testimonials.title")}
           </h2>
+          <p className="mt-2 text-center text-sm text-navy-400">
+            {t("landing.testimonials.sample")}
+          </p>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {testimonials.map((tm, i) => (
               <motion.div
@@ -241,7 +245,8 @@ export default function LandingPage() {
           <div className="relative mt-8">
             <Button asChild size="lg" className="bg-teal hover:bg-teal-600">
               <Link href="/signup">
-                {t("landing.cta.primary")} {lang === "ar" ? "←" : "→"}
+                {t("landing.cta.primary")}
+                <ArrowRight className="ms-2 h-5 w-5 rtl:-scale-x-100" />
               </Link>
             </Button>
           </div>
@@ -250,7 +255,7 @@ export default function LandingPage() {
 
       <footer className="border-t border-navy-100/60 bg-white">
         <div className="container flex flex-col items-center justify-between gap-3 py-6 text-sm text-navy-400 md:flex-row">
-          <span>© 2026 VoiceCV — All rights reserved</span>
+          <span>{t("landing.footer.copyright")}</span>
           <span className="flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5 text-teal" />
             {t("landing.trust.powered")}

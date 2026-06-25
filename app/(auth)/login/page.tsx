@@ -127,7 +127,8 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-teal/5">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background to-teal/5">
+      <div className="gradient-mesh pointer-events-none absolute inset-0 -z-10 opacity-40" aria-hidden />
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-semibold text-navy-900">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-teal text-white">

@@ -20,7 +20,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const stored = (typeof window !== "undefined" &&
       (localStorage.getItem(STORAGE_KEY) as Language | null)) || null;
-    if (stored === "ar" || stored === "en") {
+    if (stored === "ar" || stored === "en" || stored === "ur") {
       setLangState(stored);
     }
   }, []);
