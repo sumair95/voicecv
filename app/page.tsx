@@ -6,6 +6,7 @@ import { Mic, Sparkles, FileDown, CheckCircle2, ShieldCheck, ArrowRight } from "
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
+import { VideoDemo } from "@/components/VideoDemo";
 import { useLanguage } from "@/components/LanguageProvider";
 
 function SampleCVs({ caption }: { caption: string }) {
@@ -83,7 +84,9 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <SampleCVs caption={t("landing.samples.caption")} />
+              <Link href="/samples" className="inline-block transition hover:opacity-90">
+                <SampleCVs caption={t("samples.link")} />
+              </Link>
               <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal/5 px-3 py-1 text-xs font-medium text-teal-700">
                 <Sparkles className="h-3.5 w-3.5" />
                 {t("landing.trust.powered")}
@@ -102,7 +105,7 @@ export default function LandingPage() {
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="border-navy-100">
-                  <Link href="#how">{t("landing.cta.secondary")}</Link>
+                  <Link href="/samples">{t("landing.cta.secondary")}</Link>
                 </Button>
               </div>
               <div className="mt-10 flex flex-wrap items-center gap-4 text-sm text-navy-400">
@@ -206,6 +209,8 @@ export default function LandingPage() {
           ))}
         </div>
       </section>
+
+      <VideoDemo />
 
       <section className="bg-white py-20">
         <div className="container">

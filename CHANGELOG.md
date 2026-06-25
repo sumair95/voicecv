@@ -3,6 +3,9 @@
 All notable changes to VoiceCV will be documented in this file.
 
 ## [Unreleased]
+- **Sample CV gallery (`/samples`):** public page showing two realistic, on-audience sample CVs (a construction worker in Modern, a housekeeping supervisor in Minimalist) rendered with the real `CVPreview` — true WYSIWYG. Premium styles (Classic, Executive) shown honestly as locked "Coming soon" cards rather than faked. Linked from the hero sample-cards and the "See Demo" CTA.
+- **Demo video section:** new gated `VideoDemo` landing component — click-to-load (no iframe until play, so zero landing cost). Hidden until a YouTube/Vimeo embed URL is set in the component; host off-app to avoid bandwidth.
+- **TTS graceful fallback:** the "Listen" button now only appears when the device actually has a voice for the active language (re-checks on `voiceschanged`). Windows/Chrome usually lack AR/UR voices, so the button no longer appears dead. Proper fix (pre-generated audio) still pending.
 - **Design/UX polish pass (pre-recruiter demo):**
   - **"Listen to the question" (TTS):** speaker button on each recording question reads it aloud in EN/AR/UR via browser `SpeechSynthesis` (free, no API key) — directly serves the literacy-barrier mission. Stops on question change/unmount.
   - **Honest stats:** landing stats fixed — "2 Languages" → "3", removed fabricated "10,000+ CVs"; now 5 min / 3 languages / 0 typing / 100% free.

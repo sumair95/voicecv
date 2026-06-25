@@ -71,6 +71,45 @@ export const t: Dict = {
     ar: "© 2026 VoiceCV — جميع الحقوق محفوظة",
     ur: "© 2026 VoiceCV — جملہ حقوق محفوظ ہیں",
   },
+  "landing.video.title": {
+    en: "Watch it in action",
+    ar: "شاهدها وهي تعمل",
+    ur: "اسے عمل میں دیکھیں",
+  },
+  "landing.video.subtitle": {
+    en: "From voice to finished CV in under 5 minutes.",
+    ar: "من الصوت إلى سيرة ذاتية جاهزة في أقل من ٥ دقائق.",
+    ur: "آواز سے مکمل CV تک، 5 منٹ سے کم میں۔",
+  },
+
+  // Samples gallery
+  "samples.link": {
+    en: "See sample CVs",
+    ar: "اطّلع على نماذج السير الذاتية",
+    ur: "نمونہ CVs دیکھیں",
+  },
+  "samples.title": {
+    en: "See what your CV will look like",
+    ar: "شاهد كيف ستبدو سيرتك الذاتية",
+    ur: "دیکھیں آپ کا CV کیسا نظر آئے گا",
+  },
+  "samples.subtitle": {
+    en: "Real examples built from a voice recording. Choose any style after you finish.",
+    ar: "أمثلة حقيقية أُنشئت من تسجيل صوتي. اختر أي نمط بعد الانتهاء.",
+    ur: "آواز کی ریکارڈنگ سے بنے حقیقی نمونے۔ مکمل کرنے کے بعد کوئی بھی انداز منتخب کریں۔",
+  },
+  "samples.free": { en: "Free", ar: "مجاني", ur: "مفت" },
+  "samples.premium": { en: "Premium", ar: "مدفوع", ur: "پریمیم" },
+  "samples.comingSoon": {
+    en: "Coming soon",
+    ar: "قريباً",
+    ur: "جلد آ رہا ہے",
+  },
+  "samples.cta": {
+    en: "Create your CV free",
+    ar: "أنشئ سيرتك مجاناً",
+    ur: "اپنا CV مفت بنائیں",
+  },
 
   "landing.steps.title": {
     en: "How it works",

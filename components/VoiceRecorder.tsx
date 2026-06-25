@@ -77,17 +77,30 @@ export function VoiceRecorder({
   }, [audioUrl]);
 
   // Text-to-speech: read the question aloud so users who can't read still
-  // understand it. Stops any narration when the question changes / unmounts.
+  // understand it. We only surface the button when the device actually has a
+  // voice for the active language — Windows/Chrome often ship no Arabic/Urdu
+  // voice, and a button that does nothing is worse than no button. Voices
+  // load asynchronously, so we also re-check on `voiceschanged`.
   useEffect(() => {
-    setSpeechSupported(
-      typeof window !== "undefined" && "speechSynthesis" in window,
-    );
-    return () => {
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setSpeechSupported(false);
+      return;
+    }
+    const synth = window.speechSynthesis;
+    const prefix = (SPEECH_LANG[lang] ?? "en").slice(0, 2);
+    const recheck = () => {
+      const hasVoice = synth
+        .getVoices()
+        .some((v) => v.lang.toLowerCase().startsWith(prefix));
+      setSpeechSupported(hasVoice);
     };
-  }, [question]);
+    recheck();
+    synth.addEventListener?.("voiceschanged", recheck);
+    return () => {
+      synth.removeEventListener?.("voiceschanged", recheck);
+      synth.cancel();
+    };
+  }, [lang, question]);
 
   function toggleSpeak() {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
