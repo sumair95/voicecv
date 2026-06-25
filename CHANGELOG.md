@@ -3,6 +3,7 @@
 All notable changes to VoiceCV will be documented in this file.
 
 ## [Unreleased]
+- **Download CV from dashboard:** download (PDF) button next to the delete button on each ready card — exports straight from the dashboard via `/api/export-pdf` without opening the CV first. Per-card spinner, success/error toast, localized EN/AR/UR. Hidden for CVs still processing (no `cv_data`).
 - **Delete CV:** dashboard cards now have a trash button with an inline "Delete this CV?" confirm step (no accidental deletes), optimistic removal with exit animation, and a success/error toast. Localized EN/AR/UR. Deletes the `cvs` row via the existing `own cvs` RLS policy (`for all` already covers DELETE — no migration needed); no orphaned storage since recordings are never persisted. Reduces DB clutter.
 - **Deploy fix:** `start` script no longer hardcodes `-p 3001` so Railway binds to its injected `$PORT`.
 

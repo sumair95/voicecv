@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Plus, FileText, Sparkles, Loader2, Trash2 } from "lucide-react";
+import { Plus, FileText, Sparkles, Loader2, Trash2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,7 @@ export default function DashboardPage() {
   const [hasMore, setHasMore] = useState(false);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const supabase = useMemo(() => createClient(), []);
 
   const loadPage = useCallback(
@@ -92,6 +93,45 @@ export default function DashboardPage() {
     }
     setCvs((prev) => prev.filter((cv) => cv.id !== id));
     toast.success(t("dashboard.delete.success"));
+  }
+
+  async function downloadPdf(cv: CVRecord) {
+    setDownloadingId(cv.id);
+    try {
+      const res = await fetch("/api/export-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cvId: cv.id }),
+      });
+      if (!res.ok) {
+        const ct = res.headers.get("content-type") ?? "";
+        let detail = `HTTP ${res.status}`;
+        if (ct.includes("application/json")) {
+          const data = await res.json().catch(() => null);
+          if (data?.error) detail = String(data.error);
+        } else {
+          const text = await res.text().catch(() => "");
+          if (text) detail = text.slice(0, 200);
+        }
+        throw new Error(detail);
+      }
+      const blob = await res.blob();
+      if (blob.size === 0) throw new Error("PDF was empty");
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${cv.cv_data?.personal?.full_name || cv.title || "CV"}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success(t("dashboard.download.success"));
+    } catch (err) {
+      console.error("[downloadPdf]", err);
+      toast.error(t("dashboard.download.error"));
+    } finally {
+      setDownloadingId(null);
+    }
   }
 
   const greetingName = profile?.full_name?.split(" ")[0] ?? "";
@@ -174,19 +214,41 @@ export default function DashboardPage() {
                 </Card>
               </Link>
 
-              <button
-                type="button"
-                aria-label={t("dashboard.delete")}
-                title={t("dashboard.delete")}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setConfirmingId(cv.id);
-                }}
-                className="absolute bottom-4 end-4 grid h-8 w-8 place-items-center rounded-lg text-navy-300 transition hover:bg-red-50 hover:text-red-600"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <div className="absolute bottom-4 end-4 flex items-center gap-1">
+                {cv.cv_data && (
+                  <button
+                    type="button"
+                    aria-label={t("cv.download")}
+                    title={t("cv.download")}
+                    disabled={downloadingId === cv.id}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      downloadPdf(cv);
+                    }}
+                    className="grid h-8 w-8 place-items-center rounded-lg text-navy-300 transition hover:bg-teal/10 hover:text-teal disabled:opacity-60"
+                  >
+                    {downloadingId === cv.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  aria-label={t("dashboard.delete")}
+                  title={t("dashboard.delete")}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setConfirmingId(cv.id);
+                  }}
+                  className="grid h-8 w-8 place-items-center rounded-lg text-navy-300 transition hover:bg-red-50 hover:text-red-600"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
 
               {confirmingId === cv.id && (
                 <motion.div

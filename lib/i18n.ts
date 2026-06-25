@@ -288,6 +288,16 @@ export const t: Dict = {
     ar: "تعذّر حذف السيرة الذاتية. حاول مرة أخرى.",
     ur: "CV حذف نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
   },
+  "dashboard.download.success": {
+    en: "PDF downloaded",
+    ar: "تم تنزيل ملف PDF",
+    ur: "PDF ڈاؤن لوڈ ہو گیا",
+  },
+  "dashboard.download.error": {
+    en: "Couldn't download the PDF. Please try again.",
+    ar: "تعذّر تنزيل ملف PDF. حاول مرة أخرى.",
+    ur: "PDF ڈاؤن لوڈ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+  },
 
   // Status
   "status.processing": {
