@@ -70,9 +70,10 @@ function migrateAchievements(src: {
   achievement?: unknown;
 }): string[] {
   if (Array.isArray(src.achievements)) {
-    return src.achievements.filter(
-      (a): a is string => typeof a === "string" && a.trim().length > 0,
-    );
+    // Keep empty strings — the editor adds a blank row on "Add" and the user
+    // types into it; empties are filtered at render time, not here. (Stripping
+    // them here would delete the new row before it could be typed in.)
+    return src.achievements.filter((a): a is string => typeof a === "string");
   }
   const legacy = src.achievement;
   if (legacy && typeof legacy === "object") {
