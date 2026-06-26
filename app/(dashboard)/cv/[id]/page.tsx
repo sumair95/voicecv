@@ -7,6 +7,7 @@ import { ArrowLeft, Download, Pencil, Check, Loader2, Info } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { CVPreview } from "@/components/CVPreview";
 import { CoverLetterPanel } from "@/components/CoverLetterPanel";
+import { PREMIUM_ENABLED } from "@/lib/premium";
 import { TemplatePicker } from "@/components/TemplatePicker";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
@@ -204,11 +205,13 @@ export default function CVDetailPage() {
         template={(cv.template as TemplateId | null) ?? DEFAULT_TEMPLATE}
       />
 
-      <CoverLetterPanel
-        cvId={id}
-        initialLetter={cv.cover_letter}
-        name={cv.cv_data?.personal?.full_name || cv.title || "CV"}
-      />
+      {PREMIUM_ENABLED && (
+        <CoverLetterPanel
+          cvId={id}
+          initialLetter={cv.cover_letter}
+          name={cv.cv_data?.personal?.full_name || cv.title || "CV"}
+        />
+      )}
     </div>
   );
 }
