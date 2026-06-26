@@ -25,42 +25,59 @@ create policy "own purchases" on purchases for select using (auth.uid() = user_i
 -- Inserts are performed by the webhook with the service-role key (bypasses RLS).
 
 -- ── Atomic credit consumption (only decrement when a credit exists) ──
+-- These are SECURITY DEFINER (they write to profiles past RLS) so they derive
+-- the user from auth.uid() of the calling JWT — never a passed-in id — so a
+-- client can't spend or unlock on behalf of someone else.
 -- Unlock a CV for premium templates. Returns true if the CV is (now) unlocked.
 -- Idempotent: an already-unlocked CV costs nothing.
-create or replace function consume_premium_cv_credit(p_user uuid, p_cv uuid)
+create or replace function consume_premium_cv_credit(p_cv uuid)
 returns boolean
 language plpgsql
 security definer
+set search_path = public
 as $$
+declare
+  uid uuid := auth.uid();
 begin
+  if uid is null then
+    return false;
+  end if;
+
   if exists (
-    select 1 from cvs where id = p_cv and user_id = p_user and premium_unlocked
+    select 1 from cvs where id = p_cv and user_id = uid and premium_unlocked
   ) then
     return true;
   end if;
 
   update profiles
     set premium_cv_credits = premium_cv_credits - 1
-    where id = p_user and premium_cv_credits > 0;
+    where id = uid and premium_cv_credits > 0;
   if not found then
     return false;
   end if;
 
-  update cvs set premium_unlocked = true where id = p_cv and user_id = p_user;
+  update cvs set premium_unlocked = true where id = p_cv and user_id = uid;
   return true;
 end;
 $$;
 
 -- Consume one cover-letter credit. Returns true if a credit was spent.
-create or replace function consume_cover_letter_credit(p_user uuid)
+create or replace function consume_cover_letter_credit()
 returns boolean
 language plpgsql
 security definer
+set search_path = public
 as $$
+declare
+  uid uuid := auth.uid();
 begin
+  if uid is null then
+    return false;
+  end if;
+
   update profiles
     set cover_letter_credits = cover_letter_credits - 1
-    where id = p_user and cover_letter_credits > 0;
+    where id = uid and cover_letter_credits > 0;
   return found;
 end;
 $$;

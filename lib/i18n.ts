@@ -466,6 +466,70 @@ export const t: Dict = {
     it: "Impossibile avviare il pagamento. Riprova.",
   },
 
+  // Cover letter
+  "letter.title": {
+    en: "Cover Letter",
+    ar: "خطاب التقديم",
+    ur: "کور لیٹر",
+    it: "Lettera di presentazione",
+  },
+  "letter.intro": {
+    en: "Stand out with a tailored cover letter written from your CV.",
+    ar: "تميّز بخطاب تقديم مخصص مكتوب من سيرتك الذاتية.",
+    ur: "اپنے CV سے لکھے گئے ذاتی کور لیٹر کے ساتھ نمایاں ہوں۔",
+    it: "Distinguiti con una lettera di presentazione su misura, scritta dal tuo CV.",
+  },
+  "letter.badge": { en: "Premium", ar: "مميز", ur: "پریمیم", it: "Premium" },
+  "letter.targetRole": {
+    en: "Target role (optional)",
+    ar: "الوظيفة المستهدفة (اختياري)",
+    ur: "ہدف عہدہ (اختیاری)",
+    it: "Ruolo desiderato (facoltativo)",
+  },
+  "letter.company": {
+    en: "Company (optional)",
+    ar: "الشركة (اختياري)",
+    ur: "کمپنی (اختیاری)",
+    it: "Azienda (facoltativo)",
+  },
+  "letter.generate": {
+    en: "Generate cover letter",
+    ar: "إنشاء خطاب التقديم",
+    ur: "کور لیٹر بنائیں",
+    it: "Genera la lettera",
+  },
+  "letter.regenerate": {
+    en: "Regenerate",
+    ar: "إعادة الإنشاء",
+    ur: "دوبارہ بنائیں",
+    it: "Rigenera",
+  },
+  "letter.download": {
+    en: "Download cover letter",
+    ar: "تنزيل خطاب التقديم",
+    ur: "کور لیٹر ڈاؤن لوڈ کریں",
+    it: "Scarica la lettera",
+  },
+  "letter.generating": {
+    en: "Writing your cover letter…",
+    ar: "نكتب خطاب التقديم…",
+    ur: "آپ کا کور لیٹر لکھا جا رہا ہے…",
+    it: "Stiamo scrivendo la tua lettera…",
+  },
+  "letter.saved": { en: "Saved", ar: "تم الحفظ", ur: "محفوظ ہو گیا", it: "Salvato" },
+  "letter.needPremium": {
+    en: "You need a cover letter credit. Unlock Premium on your dashboard.",
+    ar: "تحتاج إلى رصيد خطاب تقديم. افتح المميز من لوحة التحكم.",
+    ur: "آپ کو کور لیٹر کریڈٹ چاہیے۔ ڈیش بورڈ سے پریمیم کھولیں۔",
+    it: "Ti serve un credito lettera. Sblocca Premium dalla dashboard.",
+  },
+  "letter.error": {
+    en: "Couldn't generate the cover letter. Please try again.",
+    ar: "تعذّر إنشاء خطاب التقديم. حاول مرة أخرى.",
+    ur: "کور لیٹر نہیں بن سکا۔ دوبارہ کوشش کریں۔",
+    it: "Impossibile generare la lettera. Riprova.",
+  },
+
   // Status
   "status.processing": {
     en: "Processing",
