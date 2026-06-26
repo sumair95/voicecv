@@ -24,6 +24,8 @@ import {
   FaYoutube,
 } from "react-icons/fa";
 import { tr } from "@/lib/i18n";
+import { ClassicTemplate } from "@/components/cv/ClassicTemplate";
+import { ExecutiveTemplate } from "@/components/cv/ExecutiveTemplate";
 import type {
   CVCertificateItem,
   CVData,
@@ -804,6 +806,18 @@ export function CVPreview({
           </MinSection>
         )}
       </article>
+    );
+  }
+
+  // ── Premium templates ─────────────────────────────────────────────
+  if (template === "classic") {
+    return (
+      <ClassicTemplate data={data} editable={editable} patch={patch} t={t} isRtl={isRtl} />
+    );
+  }
+  if (template === "executive") {
+    return (
+      <ExecutiveTemplate data={data} editable={editable} patch={patch} t={t} isRtl={isRtl} />
     );
   }
 

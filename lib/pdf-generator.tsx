@@ -544,6 +544,12 @@ export function CVDocument({
   if (template === "minimalist") {
     return <MinimalistDocument cv={cv} language={language} />;
   }
+  if (template === "classic") {
+    return <ClassicDocument cv={cv} language={language} />;
+  }
+  if (template === "executive") {
+    return <ExecutiveDocument cv={cv} language={language} />;
+  }
   return <ModernDocument cv={cv} language={language} />;
 }
 
@@ -928,6 +934,307 @@ function MinimalistDocument({
               ))}
           </>
         )}
+      </Page>
+    </Document>
+  );
+}
+
+// ── Premium PDF documents (Classic, Executive). Premium output is always
+//    English or Italian (LTR/Latin), so no RTL handling is needed here. ──
+
+function contactBitsOf(cv: CVData) {
+  const location = [cv.personal.city, cv.personal.country].filter(Boolean).join(", ");
+  return [cv.personal.email, cv.personal.phone, location].filter(Boolean);
+}
+function socialBitsOf(cv: CVData) {
+  return cv.socials
+    .filter((s) => s.url.trim())
+    .map((s) => {
+      try {
+        const u = new URL(s.url.startsWith("http") ? s.url : `https://${s.url}`);
+        return (u.hostname.replace(/^www\./, "") + u.pathname).replace(/\/$/, "");
+      } catch {
+        return s.url;
+      }
+    });
+}
+
+function classicStyles(fontFamily: string) {
+  return StyleSheet.create({
+    page: { fontFamily, paddingVertical: 48, paddingHorizontal: 56 },
+    name: { fontSize: 24, fontWeight: 600, textAlign: "center", letterSpacing: 1.5, color: NAVY },
+    headerRule: { alignSelf: "center", width: 90, borderBottomWidth: 1, borderBottomColor: "#94A3B8", marginTop: 10, marginBottom: 6 },
+    contact: { fontSize: 9, color: MUTED, textAlign: "center", marginTop: 4 },
+    sectionTitle: { fontSize: 9, fontWeight: 700, color: NAVY, letterSpacing: 2.5, textTransform: "uppercase", textAlign: "center", marginTop: 18 },
+    sectionRule: { alignSelf: "center", width: 36, borderBottomWidth: 1, borderBottomColor: "#94A3B8", marginTop: 3, marginBottom: 9 },
+    body: { fontSize: 10, color: "#334155", lineHeight: 1.5 },
+    rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
+    expRole: { fontSize: 11, fontWeight: 700, color: NAVY },
+    expCompany: { fontSize: 10, fontWeight: 600, color: "#0F766E", marginTop: 1 },
+    expDuration: { fontSize: 8, color: MUTED, letterSpacing: 1, textTransform: "uppercase" },
+    expBlock: { marginBottom: 10 },
+    bulletRow: { flexDirection: "row", marginTop: 2 },
+    bulletDot: { width: 8, fontSize: 10, color: TEAL },
+    bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
+    listRow: { marginBottom: 4, flexDirection: "row", justifyContent: "space-between" },
+    line: { fontSize: 10, color: "#334155", lineHeight: 1.5 },
+  });
+}
+
+function ClassicDocument({ cv, language }: { cv: CVData; language: Language }) {
+  const s = classicStyles(FONT_BY_LANG[language]);
+  const L = SECTION_LABELS[language];
+  const contact = contactBitsOf(cv);
+  const socials = socialBitsOf(cv);
+  const Sec = ({ title }: { title: string }) => (
+    <>
+      <Text style={s.sectionTitle}>{title}</Text>
+      <View style={s.sectionRule} />
+    </>
+  );
+  return (
+    <Document>
+      <Page size="A4" style={s.page}>
+        <Text style={s.name}>{cv.personal.full_name || ""}</Text>
+        <View style={s.headerRule} />
+        {contact.length > 0 && <Text style={s.contact}>{contact.join("   ·   ")}</Text>}
+        {socials.length > 0 && <Text style={s.contact}>{socials.join("   ·   ")}</Text>}
+
+        {cv.objective ? (
+          <>
+            <Sec title={L.objective} />
+            <Text style={s.body}>{cv.objective}</Text>
+          </>
+        ) : null}
+
+        {cv.experience.length > 0 && (
+          <>
+            <Sec title={L.experience} />
+            {cv.experience.map((exp, i) => (
+              <View key={i} style={s.expBlock}>
+                <View style={s.rowBetween}>
+                  <Text style={s.expRole}>{exp.role}</Text>
+                  <Text style={s.expDuration}>{exp.duration}</Text>
+                </View>
+                <Text style={s.expCompany}>{exp.company}</Text>
+                {bulletsFrom(exp.description).map((line, bi) => (
+                  <View key={bi} style={s.bulletRow}>
+                    <Text style={s.bulletDot}>•</Text>
+                    <Text style={s.bulletText}>{line}</Text>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </>
+        )}
+
+        {cv.education.length > 0 && (
+          <>
+            <Sec title={L.education} />
+            {cv.education.map((edu, i) => (
+              <View key={i} style={s.expBlock}>
+                <View style={s.rowBetween}>
+                  <Text style={s.expRole}>{edu.degree}</Text>
+                  <Text style={s.expDuration}>{edu.year}</Text>
+                </View>
+                <Text style={s.expCompany}>{edu.institution}</Text>
+              </View>
+            ))}
+          </>
+        )}
+
+        {cv.certificates.length > 0 && (
+          <>
+            <Sec title={L.certificates} />
+            {cv.certificates.map((c, i) => (
+              <View key={i} style={s.listRow}>
+                <Text style={s.body}>{c.name}{c.issuer ? ` · ${c.issuer}` : ""}</Text>
+                <Text style={s.expDuration}>{c.year}</Text>
+              </View>
+            ))}
+          </>
+        )}
+
+        {cv.skills.length > 0 && (
+          <>
+            <Sec title={L.skills} />
+            <Text style={s.line}>{cv.skills.filter((sk) => sk.trim()).join("  ·  ")}</Text>
+          </>
+        )}
+
+        {cv.languages.length > 0 && (
+          <>
+            <Sec title={L.languages} />
+            <Text style={s.line}>
+              {cv.languages
+                .filter((l) => l.name.trim())
+                .map((l) => (l.proficiency ? `${l.name} (${l.proficiency})` : l.name))
+                .join("  ·  ")}
+            </Text>
+          </>
+        )}
+
+        {cv.hobbies.length > 0 && (
+          <>
+            <Sec title={L.hobbies} />
+            <Text style={s.line}>{cv.hobbies.filter((h) => h.trim()).join("  ·  ")}</Text>
+          </>
+        )}
+
+        {cv.achievements.length > 0 && (
+          <>
+            <Sec title={L.achievement} />
+            {cv.achievements.filter((a) => a.trim()).map((a, i) => (
+              <View key={i} style={s.bulletRow}>
+                <Text style={s.bulletDot}>•</Text>
+                <Text style={s.bulletText}>{a}</Text>
+              </View>
+            ))}
+          </>
+        )}
+      </Page>
+    </Document>
+  );
+}
+
+function execStyles(fontFamily: string) {
+  return StyleSheet.create({
+    page: { fontFamily },
+    header: { backgroundColor: NAVY, paddingVertical: 28, paddingHorizontal: 48, borderBottomWidth: 4, borderBottomColor: TEAL },
+    name: { fontSize: 24, fontWeight: 700, color: "#FFFFFF", letterSpacing: 0.5 },
+    headerContact: { fontSize: 9, color: "rgba(255,255,255,0.75)", marginTop: 6 },
+    content: { paddingVertical: 26, paddingHorizontal: 48 },
+    sectionRow: { flexDirection: "row", alignItems: "center", marginTop: 16, marginBottom: 8 },
+    sectionBar: { width: 3, height: 11, backgroundColor: TEAL, marginRight: 6, borderRadius: 2 },
+    sectionTitle: { fontSize: 9, fontWeight: 700, color: NAVY, letterSpacing: 1.5, textTransform: "uppercase" },
+    body: { fontSize: 10, color: "#334155", lineHeight: 1.5 },
+    rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
+    expRole: { fontSize: 11, fontWeight: 700, color: NAVY },
+    expCompany: { fontSize: 10, fontWeight: 600, color: "#0F766E", marginTop: 1 },
+    expDuration: { fontSize: 8, color: MUTED, letterSpacing: 1, textTransform: "uppercase" },
+    expBlock: { marginBottom: 10, paddingLeft: 9 },
+    bulletRow: { flexDirection: "row", marginTop: 2 },
+    bulletDot: { width: 8, fontSize: 10, color: TEAL },
+    bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
+    listRow: { marginBottom: 4, paddingLeft: 9, flexDirection: "row", justifyContent: "space-between" },
+    line: { fontSize: 10, color: "#334155", lineHeight: 1.5, paddingLeft: 9 },
+  });
+}
+
+function ExecutiveDocument({ cv, language }: { cv: CVData; language: Language }) {
+  const s = execStyles(FONT_BY_LANG[language]);
+  const L = SECTION_LABELS[language];
+  const contact = contactBitsOf(cv);
+  const socials = socialBitsOf(cv);
+  const Sec = ({ title }: { title: string }) => (
+    <View style={s.sectionRow}>
+      <View style={s.sectionBar} />
+      <Text style={s.sectionTitle}>{title}</Text>
+    </View>
+  );
+  return (
+    <Document>
+      <Page size="A4" style={s.page}>
+        <View style={s.header}>
+          <Text style={s.name}>{cv.personal.full_name || ""}</Text>
+          {contact.length > 0 && <Text style={s.headerContact}>{contact.join("   ·   ")}</Text>}
+          {socials.length > 0 && <Text style={s.headerContact}>{socials.join("   ·   ")}</Text>}
+        </View>
+
+        <View style={s.content}>
+          {cv.objective ? (
+            <>
+              <Sec title={L.objective} />
+              <Text style={[s.body, { paddingLeft: 9 }]}>{cv.objective}</Text>
+            </>
+          ) : null}
+
+          {cv.experience.length > 0 && (
+            <>
+              <Sec title={L.experience} />
+              {cv.experience.map((exp, i) => (
+                <View key={i} style={s.expBlock}>
+                  <View style={s.rowBetween}>
+                    <Text style={s.expRole}>{exp.role}</Text>
+                    <Text style={s.expDuration}>{exp.duration}</Text>
+                  </View>
+                  <Text style={s.expCompany}>{exp.company}</Text>
+                  {bulletsFrom(exp.description).map((line, bi) => (
+                    <View key={bi} style={s.bulletRow}>
+                      <Text style={s.bulletDot}>•</Text>
+                      <Text style={s.bulletText}>{line}</Text>
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </>
+          )}
+
+          {cv.education.length > 0 && (
+            <>
+              <Sec title={L.education} />
+              {cv.education.map((edu, i) => (
+                <View key={i} style={s.expBlock}>
+                  <View style={s.rowBetween}>
+                    <Text style={s.expRole}>{edu.degree}</Text>
+                    <Text style={s.expDuration}>{edu.year}</Text>
+                  </View>
+                  <Text style={s.expCompany}>{edu.institution}</Text>
+                </View>
+              ))}
+            </>
+          )}
+
+          {cv.certificates.length > 0 && (
+            <>
+              <Sec title={L.certificates} />
+              {cv.certificates.map((c, i) => (
+                <View key={i} style={s.listRow}>
+                  <Text style={s.body}>{c.name}{c.issuer ? ` · ${c.issuer}` : ""}</Text>
+                  <Text style={s.expDuration}>{c.year}</Text>
+                </View>
+              ))}
+            </>
+          )}
+
+          {cv.skills.length > 0 && (
+            <>
+              <Sec title={L.skills} />
+              <Text style={s.line}>{cv.skills.filter((sk) => sk.trim()).join("  ·  ")}</Text>
+            </>
+          )}
+
+          {cv.languages.length > 0 && (
+            <>
+              <Sec title={L.languages} />
+              <Text style={s.line}>
+                {cv.languages
+                  .filter((l) => l.name.trim())
+                  .map((l) => (l.proficiency ? `${l.name} (${l.proficiency})` : l.name))
+                  .join("  ·  ")}
+              </Text>
+            </>
+          )}
+
+          {cv.hobbies.length > 0 && (
+            <>
+              <Sec title={L.hobbies} />
+              <Text style={s.line}>{cv.hobbies.filter((h) => h.trim()).join("  ·  ")}</Text>
+            </>
+          )}
+
+          {cv.achievements.length > 0 && (
+            <>
+              <Sec title={L.achievement} />
+              {cv.achievements.filter((a) => a.trim()).map((a, i) => (
+                <View key={i} style={[s.bulletRow, { paddingLeft: 9 }]}>
+                  <Text style={s.bulletDot}>•</Text>
+                  <Text style={s.bulletText}>{a}</Text>
+                </View>
+              ))}
+            </>
+          )}
+        </View>
       </Page>
     </Document>
   );

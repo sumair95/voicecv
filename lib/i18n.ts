@@ -465,6 +465,18 @@ export const t: Dict = {
     ur: "چیک آؤٹ شروع نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
     it: "Impossibile avviare il pagamento. Riprova.",
   },
+  "premium.needCvCredit": {
+    en: "You need a premium CV credit. Unlock Premium on your dashboard.",
+    ar: "تحتاج إلى رصيد سيرة مميزة. افتح المميز من لوحة التحكم.",
+    ur: "آپ کو پریمیم CV کریڈٹ چاہیے۔ ڈیش بورڈ سے پریمیم کھولیں۔",
+    it: "Ti serve un credito CV premium. Sblocca Premium dalla dashboard.",
+  },
+  "premium.unlockError": {
+    en: "Couldn't unlock the premium template. Please try again.",
+    ar: "تعذّر فتح القالب المميز. حاول مرة أخرى.",
+    ur: "پریمیم ٹیمپلیٹ کھل نہیں سکا۔ دوبارہ کوشش کریں۔",
+    it: "Impossibile sbloccare il modello premium. Riprova.",
+  },
 
   // Cover letter
   "letter.title": {

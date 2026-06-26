@@ -37,13 +37,13 @@ export const TEMPLATES: TemplateInfo[] = [
   {
     id: "classic",
     name: "Classic",
-    description: "Centered traditional layout — coming soon.",
+    description: "Centered, traditional serif layout.",
     premium: true,
   },
   {
     id: "executive",
     name: "Executive",
-    description: "Bold left accent bar — coming soon.",
+    description: "Bold navy header with accent bar.",
     premium: true,
   },
 ];

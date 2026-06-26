@@ -2,7 +2,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { getAuthContext } from "@/lib/api/auth";
 import { CVDocument } from "@/lib/pdf-generator";
 import { migrateCvData } from "@/lib/cv/migrate";
-import { isUserEntitled, DEFAULT_TEMPLATE } from "@/lib/cv/templates";
+import { getTemplate, DEFAULT_TEMPLATE } from "@/lib/cv/templates";
 import { handle } from "@/lib/api/handle";
 import { badRequest, notFound, unauthorized, conflict, serverError } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
@@ -44,12 +44,12 @@ export const POST = handle("export-pdf", async ({ req, log }) => {
   // older rows without the column fall back to English.
   const language: Language = cv.language ?? "en";
 
-  let template = ((cv as unknown as { template?: TemplateId }).template ??
-    DEFAULT_TEMPLATE) as TemplateId;
-  // Server-side entitlement check — a tampered client cannot save a
-  // premium template into cvs.template and then download it.
-  if (!isUserEntitled(user.id, template)) {
-    log.warn("template downgrade — not entitled", {
+  let template = (cv.template ?? DEFAULT_TEMPLATE) as TemplateId;
+  // Server-side entitlement check — a premium template only renders if this
+  // CV has been unlocked (a premium-CV credit was spent). A tampered client
+  // that saved a premium template without paying gets downgraded here.
+  if (getTemplate(template).premium && !cv.premium_unlocked) {
+    log.warn("template downgrade — not unlocked", {
       userId: user.id,
       cvId,
       requested: template,

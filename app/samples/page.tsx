@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Lock } from "lucide-react";
+import { ArrowRight, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
@@ -81,9 +81,9 @@ export default function SamplesPage() {
                 >
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-navy-700">{tpl.name}</h3>
-                    <Badge variant="secondary" className="gap-1 text-navy-400">
-                      <Lock className="h-3 w-3" />
-                      {t("samples.comingSoon")}
+                    <Badge variant="secondary" className="gap-1 bg-amber-100 text-amber-700">
+                      <Crown className="h-3 w-3" />
+                      {t("samples.premium")}
                     </Badge>
                   </div>
                   <p className="text-sm text-navy-400">{tpl.description}</p>

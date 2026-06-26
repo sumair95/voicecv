@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { CVPreview } from "@/components/CVPreview";
 import { CoverLetterPanel } from "@/components/CoverLetterPanel";
 import { PREMIUM_ENABLED } from "@/lib/premium";
+import { getTemplate } from "@/lib/cv/templates";
 import { TemplatePicker } from "@/components/TemplatePicker";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
@@ -72,6 +73,25 @@ export default function CVDetailPage() {
   }
 
   async function changeTemplate(next: TemplateId) {
+    // Premium templates need a credit: spend one (unless this CV is already
+    // unlocked) before switching. Server-side gating enforces this too.
+    if (getTemplate(next).premium && cv && !cv.premium_unlocked) {
+      const res = await fetch("/api/unlock-cv-premium", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cvId: id }),
+      });
+      if (res.status === 402) {
+        toast.error(t("premium.needCvCredit"));
+        return;
+      }
+      if (!res.ok) {
+        toast.error(t("premium.unlockError"));
+        return;
+      }
+      setCv((prev) => (prev ? { ...prev, premium_unlocked: true } : prev));
+    }
+
     setCv((prev) => (prev ? { ...prev, template: next } : prev));
     const { error } = await supabase
       .from("cvs")
@@ -195,6 +215,7 @@ export default function CVDetailPage() {
       <TemplatePicker
         value={(cv.template as TemplateId | null) ?? DEFAULT_TEMPLATE}
         onChange={changeTemplate}
+        premiumEnabled={PREMIUM_ENABLED}
       />
 
       <CVPreview
