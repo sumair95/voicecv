@@ -58,6 +58,29 @@ export function migrateCvData(raw: unknown): CVData {
     skills: Array.isArray(src.skills) ? src.skills : [],
     languages,
     hobbies: Array.isArray(src.hobbies) ? src.hobbies : [],
-    achievement: src.achievement ?? null,
+    achievements: migrateAchievements(src),
   };
+}
+
+// achievements used to be a single STAR object {situation,task,action,result};
+// it's now a simple string[]. Collapse any legacy STAR object into one line so
+// existing CVs keep their content.
+function migrateAchievements(src: {
+  achievements?: unknown;
+  achievement?: unknown;
+}): string[] {
+  if (Array.isArray(src.achievements)) {
+    return src.achievements.filter(
+      (a): a is string => typeof a === "string" && a.trim().length > 0,
+    );
+  }
+  const legacy = src.achievement;
+  if (legacy && typeof legacy === "object") {
+    const o = legacy as Record<string, unknown>;
+    const parts = ["situation", "task", "action", "result"]
+      .map((k) => (typeof o[k] === "string" ? (o[k] as string).trim() : ""))
+      .filter(Boolean);
+    return parts.length > 0 ? [parts.join(" ")] : [];
+  }
+  return [];
 }

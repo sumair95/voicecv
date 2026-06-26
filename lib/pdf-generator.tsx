@@ -60,7 +60,7 @@ const SECTION_LABELS: Record<Language, Record<string, string>> = {
     experience: "Work Experience",
     education: "Education",
     certificates: "Certificates & Training",
-    achievement: "Key Achievement",
+    achievement: "Key Achievements",
   },
   it: {
     contact: "Contatti",
@@ -72,7 +72,7 @@ const SECTION_LABELS: Record<Language, Record<string, string>> = {
     experience: "Esperienza lavorativa",
     education: "Istruzione",
     certificates: "Certificati e formazione",
-    achievement: "Risultato principale",
+    achievement: "Risultati principali",
   },
   ar: {
     contact: "التواصل",
@@ -84,7 +84,7 @@ const SECTION_LABELS: Record<Language, Record<string, string>> = {
     experience: "الخبرة العملية",
     education: "التعليم",
     certificates: "الشهادات والتدريب",
-    achievement: "إنجاز رئيسي",
+    achievement: "أبرز الإنجازات",
   },
   ur: {
     contact: "رابطہ",
@@ -96,7 +96,7 @@ const SECTION_LABELS: Record<Language, Record<string, string>> = {
     experience: "کام کا تجربہ",
     education: "تعلیم",
     certificates: "سرٹیفکیٹ اور تربیت",
-    achievement: "اہم کامیابی",
+    achievement: "اہم کامیابیاں",
   },
 };
 
@@ -697,21 +697,16 @@ function ModernDocument({
             </>
           )}
 
-          {cv.achievement && (
+          {cv.achievements.length > 0 && (
             <>
               <SectionHeader icon={TrophyIcon} title={L.achievement} />
               <View style={s.starBox}>
-                {[
-                  ["S", cv.achievement.situation],
-                  ["T", cv.achievement.task],
-                  ["A", cv.achievement.action],
-                  ["R", cv.achievement.result],
-                ]
-                  .filter(([, v]) => Boolean(v))
-                  .map(([label, txt], i) => (
-                    <View key={i} style={s.starRow}>
-                      <Text style={s.starLabel}>{label}</Text>
-                      <Text style={s.starText}>{txt}</Text>
+                {cv.achievements
+                  .filter((a) => a.trim())
+                  .map((a, i) => (
+                    <View key={i} style={s.bulletRow}>
+                      <Text style={s.bulletDot}>•</Text>
+                      <Text style={s.bulletText}>{a}</Text>
                     </View>
                   ))}
               </View>
@@ -920,20 +915,15 @@ function MinimalistDocument({
           </>
         )}
 
-        {cv.achievement && (
+        {cv.achievements.length > 0 && (
           <>
             <SectionHeader title={L.achievement} />
-            {[
-              ["S", cv.achievement.situation],
-              ["T", cv.achievement.task],
-              ["A", cv.achievement.action],
-              ["R", cv.achievement.result],
-            ]
-              .filter(([, v]) => Boolean(v))
-              .map(([label, txt], i) => (
+            {cv.achievements
+              .filter((a) => a.trim())
+              .map((a, i) => (
                 <View key={i} style={s.bulletRow}>
-                  <Text style={[s.bulletDot, { fontWeight: 700 }]}>{label}</Text>
-                  <Text style={s.bulletText}>{txt}</Text>
+                  <Text style={s.bulletDot}>•</Text>
+                  <Text style={s.bulletText}>{a}</Text>
                 </View>
               ))}
           </>

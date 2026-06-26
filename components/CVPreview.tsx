@@ -25,7 +25,6 @@ import {
 } from "react-icons/fa";
 import { tr } from "@/lib/i18n";
 import type {
-  CVAchievement,
   CVCertificateItem,
   CVData,
   CVEducationItem,
@@ -234,13 +233,6 @@ function shortDisplay(url: string): string {
     return url;
   }
 }
-const EMPTY_ACHIEVEMENT: CVAchievement = {
-  situation: "",
-  task: "",
-  action: "",
-  result: "",
-};
-
 export function CVPreview({
   cvData,
   language,
@@ -799,71 +791,16 @@ export function CVPreview({
           </MinSection>
         )}
 
-        {(data.achievement || editable) && (
-          <MinSection
-            title={t("cv.achievement")}
-            right={
-              editable && data.achievement ? (
-                <RemoveButton
-                  label={t("edit.remove")}
-                  onClick={() => patch({ achievement: null })}
-                />
-              ) : null
-            }
-          >
-            {data.achievement ? (
-              <div className="space-y-1.5 text-sm text-navy-600">
-                <StarRow
-                  label="S"
-                  text={data.achievement.situation}
-                  editable={editable}
-                  onChange={(v) =>
-                    patch({
-                      achievement: { ...(data.achievement as CVAchievement), situation: v },
-                    })
-                  }
-                />
-                <StarRow
-                  label="T"
-                  text={data.achievement.task}
-                  editable={editable}
-                  onChange={(v) =>
-                    patch({
-                      achievement: { ...(data.achievement as CVAchievement), task: v },
-                    })
-                  }
-                />
-                <StarRow
-                  label="A"
-                  text={data.achievement.action}
-                  editable={editable}
-                  onChange={(v) =>
-                    patch({
-                      achievement: { ...(data.achievement as CVAchievement), action: v },
-                    })
-                  }
-                />
-                <StarRow
-                  label="R"
-                  text={data.achievement.result}
-                  editable={editable}
-                  onChange={(v) =>
-                    patch({
-                      achievement: { ...(data.achievement as CVAchievement), result: v },
-                    })
-                  }
-                />
-              </div>
-            ) : (
-              editable && (
-                <AddButton
-                  label={t("edit.add.achievement")}
-                  onClick={() =>
-                    patch({ achievement: { ...EMPTY_ACHIEVEMENT } })
-                  }
-                />
-              )
-            )}
+        {(data.achievements.length > 0 || editable) && (
+          <MinSection title={t("cv.achievement")}>
+            <div className="text-sm text-navy-600">
+              <AchievementsList
+                items={data.achievements}
+                editable={editable}
+                t={t}
+                onChange={(next) => patch({ achievements: next })}
+              />
+            </div>
           </MinSection>
         )}
       </article>
@@ -1464,77 +1401,21 @@ export function CVPreview({
           </section>
         )}
 
-        {/* Achievement */}
-        {(data.achievement || editable) && (
+        {/* Achievements */}
+        {(data.achievements.length > 0 || editable) && (
           <section>
-            <div className="flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
-                <Trophy className="h-3.5 w-3.5" />
-                {t("cv.achievement")}
-              </h2>
-              {editable && data.achievement && (
-                <RemoveButton
-                  label={t("edit.remove")}
-                  onClick={() => patch({ achievement: null })}
-                />
-              )}
+            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
+              <Trophy className="h-3.5 w-3.5" />
+              {t("cv.achievement")}
+            </h2>
+            <div className="mt-3 rounded-lg border border-teal/20 bg-teal/5 p-4 text-sm text-navy-600">
+              <AchievementsList
+                items={data.achievements}
+                editable={editable}
+                t={t}
+                onChange={(next) => patch({ achievements: next })}
+              />
             </div>
-
-            {data.achievement ? (
-              <div className="mt-3 space-y-2 rounded-lg border border-teal/20 bg-teal/5 p-4 text-sm text-navy-600">
-                <StarRow
-                  label="S"
-                  text={data.achievement.situation}
-                  editable={editable}
-                  onChange={(v) =>
-                    patch({
-                      achievement: { ...(data.achievement as CVAchievement), situation: v },
-                    })
-                  }
-                />
-                <StarRow
-                  label="T"
-                  text={data.achievement.task}
-                  editable={editable}
-                  onChange={(v) =>
-                    patch({
-                      achievement: { ...(data.achievement as CVAchievement), task: v },
-                    })
-                  }
-                />
-                <StarRow
-                  label="A"
-                  text={data.achievement.action}
-                  editable={editable}
-                  onChange={(v) =>
-                    patch({
-                      achievement: { ...(data.achievement as CVAchievement), action: v },
-                    })
-                  }
-                />
-                <StarRow
-                  label="R"
-                  text={data.achievement.result}
-                  editable={editable}
-                  onChange={(v) =>
-                    patch({
-                      achievement: { ...(data.achievement as CVAchievement), result: v },
-                    })
-                  }
-                />
-              </div>
-            ) : (
-              editable && (
-                <div className="mt-2">
-                  <AddButton
-                    label={t("edit.add.achievement")}
-                    onClick={() =>
-                      patch({ achievement: { ...EMPTY_ACHIEVEMENT } })
-                    }
-                  />
-                </div>
-              )
-            )}
           </section>
         )}
       </main>
@@ -1542,32 +1423,57 @@ export function CVPreview({
   );
 }
 
-function StarRow({
-  label,
-  text,
+function AchievementsList({
+  items,
   editable,
   onChange,
+  t,
 }: {
-  label: string;
-  text: string;
+  items: string[];
   editable?: boolean;
-  onChange?: (next: string) => void;
+  onChange: (next: string[]) => void;
+  t: (key: string) => string;
 }) {
-  if (!text && !editable) return null;
+  if (!editable) {
+    const visible = items.filter((a) => a.trim());
+    if (visible.length === 0) return null;
+    return (
+      <ul className="ms-5 list-disc space-y-1 leading-relaxed marker:text-teal">
+        {visible.map((a, i) => (
+          <li key={i}>{a}</li>
+        ))}
+      </ul>
+    );
+  }
   return (
-    <div className="flex gap-2">
-      <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-teal text-[10px] font-bold text-white">
-        {label}
-      </span>
-      <p className="flex-1 leading-relaxed">
-        <Editable
-          value={text}
-          editable={editable}
-          multiline
-          onChange={onChange}
-          placeholder={`${label}…`}
-        />
-      </p>
+    <div className="space-y-1.5">
+      {items.map((a, i) => (
+        <div key={i} className="flex items-center gap-1">
+          <Editable
+            value={a}
+            editable
+            className="flex-1"
+            placeholder={t("edit.placeholder.achievement")}
+            onChange={(v) => {
+              const next = [...items];
+              next[i] = v;
+              onChange(next);
+            }}
+          />
+          <RemoveButton
+            label={t("edit.remove")}
+            onClick={() => {
+              const next = [...items];
+              next.splice(i, 1);
+              onChange(next);
+            }}
+          />
+        </div>
+      ))}
+      <AddButton
+        label={t("edit.add.achievement")}
+        onClick={() => onChange([...items, ""])}
+      />
     </div>
   );
 }

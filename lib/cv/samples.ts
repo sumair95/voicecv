@@ -63,13 +63,11 @@ export const SAMPLE_CONSTRUCTION: CVData = {
     { name: "English", proficiency: "Beginner" },
   ],
   hobbies: ["Cricket", "Volunteering at the local community centre"],
-  achievement: {
-    situation: "A residential tower was behind schedule before handover.",
-    task: "Complete the block-work for three floors in two weeks.",
-    action:
-      "Organised the team into shifts and pre-staged materials each evening.",
-    result: "Finished two days early with zero safety incidents.",
-  },
+  achievements: [
+    "Employee of the Month — Al-Rajhi Construction (2023)",
+    "Completed a 3-floor block-work project two days ahead of schedule",
+    "Maintained a zero-incident safety record across 4 years on site",
+  ],
 };
 
 export const SAMPLE_DRIVER: CVData = {
@@ -128,12 +126,11 @@ export const SAMPLE_DRIVER: CVData = {
     { name: "Arabic", proficiency: "Beginner" },
   ],
   hobbies: ["Cricket", "Cooking"],
-  achievement: {
-    situation: "During peak season, deliveries in my zone were running late.",
-    task: "Improve the on-time delivery rate.",
-    action: "Re-planned routes to avoid traffic and started shifts earlier.",
-    result: "On-time rate rose to 98% and I earned the top-driver bonus.",
-  },
+  achievements: [
+    "Top Driver of the Quarter — Talabat (Q2 2023)",
+    "Maintained a 98% on-time delivery rate over 3 years",
+    "4.9-star average customer rating across 5,000+ trips",
+  ],
 };
 
 export const SAMPLE_HOSPITALITY: CVData = {
@@ -192,11 +189,9 @@ export const SAMPLE_HOSPITALITY: CVData = {
     { name: "Arabic", proficiency: "Beginner" },
   ],
   hobbies: ["Cooking", "Reading"],
-  achievement: {
-    situation: "Guest satisfaction scores for cleanliness had dropped.",
-    task: "Raise the housekeeping score above 90%.",
-    action:
-      "Introduced a double-check inspection and retrained the team on standards.",
-    result: "Cleanliness scores rose to 94% within three months.",
-  },
+  achievements: [
+    "Raised housekeeping cleanliness scores from 82% to 94% in 3 months",
+    "Employee of the Year nominee — Hilton Jeddah (2022)",
+    "Trained 12 new room attendants to brand standard",
+  ],
 };

@@ -5,8 +5,8 @@
  *
  * `Editable` is the real <input>/<textarea> with the dashed-teal affordance;
  * `AddButton`/`RemoveButton` are the small pill controls; `BulletList`
- * renders the experience description as bullets; `StarRow` renders one row
- * of the STAR achievement; `MinSection` is the Minimalist title block.
+ * renders the experience description as bullets; `MinSection` is the
+ * Minimalist title block.
  *
  * Helpers: `descriptionBullets` parses bullet lines, `detectPlatform`
  * picks the right brand icon for a social URL, `shortDisplay` strips
@@ -25,7 +25,6 @@ import {
   FaYoutube,
 } from "react-icons/fa";
 import type {
-  CVAchievement,
   CVCertificateItem,
   CVEducationItem,
   CVExperienceItem,
@@ -52,12 +51,6 @@ export const EMPTY_CERTIFICATE: CVCertificateItem = {
 };
 export const EMPTY_LANGUAGE: CVLanguageItem = { name: "", proficiency: "" };
 export const EMPTY_SOCIAL: CVSocialLink = { url: "" };
-export const EMPTY_ACHIEVEMENT: CVAchievement = {
-  situation: "",
-  task: "",
-  action: "",
-  result: "",
-};
 
 // ───── Helpers ─────────────────────────────────────────────────────
 export function initialsOf(name: string): string {
@@ -228,36 +221,6 @@ export function BulletList({ text }: { text: string }) {
         <li key={i}>{line}</li>
       ))}
     </ul>
-  );
-}
-
-export function StarRow({
-  label,
-  text,
-  editable,
-  onChange,
-}: {
-  label: string;
-  text: string;
-  editable?: boolean;
-  onChange?: (next: string) => void;
-}) {
-  if (!text && !editable) return null;
-  return (
-    <div className="flex gap-2">
-      <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-teal text-[10px] font-bold text-white">
-        {label}
-      </span>
-      <p className="flex-1 leading-relaxed">
-        <Editable
-          value={text}
-          editable={editable}
-          multiline
-          onChange={onChange}
-          placeholder={`${label}…`}
-        />
-      </p>
-    </div>
   );
 }
 

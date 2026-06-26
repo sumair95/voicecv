@@ -69,12 +69,7 @@ JSON shape (every field is required; use empty string/array/null if not provided
     { "name": "string", "proficiency": "beginner | conversational | fluent" }
   ],
   "hobbies": ["hobby1", "hobby2"],
-  "achievement": null OR {
-    "situation": "string",
-    "task": "string",
-    "action": "string",
-    "result": "string"
-  }
+  "achievements": ["short achievement or award, e.g. 'Employee of the Month 2023', 'Top sales performer Q2', 'Completed 500+ deliveries with zero accidents'"]
 }
 
 Mapping rules — the user has answered up to 9 questions identified by field_key:
@@ -86,7 +81,7 @@ Mapping rules — the user has answered up to 9 questions identified by field_ke
 - education          → education[]
 - certificates       → certificates[]
 - hobbies            → hobbies[]
-- achievement        → achievement (STAR object); if user skipped or said "no", return null
+- achievement        → achievements[] (each a SHORT one-line achievement or award; keep the candidate's own wording, just tidy it. If they skipped or said "no", return [])
 
 Quality rules:
 - Write ALL natural-language content in **${outputLanguage}**, regardless of the candidate's input language. Personal names, city names, and country names should be written in Latin script (e.g. "أحمد" → "Ahmed", "ریاض" → "Riyadh").
@@ -167,6 +162,6 @@ Generate the structured CV JSON now (${outputName}).`;
     skills: parsed.skills ?? [],
     languages: parsed.languages ?? [],
     hobbies: parsed.hobbies ?? [],
-    achievement: parsed.achievement ?? null,
+    achievements: Array.isArray(parsed.achievements) ? parsed.achievements : [],
   };
 }

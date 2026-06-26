@@ -85,13 +85,6 @@ export interface CVLanguageItem {
   proficiency: string; // beginner | conversational | fluent (free-text so AI can localize)
 }
 
-export interface CVAchievement {
-  situation: string;
-  task: string;
-  action: string;
-  result: string;
-}
-
 export interface CVData {
   personal: CVPersonal;
   socials: CVSocialLink[];
@@ -102,7 +95,8 @@ export interface CVData {
   skills: string[];
   languages: CVLanguageItem[];
   hobbies: string[];
-  achievement: CVAchievement | null;
+  /** Simple achievements / awards, e.g. "Employee of the Month 2023". */
+  achievements: string[];
 }
 
 export interface CVRecord {
@@ -159,7 +153,7 @@ export const EMPTY_CV: CVData = {
   skills: [],
   languages: [],
   hobbies: [],
-  achievement: null,
+  achievements: [],
 };
 
 // Re-exported for backwards compatibility. New code should import directly

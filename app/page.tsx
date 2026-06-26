@@ -2,7 +2,18 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Mic, Sparkles, FileDown, CheckCircle2, ShieldCheck, ArrowRight } from "lucide-react";
+import {
+  Mic,
+  Sparkles,
+  FileDown,
+  CheckCircle2,
+  ShieldCheck,
+  ArrowRight,
+  Briefcase,
+  GraduationCap,
+  Trophy,
+  Languages,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
@@ -58,14 +69,39 @@ function SampleCVCard({ cv }: { cv: CVData }) {
             </span>
           ))}
         </div>
-        {topJob && (
-          <div className="border-t border-navy-100 pt-2.5">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-teal-700">
-              {topJob.company}
+        <div className="space-y-1.5 border-t border-navy-100 pt-3 text-xs text-navy-400">
+          {topJob && (
+            <div className="flex items-center gap-1.5">
+              <Briefcase className="h-3 w-3 shrink-0 text-teal" />
+              <span className="truncate">
+                <span className="font-semibold text-navy-600">
+                  {topJob.role}
+                </span>{" "}
+                · {topJob.company}
+              </span>
             </div>
-            <div className="text-xs text-navy-400">{topJob.duration}</div>
-          </div>
-        )}
+          )}
+          {cv.education[0] && (
+            <div className="flex items-center gap-1.5">
+              <GraduationCap className="h-3 w-3 shrink-0 text-teal" />
+              <span className="truncate">{cv.education[0].degree}</span>
+            </div>
+          )}
+          {cv.achievements[0] && (
+            <div className="flex items-center gap-1.5">
+              <Trophy className="h-3 w-3 shrink-0 text-teal" />
+              <span className="truncate">{cv.achievements[0]}</span>
+            </div>
+          )}
+          {cv.languages.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              <Languages className="h-3 w-3 shrink-0 text-teal" />
+              <span className="truncate">
+                {cv.languages.map((l) => l.name).join(", ")}
+              </span>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
