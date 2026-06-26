@@ -77,10 +77,10 @@ export const t: Dict = {
     it: "Storie di esempio",
   },
   "landing.footer.copyright": {
-    en: "© 2026 VoiceCV — All rights reserved",
-    ar: "© 2026 VoiceCV — جميع الحقوق محفوظة",
-    ur: "© 2026 VoiceCV — جملہ حقوق محفوظ ہیں",
-    it: "© 2026 VoiceCV — Tutti i diritti riservati",
+    en: "© 2026 vocv — All rights reserved",
+    ar: "© 2026 vocv — جميع الحقوق محفوظة",
+    ur: "© 2026 vocv — جملہ حقوق محفوظ ہیں",
+    it: "© 2026 vocv — Tutti i diritti riservati",
   },
   "landing.video.title": {
     en: "Watch it in action",
