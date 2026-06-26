@@ -8,6 +8,68 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { VideoDemo } from "@/components/VideoDemo";
 import { useLanguage } from "@/components/LanguageProvider";
+import {
+  SAMPLE_CONSTRUCTION,
+  SAMPLE_DRIVER,
+  SAMPLE_HOSPITALITY,
+} from "@/lib/cv/samples";
+import type { CVData } from "@/types/cv";
+
+function initialsOf(name: string) {
+  return (
+    name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((n) => n[0]?.toUpperCase() ?? "")
+      .join("") || "CV"
+  );
+}
+
+// A realistic mini-CV card, sized like the old testimonial cards. Shows a real
+// snippet of generated output (header, objective, skills, latest job) and links
+// to the full WYSIWYG previews on /samples. Lightweight — no CVPreview render.
+function SampleCVCard({ cv }: { cv: CVData }) {
+  const topJob = cv.experience[0];
+  return (
+    <Card className="h-full overflow-hidden border-navy-100/60 transition hover:-translate-y-1 hover:border-teal/50 hover:shadow-lg">
+      <div className="flex items-center gap-3 bg-navy-900 p-5 text-white">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-teal text-sm font-bold">
+          {initialsOf(cv.personal.full_name)}
+        </span>
+        <div className="min-w-0">
+          <div className="truncate font-semibold">{cv.personal.full_name}</div>
+          <div className="truncate text-xs text-teal-400">
+            {topJob?.role} · {cv.personal.city}
+          </div>
+        </div>
+      </div>
+      <CardContent className="space-y-3 p-5">
+        <p className="line-clamp-2 text-sm leading-relaxed text-navy-400">
+          {cv.objective}
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {cv.skills.slice(0, 3).map((s) => (
+            <span
+              key={s}
+              className="rounded-full bg-teal/10 px-2.5 py-0.5 text-xs font-medium text-teal-700"
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+        {topJob && (
+          <div className="border-t border-navy-100 pt-2.5">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-teal-700">
+              {topJob.company}
+            </div>
+            <div className="text-xs text-navy-400">{topJob.duration}</div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 function SampleCVs({ caption }: { caption: string }) {
   // Three tiny decorative "CV" cards fanned out — fills the empty space
@@ -54,11 +116,7 @@ export default function LandingPage() {
     { icon: FileDown, titleKey: "landing.step3.title", descKey: "landing.step3.desc" },
   ];
 
-  const testimonials = [
-    { quoteKey: "landing.testimonial.1", nameKey: "landing.testimonial.1.name" },
-    { quoteKey: "landing.testimonial.2", nameKey: "landing.testimonial.2.name" },
-    { quoteKey: "landing.testimonial.3", nameKey: "landing.testimonial.3.name" },
-  ];
+  const exampleCvs = [SAMPLE_CONSTRUCTION, SAMPLE_HOSPITALITY, SAMPLE_DRIVER];
 
   const stats = [
     { value: "5", labelKey: "landing.stats.minutes" },
@@ -215,29 +273,33 @@ export default function LandingPage() {
       <section className="bg-white py-20">
         <div className="container">
           <h2 className="text-center text-3xl font-bold tracking-tight text-navy-900 md:text-4xl">
-            {t("landing.testimonials.title")}
+            {t("samples.title")}
           </h2>
           <p className="mt-2 text-center text-sm text-navy-400">
-            {t("landing.testimonials.sample")}
+            {t("samples.subtitle")}
           </p>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {testimonials.map((tm, i) => (
+            {exampleCvs.map((cv, i) => (
               <motion.div
-                key={tm.quoteKey}
+                key={cv.personal.full_name}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
               >
-                <Card className="h-full border-navy-100/60 bg-navy-900 text-white">
-                  <CardContent className="flex h-full flex-col gap-5 p-8">
-                    <div className="text-3xl text-teal-400">“</div>
-                    <p className="flex-1 text-lg leading-relaxed text-white/90">{t(tm.quoteKey)}</p>
-                    <div className="text-sm font-medium text-teal-400">{t(tm.nameKey)}</div>
-                  </CardContent>
-                </Card>
+                <Link href="/samples" className="block h-full">
+                  <SampleCVCard cv={cv} />
+                </Link>
               </motion.div>
             ))}
+          </div>
+          <div className="mt-10 text-center">
+            <Button asChild variant="outline" size="lg" className="border-navy-100">
+              <Link href="/samples">
+                {t("samples.link")}
+                <ArrowRight className="ms-2 h-5 w-5 rtl:-scale-x-100" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>

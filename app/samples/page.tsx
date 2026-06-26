@@ -9,14 +9,19 @@ import { Navbar } from "@/components/Navbar";
 import { CVPreview } from "@/components/CVPreview";
 import { useLanguage } from "@/components/LanguageProvider";
 import { TEMPLATES } from "@/types/cv";
-import { SAMPLE_CONSTRUCTION, SAMPLE_HOSPITALITY } from "@/lib/cv/samples";
+import {
+  SAMPLE_CONSTRUCTION,
+  SAMPLE_DRIVER,
+  SAMPLE_HOSPITALITY,
+} from "@/lib/cv/samples";
 import type { CVData, TemplateId } from "@/types/cv";
 
 // CVs always render in English (the product's output language), so the
 // gallery previews are pinned to English regardless of the UI language.
-const GALLERY: { cv: CVData; template: TemplateId; name: string }[] = [
-  { cv: SAMPLE_CONSTRUCTION, template: "modern", name: "Modern" },
-  { cv: SAMPLE_HOSPITALITY, template: "minimalist", name: "Minimalist" },
+const GALLERY: { cv: CVData; template: TemplateId; style: string }[] = [
+  { cv: SAMPLE_CONSTRUCTION, template: "modern", style: "Modern" },
+  { cv: SAMPLE_HOSPITALITY, template: "minimalist", style: "Minimalist" },
+  { cv: SAMPLE_DRIVER, template: "modern", style: "Modern" },
 ];
 
 export default function SamplesPage() {
@@ -38,15 +43,22 @@ export default function SamplesPage() {
         <div className="mt-12 space-y-14">
           {GALLERY.map((item, i) => (
             <motion.div
-              key={item.name}
+              key={item.cv.personal.full_name}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.5, delay: i * 0.05 }}
               className="mx-auto max-w-3xl"
             >
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-navy-900">{item.name}</h2>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-navy-900">
+                    {item.cv.personal.full_name}
+                  </h2>
+                  <p className="text-sm text-navy-400">
+                    {item.cv.experience[0]?.role} · {item.style}
+                  </p>
+                </div>
                 <Badge className="bg-teal/10 text-teal-700 hover:bg-teal/10">
                   {t("samples.free")}
                 </Badge>

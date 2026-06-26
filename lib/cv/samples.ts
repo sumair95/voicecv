@@ -72,6 +72,70 @@ export const SAMPLE_CONSTRUCTION: CVData = {
   },
 };
 
+export const SAMPLE_DRIVER: CVData = {
+  personal: {
+    full_name: "Arjun Sharma",
+    nationality: "Indian",
+    city: "Dubai",
+    country: "United Arab Emirates",
+    email: "arjun.sharma@example.com",
+    phone: "+971 50 222 3344",
+  },
+  socials: [],
+  objective:
+    "Punctual professional driver with 5 years safely delivering goods and passengers across the UAE. Clean record, excellent route knowledge, and strong customer service.",
+  experience: [
+    {
+      company: "Talabat",
+      role: "Delivery Driver",
+      duration: "2021 – Present · 3 years",
+      description:
+        "Completed 30+ deliveries per day with an on-time rate above 98%.\nMaintained a clean driving record and well-kept vehicle.\nHandled cash and digital payments accurately.",
+    },
+    {
+      company: "Careem",
+      role: "Captain (Driver)",
+      duration: "2019 – 2021 · 2 years",
+      description:
+        "Drove passengers safely across Dubai.\nMaintained a 4.9-star rider rating.",
+    },
+  ],
+  education: [
+    {
+      institution: "Delhi Public School",
+      degree: "Higher Secondary Certificate",
+      year: "2016",
+    },
+  ],
+  certificates: [
+    {
+      name: "UAE Light Vehicle Driving Licence",
+      issuer: "RTA Dubai",
+      year: "2019",
+    },
+  ],
+  skills: [
+    "Safe driving",
+    "Route planning",
+    "GPS navigation",
+    "Customer service",
+    "Cash handling",
+    "Vehicle maintenance",
+  ],
+  languages: [
+    { name: "Hindi", proficiency: "Fluent" },
+    { name: "English", proficiency: "Conversational" },
+    { name: "Arabic", proficiency: "Beginner" },
+  ],
+  hobbies: ["Cricket", "Cooking"],
+  achievement: {
+    situation: "During peak season, deliveries in my zone were running late.",
+    task: "Improve the on-time delivery rate.",
+    action: "Re-planned routes to avoid traffic and started shifts earlier.",
+    result: "On-time rate rose to 98% and I earned the top-driver bonus.",
+  },
+};
+
 export const SAMPLE_HOSPITALITY: CVData = {
   personal: {
     full_name: "Maria Santos",
