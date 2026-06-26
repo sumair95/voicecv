@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/components/LanguageProvider";
+import { PremiumCard } from "@/components/PremiumCard";
 import { createClient } from "@/lib/supabase/client";
 import type { CVRecord, Profile } from "@/types/cv";
 
@@ -26,6 +27,18 @@ export default function DashboardPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const supabase = useMemo(() => createClient(), []);
+
+  // Surface the Stripe Checkout result, then strip the query param so a
+  // refresh doesn't re-toast. Credits themselves are granted by the webhook.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const premium = params.get("premium");
+    if (premium === "success") toast.success(t("premium.success"));
+    else if (premium === "cancel") toast(t("premium.cancel"));
+    if (premium) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [t]);
 
   const loadPage = useCallback(
     async (cursor?: string) => {
@@ -152,6 +165,13 @@ export default function DashboardPage() {
           </Link>
         </Button>
       </div>
+
+      {!loading && (
+        <PremiumCard
+          cvCredits={profile?.premium_cv_credits ?? 0}
+          letterCredits={profile?.cover_letter_credits ?? 0}
+        />
+      )}
 
       {loading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

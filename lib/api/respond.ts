@@ -25,6 +25,11 @@ export function conflict(message: string) {
   return NextResponse.json({ error: message }, { status: 409 });
 }
 
+/** 402 — used when a premium action needs credits the user doesn't have. */
+export function paymentRequired(message = "Premium credits required") {
+  return NextResponse.json({ error: message, needsPurchase: true }, { status: 402 });
+}
+
 export function serverError(message = "Internal error") {
   return NextResponse.json({ error: message }, { status: 500 });
 }

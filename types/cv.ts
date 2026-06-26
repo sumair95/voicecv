@@ -109,6 +109,10 @@ export interface CVRecord {
   template: TemplateId | null;
   /** Language the CV text is written in (drives preview + PDF headings). */
   language: Language | null;
+  /** Premium templates allowed on this CV (one premium-CV credit spent). */
+  premium_unlocked: boolean;
+  /** Generated professional cover letter, if any. */
+  cover_letter: string | null;
   status: CVStatus;
   created_at: string;
   updated_at: string;
@@ -119,6 +123,8 @@ export interface Profile {
   full_name: string | null;
   email: string | null;
   language: Language;
+  premium_cv_credits: number;
+  cover_letter_credits: number;
   created_at: string;
 }
 

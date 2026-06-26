@@ -416,6 +416,56 @@ export const t: Dict = {
     it: "Impossibile scaricare il PDF. Riprova.",
   },
 
+  // Premium
+  "premium.title": {
+    en: "Premium Pack",
+    ar: "الباقة المميزة",
+    ur: "پریمیم پیک",
+    it: "Pacchetto Premium",
+  },
+  "premium.tagline": {
+    en: "2 premium CV designs + a professional cover letter — for $5",
+    ar: "تصميمان مميزان للسيرة الذاتية + خطاب تقديم احترافي — مقابل 5$",
+    ur: "2 پریمیم CV ڈیزائن + پیشہ ورانہ کور لیٹر — صرف $5 میں",
+    it: "2 design CV premium + una lettera di presentazione professionale — a $5",
+  },
+  "premium.cta": {
+    en: "Unlock Premium — $5",
+    ar: "افتح المميز — 5$",
+    ur: "پریمیم کھولیں — $5",
+    it: "Sblocca Premium — $5",
+  },
+  "premium.cvCredits": {
+    en: "premium CV credits",
+    ar: "رصيد سير مميزة",
+    ur: "پریمیم CV کریڈٹس",
+    it: "crediti CV premium",
+  },
+  "premium.letterCredits": {
+    en: "cover letter credits",
+    ar: "رصيد خطابات تقديم",
+    ur: "کور لیٹر کریڈٹس",
+    it: "crediti lettera",
+  },
+  "premium.success": {
+    en: "Payment successful — your premium credits are ready!",
+    ar: "تم الدفع بنجاح — رصيدك المميز جاهز!",
+    ur: "ادائیگی کامیاب — آپ کے پریمیم کریڈٹس تیار ہیں!",
+    it: "Pagamento riuscito — i tuoi crediti premium sono pronti!",
+  },
+  "premium.cancel": {
+    en: "Checkout canceled.",
+    ar: "تم إلغاء الدفع.",
+    ur: "چیک آؤٹ منسوخ ہو گیا۔",
+    it: "Pagamento annullato.",
+  },
+  "premium.checkoutError": {
+    en: "Couldn't start checkout. Please try again.",
+    ar: "تعذّر بدء الدفع. حاول مرة أخرى.",
+    ur: "چیک آؤٹ شروع نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+    it: "Impossibile avviare il pagamento. Riprova.",
+  },
+
   // Status
   "status.processing": {
     en: "Processing",
