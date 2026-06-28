@@ -2,6 +2,25 @@
 
 Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 
+## 2026-06-28 — Pricing tiers + free limit + cover-letter teaser
+- **Free tier = 3 CVs, lifetime.** `profiles.cvs_created` counter (migration `012`, backfilled), incremented via `increment_cvs_created()` RPC after each new CV. `generate-cv` blocks (402) when `cvs_created >= 3 + cv_credits`; deleting a CV does NOT free a slot. (First shipped as "3 at a time" via a live-count check, then switched to lifetime at Sumair's request.)
+- **Two paid packs.** `/api/checkout` takes `{ pack: 'cv' | 'premium' }`: $3 → +3 CVs (`cv_credits`, migration `011`); $5 → premium pack + 3 CVs. Webhook grants per pack from `session.metadata.pack`.
+- **UpsellModal** ($3 / $5) shown from dashboard "Create" + record-flow 402.
+- **Cover-letter teaser:** free users (0 credits, no letter) see a blurred, non-downloadable sample + "Unlock with Premium" CTA (`coverLetterCredits` passed from cv/[id]).
+- **Landing Premium strip** (`$5`, Classic/Executive + cover letter + 3 CVs).
+- **Stripe branding:** "Visa Connect" on checkout was the Stripe account's public business name (shared account) — fixed by Sumair renaming it to VoiceCV (not a code issue).
+
+## 2026-06-27 — Premium monetization (Stripe, 3 phases, LIVE)
+- **Phase 1 — payments:** `lib/stripe.ts` (lazy client, boots without keys); `/api/checkout` (Checkout Session); `/api/stripe/webhook` (signature-verified, idempotent via `purchases` table) is the ONLY place credits are granted. Credits on `profiles`; spent by `auth.uid()`-scoped SECURITY DEFINER RPCs `consume_premium_cv_credit` / `consume_cover_letter_credit`. Migration `010`. `PremiumCard` on dashboard.
+- **Phase 2 — AI cover letter:** `lib/cover-letter.ts` (Claude) + `/api/generate-cover-letter` (spends a credit, regenerate free) + `CoverLetterPanel` (generate/edit/save/download) + cover-letter PDF.
+- **Phase 3 — premium templates:** Classic (centered serif) + Executive (navy header + accent bar), built on shared `components/cv/sections.tsx` so Modern/Minimalist untouched. `/api/unlock-cv-premium` spends a premium-CV credit; `export-pdf` gates on `cvs.premium_unlocked`. `/samples` shows all 4 real previews.
+- Gated behind `NEXT_PUBLIC_PREMIUM_ENABLED` flag during setup, then flag REMOVED (commit `e1dce0d`) because NEXT_PUBLIC inlines at build time. Now LIVE on real Stripe; payment flow confirmed working by Sumair.
+- Also: 'Previous question' back button in the record flow.
+
+## 2026-06-26 — Simplified "Key Achievements" (dropped STAR) + landing credibility
+- Achievement model `{situation,task,action,result}` → `achievements: string[]` (bullets like "Employee of the Month"). Updated types, Claude prompt, both templates, PDF, editor, samples, and the recording question (migration `009`). Legacy STAR objects collapse to one bullet via migrate layer. Fixed an "Add achievement" no-op (migrate was stripping the new empty row before the user could type).
+- Landing: replaced fabricated testimonials with 3 real mini-CV example cards; footer reads "vocv".
+
 ## 2026-06-24 — Custom domain + delete-CV feature
 - **Domain:** Sumair purchased `vocv.app` and pointed it at the Railway deploy (DNS auto-configured by Railway, SSL auto-provisioned — `.app` is HSTS-preload so HTTPS-only). `NEXT_PUBLIC_APP_URL` → `https://vocv.app`; Supabase Site URL + redirect URLs updated to the domain.
 - **Deploy fix:** dropped hardcoded `-p 3001` from `package.json` `start` so Railway binds its injected `$PORT` (commit on `main`). Local `npm run dev` still pinned to 3001.
