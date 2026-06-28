@@ -123,6 +123,7 @@ export interface Profile {
   full_name: string | null;
   email: string | null;
   language: Language;
+  cvs_created: number;
   cv_credits: number;
   premium_cv_credits: number;
   cover_letter_credits: number;

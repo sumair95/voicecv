@@ -40,18 +40,17 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
   }
 
   // Free-CV limit — only for brand-new CVs (regenerating an existing one is
-  // free). allowance = FREE_CV_LIMIT + purchased cv_credits. Checked before
-  // the (paid) model call so we don't waste tokens when over the limit.
+  // free). Lifetime: cvs_created counts every CV ever made (deleting one does
+  // NOT free a slot). allowance = FREE_CV_LIMIT + purchased cv_credits. Checked
+  // before the (paid) model call so we don't waste tokens when over the limit.
   if (!body.cvId) {
-    const [{ count }, { data: prof }] = await Promise.all([
-      supabase
-        .from("cvs")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id),
-      supabase.from("profiles").select("cv_credits").eq("id", user.id).single(),
-    ]);
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("cvs_created, cv_credits")
+      .eq("id", user.id)
+      .single();
     const allowance = FREE_CV_LIMIT + (prof?.cv_credits ?? 0);
-    if ((count ?? 0) >= allowance) {
+    if ((prof?.cvs_created ?? 0) >= allowance) {
       return paymentRequired("Free CV limit reached");
     }
   }
@@ -94,6 +93,8 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
       .single();
     if (error) throw error;
     cvId = data!.id as string;
+    // Count this CV against the lifetime free allowance (best-effort).
+    await supabase.rpc("increment_cvs_created");
   } else {
     const { error } = await supabase
       .from("cvs")

@@ -23,7 +23,6 @@ export default function DashboardPage() {
   const { t, lang } = useLanguage();
   const router = useRouter();
   const [cvs, setCvs] = useState<CVRecord[]>([]);
-  const [cvCount, setCvCount] = useState(0);
   const [upsellOpen, setUpsellOpen] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,16 +68,11 @@ export default function DashboardPage() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const [{ data: profileRow }, { count }, page] = await Promise.all([
+      const [{ data: profileRow }, page] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).single(),
-        supabase
-          .from("cvs")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id),
         loadPage(),
       ]);
       setProfile(profileRow as Profile | null);
-      setCvCount(count ?? 0);
       setCvs(page.rows);
       setHasMore(page.hasMore);
       setLoading(false);
@@ -116,7 +110,6 @@ export default function DashboardPage() {
       return;
     }
     setCvs((prev) => prev.filter((cv) => cv.id !== id));
-    setCvCount((c) => Math.max(0, c - 1));
     toast.success(t("dashboard.delete.success"));
   }
 
@@ -161,7 +154,7 @@ export default function DashboardPage() {
 
   const greetingName = profile?.full_name?.split(" ")[0] ?? "";
   const cvAllowance = FREE_CV_LIMIT + (profile?.cv_credits ?? 0);
-  const atCvLimit = cvCount >= cvAllowance;
+  const atCvLimit = (profile?.cvs_created ?? 0) >= cvAllowance;
 
   return (
     <div className="space-y-8">

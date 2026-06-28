@@ -3,7 +3,7 @@
 All notable changes to VoiceCV will be documented in this file.
 
 ## [Unreleased]
-- **Free tier limit + tiered upsell.** Free accounts get **3 CVs**; a 4th is blocked server-side (in `generate-cv`) and an upsell modal offers **$3 for 3 more CVs** or **$5 Premium**. New `cv_credits` allowance column (migration `011`); the $3 CV pack and $5 Premium pack are both Stripe Checkout flows (`/api/checkout` takes a `pack`), and the webhook grants per pack (Premium also adds 3 CVs). Dashboard "Create New CV" and the record flow both surface the modal.
+- **Free tier limit + tiered upsell.** Free accounts get **3 CVs ever created** (lifetime — a `cvs_created` counter, migration `012`; deleting a CV does NOT free a slot); a 4th is blocked server-side (in `generate-cv`) and an upsell modal offers **$3 for 3 more CVs** or **$5 Premium**. New `cv_credits` allowance column (migration `011`); the $3 CV pack and $5 Premium pack are both Stripe Checkout flows (`/api/checkout` takes a `pack`), and the webhook grants per pack (Premium also adds 3 CVs). Dashboard "Create New CV" and the record flow both surface the modal.
 - **Free cover letter teaser.** Free users see the cover-letter panel as a **blurred, non-downloadable** preview with an "Unlock with Premium" CTA; entitled users get the real generator.
 - **Landing Premium strip** advertising the $5 tier (Classic & Executive templates, AI cover letter, 3 extra CVs).
 - **Premium ($5 one-time) — complete (Phases 1–3).** Stripe Checkout + signature-verified, idempotent webhook grants a Premium Pack: **2 premium-template CV unlocks + 1 AI cover letter**. Credits live on the profile; spent atomically via `auth.uid()`-scoped SECURITY DEFINER RPCs (no client can spend on another user).
