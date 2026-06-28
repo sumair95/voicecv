@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
+import { track } from "@/lib/analytics";
 
 // Premium cover-letter panel on the CV page. Generation is gated server-side:
 // the first letter for a CV spends a cover-letter credit; regenerating/editing
@@ -108,6 +109,7 @@ export function CoverLetterPanel({
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+      track("pdf_downloaded", { kind: "cover_letter", cvId });
     } catch {
       toast.error(t("dashboard.download.error"));
     } finally {

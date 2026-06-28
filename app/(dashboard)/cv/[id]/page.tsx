@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { CVPreview } from "@/components/CVPreview";
 import { CoverLetterPanel } from "@/components/CoverLetterPanel";
 import { getTemplate } from "@/lib/cv/templates";
+import { track } from "@/lib/analytics";
 import { TemplatePicker } from "@/components/TemplatePicker";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
@@ -145,6 +146,7 @@ export default function CVDetailPage() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+      track("pdf_downloaded", { kind: "cv", cvId: id, template: cv.template });
       toast.success("PDF downloaded");
     } catch (err) {
       console.error("[downloadPdf]", err);

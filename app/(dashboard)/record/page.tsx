@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { UpsellModal } from "@/components/UpsellModal";
 import { useLanguage } from "@/components/LanguageProvider";
+import { track } from "@/lib/analytics";
 import { createClient } from "@/lib/supabase/client";
 import type { Language, QAPair, QuestionRow } from "@/types/cv";
 import { OUTPUT_LANGUAGES } from "@/types/cv";
@@ -68,6 +69,7 @@ export default function RecordPage() {
   );
 
   function startRecording() {
+    track("record_started", { lang: pickedLang, output: outputLang });
     setLang(pickedLang);
     setStage("recording");
   }

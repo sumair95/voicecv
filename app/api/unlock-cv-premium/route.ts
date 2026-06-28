@@ -1,6 +1,7 @@
 import { getAuthContext } from "@/lib/api/auth";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, paymentRequired, unauthorized } from "@/lib/api/respond";
+import { logEvent } from "@/lib/analytics-server";
 
 export const runtime = "nodejs";
 
@@ -20,6 +21,7 @@ export const POST = handle("unlock-cv-premium", async ({ req, log }) => {
   if (error) throw error;
   if (!unlocked) return paymentRequired("No premium CV credits left");
 
+  await logEvent(supabase, user.id, "premium_unlocked", { cvId });
   log.info("cv premium unlocked", { cvId, userId: user.id });
   return ok({ unlocked: true });
 });

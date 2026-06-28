@@ -4,6 +4,7 @@ import { handle } from "@/lib/api/handle";
 import { badRequest, ok, paymentRequired, unauthorized } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
 import { FREE_CV_LIMIT } from "@/lib/premium";
+import { logEvent } from "@/lib/analytics-server";
 import { NextResponse } from "next/server";
 import type { Language, QAPair } from "@/types/cv";
 import { OUTPUT_LANGUAGES } from "@/types/cv";
@@ -110,6 +111,11 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
       .eq("user_id", user.id);
     if (error) throw error;
   }
+
+  await logEvent(supabase, user.id, "cv_generated", {
+    isNew: !body.cvId,
+    language: cvLanguage,
+  });
 
   log.info("cv generated", { cvId, userId: user.id });
   return ok({ cvId, cvData });

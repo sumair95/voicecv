@@ -11,6 +11,7 @@ import {
   unauthorized,
 } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
+import { logEvent } from "@/lib/analytics-server";
 import { NextResponse } from "next/server";
 import type { CVRecord, Language } from "@/types/cv";
 
@@ -73,6 +74,7 @@ export const POST = handle("generate-cover-letter", async ({ req, log }) => {
     .eq("user_id", user.id);
   if (error) throw error;
 
+  await logEvent(supabase, user.id, "cover_letter_generated", { cvId: cv.id });
   log.info("cover letter generated", { cvId: cv.id, userId: user.id });
   return ok({ coverLetter: letter });
 });

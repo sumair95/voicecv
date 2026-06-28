@@ -14,6 +14,7 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { PremiumCard } from "@/components/PremiumCard";
 import { UpsellModal } from "@/components/UpsellModal";
 import { FREE_CV_LIMIT } from "@/lib/premium";
+import { track } from "@/lib/analytics";
 import { createClient } from "@/lib/supabase/client";
 import type { CVRecord, Profile } from "@/types/cv";
 
@@ -143,6 +144,7 @@ export default function DashboardPage() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+      track("pdf_downloaded", { kind: "cv", cvId: cv.id });
       toast.success(t("dashboard.download.success"));
     } catch (err) {
       console.error("[downloadPdf]", err);

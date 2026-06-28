@@ -69,6 +69,11 @@ export async function POST(req: Request) {
               };
 
         await admin.from("profiles").update(update).eq("id", userId);
+        await admin.from("events").insert({
+          user_id: userId,
+          event: "purchase_completed",
+          props: { pack, amount: session.amount_total, currency: session.currency },
+        });
         logger.info("pack granted", { userId, pack, sessionId: session.id });
       }
     }
