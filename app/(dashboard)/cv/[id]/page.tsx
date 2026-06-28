@@ -26,7 +26,21 @@ export default function CVDetailPage() {
   const [editing, setEditing] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [coverLetterCredits, setCoverLetterCredits] = useState(0);
   const supabase = useMemo(() => createClient(), []);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("cover_letter_credits")
+        .eq("id", user.id)
+        .single();
+      setCoverLetterCredits((data?.cover_letter_credits as number) ?? 0);
+    })();
+  }, [supabase]);
 
   const fetchCv = useCallback(async () => {
     const { data, error } = await supabase
@@ -229,6 +243,7 @@ export default function CVDetailPage() {
         cvId={id}
         initialLetter={cv.cover_letter}
         name={cv.cv_data?.personal?.full_name || cv.title || "CV"}
+        coverLetterCredits={coverLetterCredits}
       />
     </div>
   );

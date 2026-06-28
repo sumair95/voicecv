@@ -13,6 +13,7 @@ import {
   GraduationCap,
   Trophy,
   Languages,
+  Crown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -336,6 +337,40 @@ export default function LandingPage() {
                 <ArrowRight className="ms-2 h-5 w-5 rtl:-scale-x-100" />
               </Link>
             </Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="container py-16">
+        <div className="relative overflow-hidden rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white px-8 py-12">
+          <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-xl">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
+                <Crown className="h-3.5 w-3.5" />
+                {t("landing.premium.badge")}
+              </span>
+              <h2 className="mt-3 text-3xl font-bold tracking-tight text-navy-900">
+                {t("landing.premium.title")}
+              </h2>
+              <p className="mt-2 text-navy-400">{t("landing.premium.desc")}</p>
+              <ul className="mt-4 space-y-1.5 text-sm text-navy-600">
+                {["landing.premium.f1", "landing.premium.f2", "landing.premium.f3"].map((k) => (
+                  <li key={k} className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-amber-500" />
+                    {t(k)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="shrink-0 text-center">
+              <div className="text-5xl font-extrabold text-navy-900">$5</div>
+              <Button asChild size="lg" className="mt-4 bg-amber-500 text-white hover:bg-amber-600">
+                <Link href="/signup">
+                  {t("landing.cta.primary")}
+                  <ArrowRight className="ms-2 h-5 w-5 rtl:-scale-x-100" />
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>

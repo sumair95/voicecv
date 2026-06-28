@@ -1,8 +1,9 @@
 import { generateCV, outputLanguageFor } from "@/lib/claude";
 import { getAuthContext } from "@/lib/api/auth";
 import { handle } from "@/lib/api/handle";
-import { badRequest, ok, unauthorized } from "@/lib/api/respond";
+import { badRequest, ok, paymentRequired, unauthorized } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
+import { FREE_CV_LIMIT } from "@/lib/premium";
 import { NextResponse } from "next/server";
 import type { Language, QAPair } from "@/types/cv";
 import { OUTPUT_LANGUAGES } from "@/types/cv";
@@ -36,6 +37,23 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
   const body = (await req.json()) as RequestBody;
   if (!Array.isArray(body.qaPairs) || body.qaPairs.length === 0) {
     return badRequest("qaPairs required");
+  }
+
+  // Free-CV limit — only for brand-new CVs (regenerating an existing one is
+  // free). allowance = FREE_CV_LIMIT + purchased cv_credits. Checked before
+  // the (paid) model call so we don't waste tokens when over the limit.
+  if (!body.cvId) {
+    const [{ count }, { data: prof }] = await Promise.all([
+      supabase
+        .from("cvs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id),
+      supabase.from("profiles").select("cv_credits").eq("id", user.id).single(),
+    ]);
+    const allowance = FREE_CV_LIMIT + (prof?.cv_credits ?? 0);
+    if ((count ?? 0) >= allowance) {
+      return paymentRequired("Free CV limit reached");
+    }
   }
 
   const transcript = body.qaPairs

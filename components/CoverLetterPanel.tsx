@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { FileText, Loader2, Download, Sparkles, RefreshCw } from "lucide-react";
+import { FileText, Loader2, Download, Sparkles, RefreshCw, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,10 +16,12 @@ export function CoverLetterPanel({
   cvId,
   initialLetter,
   name,
+  coverLetterCredits,
 }: {
   cvId: string;
   initialLetter: string | null;
   name: string;
+  coverLetterCredits: number;
 }) {
   const { t } = useLanguage();
   const supabase = useMemo(() => createClient(), []);
@@ -29,6 +31,28 @@ export function CoverLetterPanel({
   const [generating, setGenerating] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Free users (no credit, no letter yet) see a blurred teaser instead of the
+  // working tool — they can't generate or download, nudging them to Premium.
+  const locked = coverLetterCredits === 0 && !letter;
+
+  async function buyPremium() {
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pack: "premium" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) {
+        window.location.href = data.url as string;
+        return;
+      }
+      toast.error(data.error ?? t("premium.checkoutError"));
+    } catch {
+      toast.error(t("premium.checkoutError"));
+    }
+  }
 
   async function generate() {
     setGenerating(true);
@@ -104,7 +128,48 @@ export function CoverLetterPanel({
           </span>
         </div>
 
-        {!letter && !generating && (
+        {locked && (
+          <div className="relative overflow-hidden rounded-lg">
+            <div
+              aria-hidden
+              className="pointer-events-none select-none space-y-2 p-1 text-sm leading-relaxed text-navy-400 blur-[3px]"
+            >
+              <p>Dear Hiring Manager,</p>
+              <p>
+                I am writing to express my strong interest in this role. With
+                hands-on experience and a proven track record, I am confident I
+                would be a valuable addition to your team.
+              </p>
+              <p>
+                Throughout my career I have consistently delivered results,
+                supported my colleagues, and taken real pride in doing the job
+                well.
+              </p>
+              <p>
+                Sincerely,
+                <br />
+                {name}
+              </p>
+            </div>
+            <div className="absolute inset-0 grid place-items-center bg-white/50 text-center backdrop-blur-[1px]">
+              <div className="px-4">
+                <p className="font-semibold text-navy-900">{t("letter.locked.title")}</p>
+                <p className="mx-auto mt-1 max-w-xs text-sm text-navy-400">
+                  {t("letter.locked.desc")}
+                </p>
+                <Button
+                  onClick={buyPremium}
+                  className="mt-3 bg-amber-500 text-white hover:bg-amber-600"
+                >
+                  <Crown className="me-2 h-4 w-4" />
+                  {t("letter.locked.cta")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!locked && !letter && !generating && (
           <>
             <p className="text-sm text-navy-400">{t("letter.intro")}</p>
             <div className="grid gap-2 sm:grid-cols-2">

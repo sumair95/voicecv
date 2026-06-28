@@ -478,6 +478,91 @@ export const t: Dict = {
     it: "Impossibile sbloccare il modello premium. Riprova.",
   },
 
+  // Upsell modal (free CV limit reached)
+  "upsell.title": {
+    en: "You've used your free CVs",
+    ar: "لقد استخدمت سيرك المجانية",
+    ur: "آپ نے اپنے مفت CVs استعمال کر لیے",
+    it: "Hai usato i tuoi CV gratuiti",
+  },
+  "upsell.subtitle": {
+    en: "Get more CVs, or go Premium for designs + a cover letter.",
+    ar: "احصل على المزيد من السير، أو اشترك في المميز للحصول على تصاميم وخطاب تقديم.",
+    ur: "مزید CVs حاصل کریں، یا ڈیزائن اور کور لیٹر کے لیے پریمیم لیں۔",
+    it: "Ottieni più CV, o passa a Premium per design + lettera.",
+  },
+  "upsell.cv.title": {
+    en: "3 more CVs",
+    ar: "3 سير إضافية",
+    ur: "3 مزید CVs",
+    it: "3 CV in più",
+  },
+  "upsell.cv.desc": {
+    en: "Keep creating standard CVs.",
+    ar: "تابع إنشاء السير العادية.",
+    ur: "عام CVs بناتے رہیں۔",
+    it: "Continua a creare CV standard.",
+  },
+  "upsell.premium.desc": {
+    en: "2 premium designs + cover letter + 3 CVs.",
+    ar: "تصميمان مميزان + خطاب تقديم + 3 سير.",
+    ur: "2 پریمیم ڈیزائن + کور لیٹر + 3 CVs۔",
+    it: "2 design premium + lettera + 3 CV.",
+  },
+
+  // Locked cover letter (free)
+  "letter.locked.title": {
+    en: "Unlock your cover letter",
+    ar: "افتح خطاب التقديم الخاص بك",
+    ur: "اپنا کور لیٹر کھولیں",
+    it: "Sblocca la tua lettera di presentazione",
+  },
+  "letter.locked.desc": {
+    en: "A tailored cover letter you can download as PDF — included with Premium.",
+    ar: "خطاب تقديم مخصص يمكنك تنزيله بصيغة PDF — مشمول في المميز.",
+    ur: "ایک ذاتی کور لیٹر جسے آپ PDF میں ڈاؤن لوڈ کر سکتے ہیں — پریمیم میں شامل۔",
+    it: "Una lettera su misura scaricabile in PDF — inclusa con Premium.",
+  },
+  "letter.locked.cta": {
+    en: "Unlock with Premium — $5",
+    ar: "افتح مع المميز — 5$",
+    ur: "پریمیم سے کھولیں — $5",
+    it: "Sblocca con Premium — $5",
+  },
+
+  // Landing premium strip
+  "landing.premium.badge": { en: "Premium", ar: "مميز", ur: "پریمیم", it: "Premium" },
+  "landing.premium.title": {
+    en: "Stand out for $5",
+    ar: "تميّز مقابل 5$",
+    ur: "صرف $5 میں نمایاں ہوں",
+    it: "Distinguiti per $5",
+  },
+  "landing.premium.desc": {
+    en: "Unlock elegant Classic & Executive CV designs and an AI-written cover letter.",
+    ar: "افتح تصاميم Classic وExecutive الأنيقة وخطاب تقديم مكتوب بالذكاء الاصطناعي.",
+    ur: "خوبصورت Classic اور Executive CV ڈیزائن اور AI سے لکھا کور لیٹر کھولیں۔",
+    it: "Sblocca gli eleganti design Classic ed Executive e una lettera scritta dall'IA.",
+  },
+  "landing.premium.f1": {
+    en: "Classic & Executive templates",
+    ar: "قوالب Classic وExecutive",
+    ur: "Classic اور Executive ٹیمپلیٹس",
+    it: "Modelli Classic ed Executive",
+  },
+  "landing.premium.f2": {
+    en: "AI cover letter (PDF)",
+    ar: "خطاب تقديم بالذكاء الاصطناعي (PDF)",
+    ur: "AI کور لیٹر (PDF)",
+    it: "Lettera con IA (PDF)",
+  },
+  "landing.premium.f3": {
+    en: "3 extra CVs",
+    ar: "3 سير إضافية",
+    ur: "3 اضافی CVs",
+    it: "3 CV extra",
+  },
+
   // Cover letter
   "letter.title": {
     en: "Cover Letter",

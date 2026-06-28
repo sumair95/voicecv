@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -11,6 +12,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/components/LanguageProvider";
 import { PremiumCard } from "@/components/PremiumCard";
+import { UpsellModal } from "@/components/UpsellModal";
+import { FREE_CV_LIMIT } from "@/lib/premium";
 import { createClient } from "@/lib/supabase/client";
 import type { CVRecord, Profile } from "@/types/cv";
 
@@ -18,7 +21,10 @@ const PAGE_SIZE = 20;
 
 export default function DashboardPage() {
   const { t, lang } = useLanguage();
+  const router = useRouter();
   const [cvs, setCvs] = useState<CVRecord[]>([]);
+  const [cvCount, setCvCount] = useState(0);
+  const [upsellOpen, setUpsellOpen] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -63,11 +69,16 @@ export default function DashboardPage() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const [{ data: profileRow }, page] = await Promise.all([
+      const [{ data: profileRow }, { count }, page] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).single(),
+        supabase
+          .from("cvs")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id),
         loadPage(),
       ]);
       setProfile(profileRow as Profile | null);
+      setCvCount(count ?? 0);
       setCvs(page.rows);
       setHasMore(page.hasMore);
       setLoading(false);
@@ -105,6 +116,7 @@ export default function DashboardPage() {
       return;
     }
     setCvs((prev) => prev.filter((cv) => cv.id !== id));
+    setCvCount((c) => Math.max(0, c - 1));
     toast.success(t("dashboard.delete.success"));
   }
 
@@ -148,6 +160,8 @@ export default function DashboardPage() {
   }
 
   const greetingName = profile?.full_name?.split(" ")[0] ?? "";
+  const cvAllowance = FREE_CV_LIMIT + (profile?.cv_credits ?? 0);
+  const atCvLimit = cvCount >= cvAllowance;
 
   return (
     <div className="space-y-8">
@@ -158,11 +172,13 @@ export default function DashboardPage() {
           </h1>
           <p className="mt-1 text-navy-400">{t("dashboard.myCvs")}</p>
         </div>
-        <Button asChild size="lg" className="bg-teal hover:bg-teal-600">
-          <Link href="/record">
-            <Plus className="me-2 h-5 w-5" />
-            {t("dashboard.create")}
-          </Link>
+        <Button
+          size="lg"
+          className="bg-teal hover:bg-teal-600"
+          onClick={() => (atCvLimit ? setUpsellOpen(true) : router.push("/record"))}
+        >
+          <Plus className="me-2 h-5 w-5" />
+          {t("dashboard.create")}
         </Button>
       </div>
 
@@ -325,6 +341,8 @@ export default function DashboardPage() {
         )}
         </>
       )}
+
+      <UpsellModal open={upsellOpen} onClose={() => setUpsellOpen(false)} />
     </div>
   );
 }

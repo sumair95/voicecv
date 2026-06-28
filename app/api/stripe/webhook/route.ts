@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { createServiceClient } from "@/lib/supabase/server";
-import { PREMIUM_PACK } from "@/lib/premium";
+import { PREMIUM_PACK, CV_PACK_CREDITS } from "@/lib/premium";
 import { logger } from "@/lib/log";
 
 export const runtime = "nodejs";
@@ -50,23 +50,26 @@ export async function POST(req: Request) {
       if (insertErr) {
         logger.info("stripe webhook duplicate ignored", { sessionId: session.id });
       } else {
+        const pack = session.metadata?.pack === "cv" ? "cv" : "premium";
         const { data: profile } = await admin
           .from("profiles")
-          .select("premium_cv_credits, cover_letter_credits")
+          .select("premium_cv_credits, cover_letter_credits, cv_credits")
           .eq("id", userId)
           .single();
 
-        await admin
-          .from("profiles")
-          .update({
-            premium_cv_credits:
-              (profile?.premium_cv_credits ?? 0) + PREMIUM_PACK.premiumCvCredits,
-            cover_letter_credits:
-              (profile?.cover_letter_credits ?? 0) + PREMIUM_PACK.coverLetterCredits,
-          })
-          .eq("id", userId);
+        const update =
+          pack === "cv"
+            ? { cv_credits: (profile?.cv_credits ?? 0) + CV_PACK_CREDITS }
+            : {
+                premium_cv_credits:
+                  (profile?.premium_cv_credits ?? 0) + PREMIUM_PACK.premiumCvCredits,
+                cover_letter_credits:
+                  (profile?.cover_letter_credits ?? 0) + PREMIUM_PACK.coverLetterCredits,
+                cv_credits: (profile?.cv_credits ?? 0) + PREMIUM_PACK.cvCredits,
+              };
 
-        logger.info("premium pack granted", { userId, sessionId: session.id });
+        await admin.from("profiles").update(update).eq("id", userId);
+        logger.info("pack granted", { userId, pack, sessionId: session.id });
       }
     }
   }

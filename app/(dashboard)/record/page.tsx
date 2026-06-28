@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
+import { UpsellModal } from "@/components/UpsellModal";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import type { Language, QAPair, QuestionRow } from "@/types/cv";
@@ -38,6 +39,7 @@ export default function RecordPage() {
   const [procStep, setProcStep] = useState(0);
   const [cvId, setCvId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [upsellOpen, setUpsellOpen] = useState(false);
 
   useEffect(() => {
     if (stage !== "recording" || questions.length > 0) return;
@@ -112,6 +114,13 @@ export default function RecordPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ qaPairs: qa, language: pickedLang, outputLanguage: outputLang }),
       });
+      // Free CV limit reached → offer the upsell instead of a hard error.
+      if (res.status === 402) {
+        setStage("error");
+        setErrorMsg(t("upsell.title"));
+        setUpsellOpen(true);
+        return;
+      }
       if (!res.ok) throw new Error((await res.json()).error ?? "Generation failed");
       const { cvId: id } = (await res.json()) as { cvId: string };
       setCvId(id);
@@ -352,6 +361,8 @@ export default function RecordPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <UpsellModal open={upsellOpen} onClose={() => setUpsellOpen(false)} />
     </div>
   );
 }
