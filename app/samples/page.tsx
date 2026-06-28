@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
 import { CVPreview } from "@/components/CVPreview";
 import { useLanguage } from "@/components/LanguageProvider";
-import { TEMPLATES } from "@/types/cv";
 import {
   SAMPLE_CONSTRUCTION,
   SAMPLE_DRIVER,
@@ -18,15 +17,21 @@ import type { CVData, TemplateId } from "@/types/cv";
 
 // CVs always render in English (the product's output language), so the
 // gallery previews are pinned to English regardless of the UI language.
-const GALLERY: { cv: CVData; template: TemplateId; style: string }[] = [
+// Two free designs + the two premium designs, all rendered for real.
+const GALLERY: {
+  cv: CVData;
+  template: TemplateId;
+  style: string;
+  premium?: boolean;
+}[] = [
   { cv: SAMPLE_CONSTRUCTION, template: "modern", style: "Modern" },
   { cv: SAMPLE_HOSPITALITY, template: "minimalist", style: "Minimalist" },
-  { cv: SAMPLE_DRIVER, template: "modern", style: "Modern" },
+  { cv: SAMPLE_DRIVER, template: "classic", style: "Classic", premium: true },
+  { cv: SAMPLE_CONSTRUCTION, template: "executive", style: "Executive", premium: true },
 ];
 
 export default function SamplesPage() {
   const { t } = useLanguage();
-  const premium = TEMPLATES.filter((tpl) => tpl.premium);
 
   return (
     <div className="min-h-screen bg-background">
@@ -43,7 +48,7 @@ export default function SamplesPage() {
         <div className="mt-12 space-y-14">
           {GALLERY.map((item, i) => (
             <motion.div
-              key={item.cv.personal.full_name}
+              key={`${item.style}-${item.cv.personal.full_name}`}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
@@ -59,9 +64,16 @@ export default function SamplesPage() {
                     {item.cv.experience[0]?.role} · {item.style}
                   </p>
                 </div>
-                <Badge className="bg-teal/10 text-teal-700 hover:bg-teal/10">
-                  {t("samples.free")}
-                </Badge>
+                {item.premium ? (
+                  <Badge className="gap-1 bg-amber-100 text-amber-700 hover:bg-amber-100">
+                    <Crown className="h-3 w-3" />
+                    {t("samples.premium")}
+                  </Badge>
+                ) : (
+                  <Badge className="bg-teal/10 text-teal-700 hover:bg-teal/10">
+                    {t("samples.free")}
+                  </Badge>
+                )}
               </div>
               <div className="overflow-x-auto rounded-2xl border border-navy-100/60 bg-white p-3 shadow-sm md:p-6">
                 <CVPreview cvData={item.cv} language="en" template={item.template} />
@@ -69,29 +81,6 @@ export default function SamplesPage() {
             </motion.div>
           ))}
         </div>
-
-        {/* Premium styles — honestly shown as not-yet-available rather than faked. */}
-        {premium.length > 0 && (
-          <div className="mx-auto mt-16 max-w-3xl">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {premium.map((tpl) => (
-                <div
-                  key={tpl.id}
-                  className="flex flex-col gap-2 rounded-2xl border border-dashed border-navy-100 bg-navy-50/40 p-6"
-                >
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-navy-700">{tpl.name}</h3>
-                    <Badge variant="secondary" className="gap-1 bg-amber-100 text-amber-700">
-                      <Crown className="h-3 w-3" />
-                      {t("samples.premium")}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-navy-400">{tpl.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="mt-16 text-center">
           <Button asChild size="lg" className="bg-teal hover:bg-teal-600">

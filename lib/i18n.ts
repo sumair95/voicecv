@@ -603,6 +603,12 @@ export const t: Dict = {
     it: "Registra di nuovo",
   },
   "rec.next": { en: "Next Question", ar: "السؤال التالي", ur: "اگلا سوال", it: "Domanda successiva" },
+  "rec.previous": {
+    en: "Previous question",
+    ar: "السؤال السابق",
+    ur: "پچھلا سوال",
+    it: "Domanda precedente",
+  },
   "rec.skip": {
     en: "Skip this question",
     ar: "تخطي هذا السؤال",

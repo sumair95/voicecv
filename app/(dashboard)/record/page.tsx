@@ -95,6 +95,14 @@ export default function RecordPage() {
     }
   }
 
+  // Step back to re-answer the previous question. Drops its recorded answer so
+  // re-answering re-appends it in order; the recorder remounts fresh.
+  function goBack() {
+    if (currentIndex === 0) return;
+    setAnswers((prev) => prev.slice(0, -1));
+    setCurrentIndex((i) => Math.max(0, i - 1));
+  }
+
   async function submitAll(qa: QAPair[]) {
     setStage("processing");
     setProcStep(0);
@@ -240,6 +248,18 @@ export default function RecordPage() {
               onComplete={handleAnswer}
               onSkip={handleSkip}
             />
+            {currentIndex > 0 && (
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={goBack}
+                  className="inline-flex items-center gap-1.5 text-sm text-navy-400 transition hover:text-teal-700"
+                >
+                  <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
+                  {t("rec.previous")}
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
 
