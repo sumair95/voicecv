@@ -7,7 +7,6 @@ import { ArrowLeft, Download, Pencil, Check, Loader2, Info } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { CVPreview } from "@/components/CVPreview";
 import { CoverLetterPanel } from "@/components/CoverLetterPanel";
-import { PREMIUM_ENABLED } from "@/lib/premium";
 import { getTemplate } from "@/lib/cv/templates";
 import { TemplatePicker } from "@/components/TemplatePicker";
 import { useLanguage } from "@/components/LanguageProvider";
@@ -215,7 +214,7 @@ export default function CVDetailPage() {
       <TemplatePicker
         value={(cv.template as TemplateId | null) ?? DEFAULT_TEMPLATE}
         onChange={changeTemplate}
-        premiumEnabled={PREMIUM_ENABLED}
+        premiumEnabled
       />
 
       <CVPreview
@@ -226,13 +225,11 @@ export default function CVDetailPage() {
         template={(cv.template as TemplateId | null) ?? DEFAULT_TEMPLATE}
       />
 
-      {PREMIUM_ENABLED && (
-        <CoverLetterPanel
-          cvId={id}
-          initialLetter={cv.cover_letter}
-          name={cv.cv_data?.personal?.full_name || cv.title || "CV"}
-        />
-      )}
+      <CoverLetterPanel
+        cvId={id}
+        initialLetter={cv.cover_letter}
+        name={cv.cv_data?.personal?.full_name || cv.title || "CV"}
+      />
     </div>
   );
 }

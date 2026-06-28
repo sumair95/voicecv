@@ -9,15 +9,8 @@
  * displays them. Granting happens in the Stripe webhook; consuming happens in
  * the unlock / cover-letter routes.
  */
-/**
- * Master switch for the premium UI. Stays OFF until Stripe is configured, so
- * deploying the payment code never shows a broken "$5" button. Flip on by
- * setting NEXT_PUBLIC_PREMIUM_ENABLED=true in the env (requires a redeploy,
- * since NEXT_PUBLIC_* is inlined at build time).
- */
-export const PREMIUM_ENABLED =
-  process.env.NEXT_PUBLIC_PREMIUM_ENABLED === "true";
-
+// Premium is live — the UI is always shown. (Previously gated behind a
+// build-time NEXT_PUBLIC_PREMIUM_ENABLED flag while Stripe was being set up.)
 export const PREMIUM_PRICE_USD_CENTS = 500;
 
 export const PREMIUM_PACK = {

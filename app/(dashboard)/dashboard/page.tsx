@@ -11,7 +11,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/components/LanguageProvider";
 import { PremiumCard } from "@/components/PremiumCard";
-import { PREMIUM_ENABLED } from "@/lib/premium";
 import { createClient } from "@/lib/supabase/client";
 import type { CVRecord, Profile } from "@/types/cv";
 
@@ -167,7 +166,7 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      {!loading && PREMIUM_ENABLED && (
+      {!loading && (
         <PremiumCard
           cvCredits={profile?.premium_cv_credits ?? 0}
           letterCredits={profile?.cover_letter_credits ?? 0}
