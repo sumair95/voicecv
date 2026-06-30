@@ -4,7 +4,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Crown, X, Loader2 } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
-import type { PackId } from "@/lib/premium";
+import { useCurrency } from "@/lib/pricing";
+import {
+  type PackId,
+  CV_PACK_PRICE_USD_CENTS,
+  PREMIUM_PRICE_USD_CENTS,
+} from "@/lib/premium";
 
 // Shown when a free user hits the CV limit (or wants more credits). Offers the
 // $3 CV pack or the $5 Premium pack; both open Stripe Checkout.
@@ -20,6 +25,7 @@ export function UpsellModal({
   subtitle?: string;
 }) {
   const { t } = useLanguage();
+  const { price } = useCurrency();
   const [loading, setLoading] = useState<PackId | null>(null);
 
   if (!open) return null;
@@ -78,7 +84,8 @@ export function UpsellModal({
               <div className="text-xs text-navy-400">{t("upsell.cv.desc")}</div>
             </div>
             <span className="flex items-center gap-1 font-bold text-teal-700">
-              {loading === "cv" && <Loader2 className="h-4 w-4 animate-spin" />}$3
+              {loading === "cv" && <Loader2 className="h-4 w-4 animate-spin" />}
+              {price(CV_PACK_PRICE_USD_CENTS)}
             </span>
           </button>
 
@@ -96,7 +103,8 @@ export function UpsellModal({
               <div className="text-xs text-navy-400">{t("upsell.premium.desc")}</div>
             </div>
             <span className="flex items-center gap-1 font-bold text-amber-700">
-              {loading === "premium" && <Loader2 className="h-4 w-4 animate-spin" />}$5
+              {loading === "premium" && <Loader2 className="h-4 w-4 animate-spin" />}
+              {price(PREMIUM_PRICE_USD_CENTS)}
             </span>
           </button>
         </div>

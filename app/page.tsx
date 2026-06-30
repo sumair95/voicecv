@@ -20,6 +20,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { VideoDemo } from "@/components/VideoDemo";
 import { useLanguage } from "@/components/LanguageProvider";
+import { useCurrency } from "@/lib/pricing";
+import { PREMIUM_PRICE_USD_CENTS } from "@/lib/premium";
 import {
   SAMPLE_CONSTRUCTION,
   SAMPLE_DRIVER,
@@ -146,6 +148,7 @@ function SampleCVs({ caption }: { caption: string }) {
 
 export default function LandingPage() {
   const { t, lang } = useLanguage();
+  const { price } = useCurrency();
 
   const steps = [
     { icon: Mic, titleKey: "landing.step1.title", descKey: "landing.step1.desc" },
@@ -350,7 +353,7 @@ export default function LandingPage() {
                 {t("landing.premium.badge")}
               </span>
               <h2 className="mt-3 text-3xl font-bold tracking-tight text-navy-900">
-                {t("landing.premium.title")}
+                {t("landing.premium.title", { price: price(PREMIUM_PRICE_USD_CENTS) })}
               </h2>
               <p className="mt-2 text-navy-400">{t("landing.premium.desc")}</p>
               <ul className="mt-4 space-y-1.5 text-sm text-navy-600">
@@ -363,7 +366,9 @@ export default function LandingPage() {
               </ul>
             </div>
             <div className="shrink-0 text-center">
-              <div className="text-5xl font-extrabold text-navy-900">$5</div>
+              <div className="whitespace-nowrap text-4xl font-extrabold text-navy-900">
+                {price(PREMIUM_PRICE_USD_CENTS)}
+              </div>
               <Button asChild size="lg" className="mt-4 bg-amber-500 text-white hover:bg-amber-600">
                 <Link href="/signup">
                   {t("landing.cta.primary")}

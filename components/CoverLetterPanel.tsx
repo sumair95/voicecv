@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import { track } from "@/lib/analytics";
+import { useCurrency } from "@/lib/pricing";
+import { PREMIUM_PRICE_USD_CENTS } from "@/lib/premium";
 
 // Premium cover-letter panel on the CV page. Generation is gated server-side:
 // the first letter for a CV spends a cover-letter credit; regenerating/editing
@@ -25,6 +27,7 @@ export function CoverLetterPanel({
   coverLetterCredits: number;
 }) {
   const { t } = useLanguage();
+  const { price } = useCurrency();
   const supabase = useMemo(() => createClient(), []);
   const [letter, setLetter] = useState(initialLetter ?? "");
   const [role, setRole] = useState("");
@@ -164,7 +167,7 @@ export function CoverLetterPanel({
                   className="mt-3 bg-amber-500 text-white hover:bg-amber-600"
                 >
                   <Crown className="me-2 h-4 w-4" />
-                  {t("letter.locked.cta")}
+                  {t("letter.locked.cta", { price: price(PREMIUM_PRICE_USD_CENTS) })}
                 </Button>
               </div>
             </div>

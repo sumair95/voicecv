@@ -31,6 +31,12 @@ Status legend: ✅ shipped · 🟡 partial / in progress · ⏸ deferred · 🔁
 **Decision:** Use Stripe's hosted Checkout (redirect), and grant credits **only** in a signature-verified, idempotent webhook.
 **Why:** Stripe handles the card form + PCI; we never touch card data. Webhook-only granting means payment is the single source of truth — the client can't fake a purchase. Idempotency (one row per checkout session) makes Stripe's retries safe.
 
+### Regional pricing — true FX via Stripe Adaptive Pricing ✅ (2026-06-30)
+**Decision:** Show local currency (PKR/INR/SAR/USD) and charge in it, but keep the **same $5/$3 value** everywhere (true FX, not cheaper local price levels). The real charge + conversion is done by **Stripe Adaptive Pricing** (dashboard toggle); our own pages show an **indicative** local price (timezone-detected, "≈" prefix).
+**Why:** Adaptive Pricing handles FX/currency-selection correctly with zero FX risk to us and no price tables to maintain. Timezone detection for the *display* needs no geo-IP dependency/key/latency. Purchasing-power (cheaper PK/IN) was considered and **🔁 deferred** — revisit if conversion data shows the FX price is too high for those markets.
+**Trade-off:** ₨1,400 / ₹420 is the real-value price, not a discount, so this is a trust/clarity win more than an affordability one. Display rates are approximate and need occasional manual refresh (`lib/pricing.ts`).
+**Requires:** Adaptive Pricing enabled in the Stripe Dashboard (Settings → Adaptive Pricing).
+
 ### Cover-letter teaser is blurred, not hidden ✅ (2026-06-28)
 **Decision:** Free users *see* the cover-letter panel as a blurred, non-downloadable sample with an "Unlock with Premium" CTA, rather than hiding it.
 **Why:** Showing the feature (even blurred) creates desire and communicates value far better than an invisible/locked feature. Classic freemium nudge.

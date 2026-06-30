@@ -6,6 +6,8 @@ import { Crown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/components/LanguageProvider";
+import { useCurrency } from "@/lib/pricing";
+import { PREMIUM_PRICE_USD_CENTS } from "@/lib/premium";
 
 // Dashboard upsell + credit balance. The button opens Stripe Checkout; credits
 // are granted only by the webhook after payment, then shown here on next load.
@@ -17,6 +19,7 @@ export function PremiumCard({
   letterCredits: number;
 }) {
   const { t } = useLanguage();
+  const { price } = useCurrency();
   const [loading, setLoading] = useState(false);
   const hasCredits = cvCredits > 0 || letterCredits > 0;
 
@@ -46,7 +49,9 @@ export function PremiumCard({
             </span>
             <h2 className="text-lg font-bold text-navy-900">{t("premium.title")}</h2>
           </div>
-          <p className="text-sm text-navy-400">{t("premium.tagline")}</p>
+          <p className="text-sm text-navy-400">
+            {t("premium.tagline", { price: price(PREMIUM_PRICE_USD_CENTS) })}
+          </p>
           {hasCredits && (
             <div className="flex flex-wrap gap-2 pt-1">
               <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">
@@ -68,7 +73,7 @@ export function PremiumCard({
           ) : (
             <Crown className="me-2 h-4 w-4" />
           )}
-          {t("premium.cta")}
+          {t("premium.cta", { price: price(PREMIUM_PRICE_USD_CENTS) })}
         </Button>
       </CardContent>
     </Card>

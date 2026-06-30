@@ -424,16 +424,16 @@ export const t: Dict = {
     it: "Pacchetto Premium",
   },
   "premium.tagline": {
-    en: "2 premium CV designs + a professional cover letter — for $5",
-    ar: "تصميمان مميزان للسيرة الذاتية + خطاب تقديم احترافي — مقابل 5$",
-    ur: "2 پریمیم CV ڈیزائن + پیشہ ورانہ کور لیٹر — صرف $5 میں",
-    it: "2 design CV premium + una lettera di presentazione professionale — a $5",
+    en: "2 premium CV designs + a professional cover letter — for {price}",
+    ar: "تصميمان مميزان للسيرة الذاتية + خطاب تقديم احترافي — مقابل {price}",
+    ur: "2 پریمیم CV ڈیزائن + پیشہ ورانہ کور لیٹر — صرف {price} میں",
+    it: "2 design CV premium + una lettera di presentazione professionale — a {price}",
   },
   "premium.cta": {
-    en: "Unlock Premium — $5",
-    ar: "افتح المميز — 5$",
-    ur: "پریمیم کھولیں — $5",
-    it: "Sblocca Premium — $5",
+    en: "Unlock Premium — {price}",
+    ar: "افتح المميز — {price}",
+    ur: "پریمیم کھولیں — {price}",
+    it: "Sblocca Premium — {price}",
   },
   "premium.cvCredits": {
     en: "premium CV credits",
@@ -524,19 +524,19 @@ export const t: Dict = {
     it: "Una lettera su misura scaricabile in PDF — inclusa con Premium.",
   },
   "letter.locked.cta": {
-    en: "Unlock with Premium — $5",
-    ar: "افتح مع المميز — 5$",
-    ur: "پریمیم سے کھولیں — $5",
-    it: "Sblocca con Premium — $5",
+    en: "Unlock with Premium — {price}",
+    ar: "افتح مع المميز — {price}",
+    ur: "پریمیم سے کھولیں — {price}",
+    it: "Sblocca con Premium — {price}",
   },
 
   // Landing premium strip
   "landing.premium.badge": { en: "Premium", ar: "مميز", ur: "پریمیم", it: "Premium" },
   "landing.premium.title": {
-    en: "Stand out for $5",
-    ar: "تميّز مقابل 5$",
-    ur: "صرف $5 میں نمایاں ہوں",
-    it: "Distinguiti per $5",
+    en: "Stand out for {price}",
+    ar: "تميّز مقابل {price}",
+    ur: "صرف {price} میں نمایاں ہوں",
+    it: "Distinguiti per {price}",
   },
   "landing.premium.desc": {
     en: "Unlock elegant Classic & Executive CV designs and an AI-written cover letter.",
