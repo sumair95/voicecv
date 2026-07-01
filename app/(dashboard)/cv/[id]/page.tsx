@@ -246,6 +246,7 @@ export default function CVDetailPage() {
         initialLetter={cv.cover_letter}
         name={cv.cv_data?.personal?.full_name || cv.title || "CV"}
         coverLetterCredits={coverLetterCredits}
+        coverLetterUnlocked={cv.cover_letter_unlocked ?? false}
       />
     </div>
   );

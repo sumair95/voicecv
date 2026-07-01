@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { FileText, Loader2, Download, Sparkles, RefreshCw, Crown } from "lucide-react";
+import { FileText, Loader2, Download, Sparkles, RefreshCw, Crown, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,19 +12,21 @@ import { track } from "@/lib/analytics";
 import { useCurrency } from "@/lib/pricing";
 import { PREMIUM_PRICE_USD_CENTS } from "@/lib/premium";
 
-// Premium cover-letter panel on the CV page. Generation is gated server-side:
-// the first letter for a CV spends a cover-letter credit; regenerating/editing
-// the same CV's letter is free.
+// Cover-letter panel on the CV page. Generation + viewing are FREE for everyone;
+// DOWNLOAD (and editing) require Premium. Free users see the full letter as a
+// read-only, non-selectable preview to nudge the upgrade.
 export function CoverLetterPanel({
   cvId,
   initialLetter,
   name,
   coverLetterCredits,
+  coverLetterUnlocked,
 }: {
   cvId: string;
   initialLetter: string | null;
   name: string;
   coverLetterCredits: number;
+  coverLetterUnlocked: boolean;
 }) {
   const { t } = useLanguage();
   const { price } = useCurrency();
@@ -35,10 +37,11 @@ export function CoverLetterPanel({
   const [generating, setGenerating] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [unlocked, setUnlocked] = useState(coverLetterUnlocked);
 
-  // Free users (no credit, no letter yet) see a blurred teaser instead of the
-  // working tool — they can't generate or download, nudging them to Premium.
-  const locked = coverLetterCredits === 0 && !letter;
+  // Entitled to download + edit: this CV's letter is unlocked, or the user
+  // holds a cover-letter credit to spend on download.
+  const entitled = unlocked || coverLetterCredits > 0;
 
   async function buyPremium() {
     try {
@@ -67,10 +70,6 @@ export function CoverLetterPanel({
         body: JSON.stringify({ cvId, targetRole: role, company }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.status === 402) {
-        toast.error(t("letter.needPremium"));
-        return;
-      }
       if (!res.ok) {
         toast.error(data.error ?? t("letter.error"));
         return;
@@ -102,6 +101,11 @@ export function CoverLetterPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cvId }),
       });
+      if (res.status === 402) {
+        toast.error(t("letter.downloadLocked.desc"));
+        buyPremium();
+        return;
+      }
       if (!res.ok) throw new Error();
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -112,6 +116,7 @@ export function CoverLetterPanel({
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+      setUnlocked(true); // first paid download unlocks the CV
       track("pdf_downloaded", { kind: "cover_letter", cvId });
     } catch {
       toast.error(t("dashboard.download.error"));
@@ -133,48 +138,8 @@ export function CoverLetterPanel({
           </span>
         </div>
 
-        {locked && (
-          <div className="relative overflow-hidden rounded-lg">
-            <div
-              aria-hidden
-              className="pointer-events-none select-none space-y-2 p-1 text-sm leading-relaxed text-navy-400 blur-[3px]"
-            >
-              <p>Dear Hiring Manager,</p>
-              <p>
-                I am writing to express my strong interest in this role. With
-                hands-on experience and a proven track record, I am confident I
-                would be a valuable addition to your team.
-              </p>
-              <p>
-                Throughout my career I have consistently delivered results,
-                supported my colleagues, and taken real pride in doing the job
-                well.
-              </p>
-              <p>
-                Sincerely,
-                <br />
-                {name}
-              </p>
-            </div>
-            <div className="absolute inset-0 grid place-items-center bg-white/50 text-center backdrop-blur-[1px]">
-              <div className="px-4">
-                <p className="font-semibold text-navy-900">{t("letter.locked.title")}</p>
-                <p className="mx-auto mt-1 max-w-xs text-sm text-navy-400">
-                  {t("letter.locked.desc")}
-                </p>
-                <Button
-                  onClick={buyPremium}
-                  className="mt-3 bg-amber-500 text-white hover:bg-amber-600"
-                >
-                  <Crown className="me-2 h-4 w-4" />
-                  {t("letter.locked.cta", { price: price(PREMIUM_PRICE_USD_CENTS) })}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!locked && !letter && !generating && (
+        {/* Generate form (free for everyone) */}
+        {!letter && !generating && (
           <>
             <p className="text-sm text-navy-400">{t("letter.intro")}</p>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -203,32 +168,63 @@ export function CoverLetterPanel({
           </div>
         )}
 
+        {/* Result — editable for entitled users, read-only preview otherwise */}
         {letter && !generating && (
           <>
-            <textarea
-              value={letter}
-              onChange={(e) => setLetter(e.target.value)}
-              rows={14}
-              className="w-full resize-y rounded-lg border border-navy-100 p-3 text-sm leading-relaxed text-navy-700 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/40"
-            />
+            {entitled ? (
+              <textarea
+                value={letter}
+                onChange={(e) => setLetter(e.target.value)}
+                rows={16}
+                className="w-full resize-y rounded-lg border border-navy-100 p-4 text-sm leading-relaxed text-navy-700 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/40"
+              />
+            ) : (
+              <div
+                onCopy={(e) => e.preventDefault()}
+                onContextMenu={(e) => e.preventDefault()}
+                className="select-none whitespace-pre-wrap rounded-lg border border-navy-100 bg-navy-50/30 p-4 text-sm leading-relaxed text-navy-700"
+              >
+                <div className="mb-3 border-b border-navy-100 pb-2 text-base font-bold text-teal-700">
+                  {name}
+                </div>
+                {letter}
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-2">
-              <Button onClick={download} disabled={downloading} className="bg-teal hover:bg-teal-600">
-                {downloading ? (
-                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="me-2 h-4 w-4" />
-                )}
-                {t("letter.download")}
-              </Button>
-              <Button onClick={saveEdits} disabled={saving} variant="outline">
-                {saving && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-                {t("common.save")}
-              </Button>
+              {entitled ? (
+                <>
+                  <Button onClick={download} disabled={downloading} className="bg-teal hover:bg-teal-600">
+                    {downloading ? (
+                      <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="me-2 h-4 w-4" />
+                    )}
+                    {t("letter.download")}
+                  </Button>
+                  <Button onClick={saveEdits} disabled={saving} variant="outline">
+                    {saving && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                    {t("common.save")}
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={buyPremium} className="bg-amber-500 text-white hover:bg-amber-600">
+                  <Lock className="me-2 h-4 w-4" />
+                  {t("letter.downloadLocked.cta", { price: price(PREMIUM_PRICE_USD_CENTS) })}
+                </Button>
+              )}
               <Button onClick={generate} variant="outline">
                 <RefreshCw className="me-2 h-4 w-4" />
                 {t("letter.regenerate")}
               </Button>
             </div>
+
+            {!entitled && (
+              <p className="flex items-center gap-1.5 text-xs text-navy-400">
+                <Crown className="h-3.5 w-3.5 text-amber-500" />
+                {t("letter.downloadLocked.desc")}
+              </p>
+            )}
           </>
         )}
       </CardContent>

@@ -7,7 +7,6 @@ import {
   conflict,
   notFound,
   ok,
-  paymentRequired,
   unauthorized,
 } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
@@ -50,16 +49,8 @@ export const POST = handle("generate-cover-letter", async ({ req, log }) => {
   const cv = cvRow as CVRecord;
   if (!cv.cv_data) return conflict("CV is not ready");
 
-  // Entitlement: a cover-letter credit unlocks this CV's letter. Once it has
-  // one, regenerating (e.g. with a different target role) is free.
-  if (!cv.cover_letter) {
-    const { data: spent, error: rpcErr } = await supabase.rpc(
-      "consume_cover_letter_credit",
-    );
-    if (rpcErr) throw rpcErr;
-    if (!spent) return paymentRequired("No cover letter credits left");
-  }
-
+  // Generation is FREE (view the full letter). The paywall is on DOWNLOAD —
+  // see /api/export-cover-letter-pdf, which spends a cover_letter_credit.
   const language: Language = cv.language ?? "en";
   const letter = await generateCoverLetter(migrateCvData(cv.cv_data), {
     targetRole: body.targetRole?.trim() || undefined,

@@ -529,6 +529,18 @@ export const t: Dict = {
     ur: "پریمیم سے کھولیں — {price}",
     it: "Sblocca con Premium — {price}",
   },
+  "letter.downloadLocked.cta": {
+    en: "Unlock to download — {price}",
+    ar: "افتح للتنزيل — {price}",
+    ur: "ڈاؤن لوڈ کے لیے کھولیں — {price}",
+    it: "Sblocca per scaricare — {price}",
+  },
+  "letter.downloadLocked.desc": {
+    en: "Preview is free. Download the polished PDF with Premium.",
+    ar: "المعاينة مجانية. نزّل ملف PDF المنسّق مع المميز.",
+    ur: "پیش نظارہ مفت ہے۔ پریمیم کے ساتھ بہتر PDF ڈاؤن لوڈ کریں۔",
+    it: "L'anteprima è gratis. Scarica il PDF curato con Premium.",
+  },
 
   // Landing premium strip
   "landing.premium.badge": { en: "Premium", ar: "مميز", ur: "پریمیم", it: "Premium" },

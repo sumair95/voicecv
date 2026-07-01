@@ -113,6 +113,8 @@ export interface CVRecord {
   premium_unlocked: boolean;
   /** Generated professional cover letter, if any. */
   cover_letter: string | null;
+  /** Cover-letter download unlocked (one cover-letter credit spent). */
+  cover_letter_unlocked: boolean;
   status: CVStatus;
   created_at: string;
   updated_at: string;

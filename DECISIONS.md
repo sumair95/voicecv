@@ -31,6 +31,11 @@ Status legend: ✅ shipped · 🟡 partial / in progress · ⏸ deferred · 🔁
 **Decision:** Use Stripe's hosted Checkout (redirect), and grant credits **only** in a signature-verified, idempotent webhook.
 **Why:** Stripe handles the card form + PCI; we never touch card data. Webhook-only granting means payment is the single source of truth — the client can't fake a purchase. Idempotency (one row per checkout session) makes Stripe's retries safe.
 
+### Cover letter — view free, download paid ✅ (2026-07-01)
+**Decision:** Anyone can generate + read the full cover letter for free (read-only, non-selectable preview); **downloading the PDF (and editing) requires Premium**. Format follows a real formal business-letter sample (letterhead, date, recipient block, "Re:" line, 4–5 paragraphs, sign-off).
+**Why:** Moving the paywall from *generate* → *download* is a stronger funnel — the user experiences the full value before paying, which converts better than a blurred teaser. The polished, downloadable PDF is the paid artifact.
+**Trade-off:** Free Claude calls for generation (bounded by the 3-CV free limit) and screenshots can't be prevented — but the formatted PDF + edit remain the real deliverable. **🔁 revisit** with conversion data (see `ANALYTICS.md`).
+
 ### Regional pricing — true FX via Stripe Adaptive Pricing ✅ (2026-06-30)
 **Decision:** Show local currency (PKR/INR/SAR/USD) and charge in it, but keep the **same $5/$3 value** everywhere (true FX, not cheaper local price levels). The real charge + conversion is done by **Stripe Adaptive Pricing** (dashboard toggle); our own pages show an **indicative** local price (timezone-detected, "≈" prefix).
 **Why:** Adaptive Pricing handles FX/currency-selection correctly with zero FX risk to us and no price tables to maintain. Timezone detection for the *display* needs no geo-IP dependency/key/latency. Purchasing-power (cheaper PK/IN) was considered and **🔁 deferred** — revisit if conversion data shows the FX price is too high for those markets.

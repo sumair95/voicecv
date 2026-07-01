@@ -2,7 +2,8 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { getAuthContext } from "@/lib/api/auth";
 import { CoverLetterDocument } from "@/lib/cover-letter-pdf";
 import { handle } from "@/lib/api/handle";
-import { badRequest, conflict, notFound, unauthorized, serverError } from "@/lib/api/respond";
+import { badRequest, conflict, notFound, unauthorized, serverError, paymentRequired } from "@/lib/api/respond";
+import { logEvent } from "@/lib/analytics-server";
 import { NextResponse } from "next/server";
 import type { CVRecord, Language } from "@/types/cv";
 
@@ -27,12 +28,36 @@ export const POST = handle("export-cover-letter-pdf", async ({ req, log }) => {
   const cv = cvRow as CVRecord;
   if (!cv.cover_letter) return conflict("No cover letter yet");
 
+  // Download is premium. First download for a CV spends one cover_letter_credit
+  // and unlocks the CV permanently; after that, re-downloads are free.
+  if (!cv.cover_letter_unlocked) {
+    const { data: spent, error: rpcErr } = await supabase.rpc(
+      "consume_cover_letter_credit",
+    );
+    if (rpcErr) throw rpcErr;
+    if (!spent) return paymentRequired("Cover letter download is a Premium feature");
+    await supabase
+      .from("cvs")
+      .update({ cover_letter_unlocked: true })
+      .eq("id", cvId)
+      .eq("user_id", user.id);
+    await logEvent(supabase, user.id, "cover_letter_unlocked", { cvId });
+  }
+
   const language: Language = cv.language ?? "en";
-  const name = cv.cv_data?.personal?.full_name || cv.title || "Cover Letter";
+  const p = cv.cv_data?.personal;
+  const name = p?.full_name || cv.title || "Cover Letter";
+  const contact = [
+    p?.email,
+    p?.phone,
+    [p?.city, p?.country].filter(Boolean).join(", "),
+  ]
+    .filter(Boolean)
+    .join("   |   ");
 
   try {
     const buffer = await renderToBuffer(
-      CoverLetterDocument({ name, body: cv.cover_letter, language }),
+      CoverLetterDocument({ name, body: cv.cover_letter, language, contact }),
     );
     log.info("cover letter pdf rendered", { cvId, userId: user.id });
     return new NextResponse(new Uint8Array(buffer), {

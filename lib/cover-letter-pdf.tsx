@@ -2,6 +2,7 @@ import {
   Document,
   Page,
   Text,
+  View,
   StyleSheet,
   Font,
 } from "@react-pdf/renderer";
@@ -43,52 +44,69 @@ export function CoverLetterDocument({
   name,
   body,
   language,
+  contact,
 }: {
   name: string;
   body: string;
   language: Language;
+  contact?: string;
 }) {
   const rtl = language === "ar" || language === "ur";
-  const paragraphs = body
+  // Split into blocks on blank lines; KEEP single line breaks inside a block
+  // (react-pdf <Text> honours \n) so the recipient block + signature stack.
+  const blocks = body
     .split(/\n{2,}/)
-    .map((p) => p.replace(/\n/g, " ").trim())
+    .map((b) => b.replace(/[ \t]+\n/g, "\n").trim())
     .filter(Boolean);
 
   const s = StyleSheet.create({
     page: {
       fontFamily: FONT_BY_LANG[language] ?? "Inter",
       fontSize: 11,
-      color: "#1E293B",
-      lineHeight: 1.6,
-      paddingVertical: 64,
+      color: "#334155",
+      lineHeight: 1.55,
+      paddingVertical: 56,
       paddingHorizontal: 56,
       direction: rtl ? "rtl" : "ltr",
     },
     name: {
-      fontSize: 18,
+      fontSize: 22,
       fontWeight: 700,
-      color: "#0F172A",
-      marginBottom: 6,
+      color: "#0F766E", // teal
+      textAlign: rtl ? "right" : "left",
+    },
+    contact: {
+      fontSize: 9.5,
+      color: "#64748B",
+      marginTop: 4,
       textAlign: rtl ? "right" : "left",
     },
     rule: {
-      borderBottomWidth: 2,
-      borderBottomColor: "#14B8A6",
-      width: 48,
-      marginBottom: 22,
-      alignSelf: rtl ? "flex-end" : "flex-start",
+      borderBottomWidth: 1.5,
+      borderBottomColor: "#0F766E",
+      marginTop: 8,
+      marginBottom: 20,
     },
-    para: { marginBottom: 12, textAlign: rtl ? "right" : "left" },
+    para: { marginBottom: 11, textAlign: rtl ? "right" : "left" },
+    reLine: {
+      marginBottom: 11,
+      fontWeight: 700,
+      color: "#0F766E",
+      textAlign: rtl ? "right" : "left",
+    },
   });
+
+  const isRe = (b: string) => /^re\s*:/i.test(b);
 
   return (
     <Document>
       <Page size="A4" style={s.page}>
         <Text style={s.name}>{name}</Text>
-        <Text style={s.rule}> </Text>
-        {paragraphs.map((p, i) => (
-          <Text key={i} style={s.para}>
-            {p}
+        {contact ? <Text style={s.contact}>{contact}</Text> : null}
+        <View style={s.rule} />
+        {blocks.map((b, i) => (
+          <Text key={i} style={isRe(b) ? s.reLine : s.para}>
+            {b}
           </Text>
         ))}
       </Page>
