@@ -536,10 +536,16 @@ export const t: Dict = {
     it: "Sblocca per scaricare — {price}",
   },
   "letter.downloadLocked.desc": {
-    en: "Preview is free. Download the polished PDF with Premium.",
-    ar: "المعاينة مجانية. نزّل ملف PDF المنسّق مع المميز.",
-    ur: "پیش نظارہ مفت ہے۔ پریمیم کے ساتھ بہتر PDF ڈاؤن لوڈ کریں۔",
-    it: "L'anteprima è gratis. Scarica il PDF curato con Premium.",
+    en: "Preview and edit are free. Download the polished PDF with Premium.",
+    ar: "المعاينة والتعديل مجانيان. نزّل ملف PDF المنسّق مع المميز.",
+    ur: "پیش نظارہ اور ترمیم مفت ہیں۔ پریمیم کے ساتھ بہتر PDF ڈاؤن لوڈ کریں۔",
+    it: "Anteprima e modifica sono gratis. Scarica il PDF curato con Premium.",
+  },
+  "letter.editHint": {
+    en: "Edit anything — add the hiring manager's name, company address, change the date, position, or wording. Click Save to keep your changes.",
+    ar: "عدّل أي شيء — أضف اسم مدير التوظيف وعنوان الشركة، وغيّر التاريخ أو المنصب أو الصياغة. اضغط حفظ للاحتفاظ بتغييراتك.",
+    ur: "کچھ بھی تبدیل کریں — ہائرنگ مینیجر کا نام، کمپنی کا پتہ شامل کریں، تاریخ، عہدہ یا الفاظ بدلیں۔ محفوظ کرنے کے لیے Save دبائیں۔",
+    it: "Modifica tutto — aggiungi il nome del responsabile, l'indirizzo dell'azienda, cambia data, posizione o testo. Clicca Salva per conservare le modifiche.",
   },
 
   // Landing premium strip

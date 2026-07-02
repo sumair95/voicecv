@@ -96,6 +96,11 @@ export function CoverLetterPanel({
   async function download() {
     setDownloading(true);
     try {
+      // Persist current edits first so the PDF matches what's on screen.
+      await supabase
+        .from("cvs")
+        .update({ cover_letter: letter, updated_at: new Date().toISOString() })
+        .eq("id", cvId);
       const res = await fetch("/api/export-cover-letter-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -168,45 +173,36 @@ export function CoverLetterPanel({
           </div>
         )}
 
-        {/* Result — editable for entitled users, read-only preview otherwise */}
+        {/* Result — fully editable for everyone; download is the premium gate */}
         {letter && !generating && (
           <>
-            {entitled ? (
-              <textarea
-                value={letter}
-                onChange={(e) => setLetter(e.target.value)}
-                rows={16}
-                className="w-full resize-y rounded-lg border border-navy-100 p-4 text-sm leading-relaxed text-navy-700 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/40"
-              />
-            ) : (
-              <div
-                onCopy={(e) => e.preventDefault()}
-                onContextMenu={(e) => e.preventDefault()}
-                className="select-none whitespace-pre-wrap rounded-lg border border-navy-100 bg-navy-50/30 p-4 text-sm leading-relaxed text-navy-700"
-              >
-                <div className="mb-3 border-b border-navy-100 pb-2 text-base font-bold text-teal-700">
-                  {name}
-                </div>
-                {letter}
-              </div>
-            )}
+            {/* Letterhead context (name + contact come from the CV and appear
+                in the downloaded PDF; edit those on the CV itself). */}
+            <div className="rounded-t-lg border border-b-0 border-navy-100 bg-navy-50/40 px-4 py-2 text-sm font-bold text-teal-700">
+              {name}
+            </div>
+            <textarea
+              value={letter}
+              onChange={(e) => setLetter(e.target.value)}
+              rows={18}
+              className="w-full resize-y rounded-b-lg border border-navy-100 p-4 text-sm leading-relaxed text-navy-700 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/40"
+            />
+            <p className="text-xs text-navy-400">{t("letter.editHint")}</p>
 
             <div className="flex flex-wrap gap-2">
+              <Button onClick={saveEdits} disabled={saving} variant="outline">
+                {saving && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                {t("common.save")}
+              </Button>
               {entitled ? (
-                <>
-                  <Button onClick={download} disabled={downloading} className="bg-teal hover:bg-teal-600">
-                    {downloading ? (
-                      <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Download className="me-2 h-4 w-4" />
-                    )}
-                    {t("letter.download")}
-                  </Button>
-                  <Button onClick={saveEdits} disabled={saving} variant="outline">
-                    {saving && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-                    {t("common.save")}
-                  </Button>
-                </>
+                <Button onClick={download} disabled={downloading} className="bg-teal hover:bg-teal-600">
+                  {downloading ? (
+                    <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="me-2 h-4 w-4" />
+                  )}
+                  {t("letter.download")}
+                </Button>
               ) : (
                 <Button onClick={buyPremium} className="bg-amber-500 text-white hover:bg-amber-600">
                   <Lock className="me-2 h-4 w-4" />

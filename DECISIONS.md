@@ -31,10 +31,10 @@ Status legend: ✅ shipped · 🟡 partial / in progress · ⏸ deferred · 🔁
 **Decision:** Use Stripe's hosted Checkout (redirect), and grant credits **only** in a signature-verified, idempotent webhook.
 **Why:** Stripe handles the card form + PCI; we never touch card data. Webhook-only granting means payment is the single source of truth — the client can't fake a purchase. Idempotency (one row per checkout session) makes Stripe's retries safe.
 
-### Cover letter — view free, download paid ✅ (2026-07-01)
-**Decision:** Anyone can generate + read the full cover letter for free (read-only, non-selectable preview); **downloading the PDF (and editing) requires Premium**. Format follows a real formal business-letter sample (letterhead, date, recipient block, "Re:" line, 4–5 paragraphs, sign-off).
-**Why:** Moving the paywall from *generate* → *download* is a stronger funnel — the user experiences the full value before paying, which converts better than a blurred teaser. The polished, downloadable PDF is the paid artifact.
-**Trade-off:** Free Claude calls for generation (bounded by the 3-CV free limit) and screenshots can't be prevented — but the formatted PDF + edit remain the real deliverable. **🔁 revisit** with conversion data (see `ANALYTICS.md`).
+### Cover letter — generate/view/edit free, download paid ✅ (2026-07-01, updated 2026-07-02)
+**Decision:** Anyone can generate, read, AND **fully edit** the cover letter for free (whole letter is an editable textarea — add hiring-manager name, company address, change date/position/wording, Save persists). **Only the polished PDF download requires Premium** (first download spends a cover-letter credit + unlocks that CV). Format follows a real formal business-letter sample (letterhead, date, recipient block, "Re:" line, 4–5 paragraphs, sign-off).
+**Why:** Moving the paywall to *download only* is the strongest funnel — the user invests effort perfecting their letter, then pays to take the formatted PDF. Editing was requested by Sumair (users need to fill recipient details). The formatting/layout is the paid value; plain-text copy doesn't capture it.
+**Trade-off:** Free users can now copy the text out (the earlier copy-prevention was dropped to allow editing) — accepted, since the formatted PDF is the real deliverable. Free Claude calls bounded by the 3-CV free limit. **🔁 revisit** with conversion data (`ANALYTICS.md`).
 
 ### Regional pricing — true FX via Stripe Adaptive Pricing ✅ (2026-06-30)
 **Decision:** Show local currency (PKR/INR/SAR/USD) and charge in it, but keep the **same $5/$3 value** everywhere (true FX, not cheaper local price levels). The real charge + conversion is done by **Stripe Adaptive Pricing** (dashboard toggle); our own pages show an **indicative** local price (timezone-detected, "≈" prefix).
