@@ -22,7 +22,6 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import { track } from "@/lib/analytics";
 import { migrateCvData } from "@/lib/cv/migrate";
-import type { CVRecord } from "@/types/cv";
 import type { JobApplication, JobListing, JobStatus } from "@/types/jobs";
 import { JOB_STATUSES } from "@/types/jobs";
 
