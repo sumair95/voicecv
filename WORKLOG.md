@@ -2,6 +2,22 @@
 
 Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 
+## 2026-07-04 — AI Job Match (JSearch + Claude ranking + in-app tracking)
+- **Feature decision (Sumair):** data source = **JSearch (RapidAPI)**; apply model = **in-app apply + tracking**.
+- **DB:** migration `015_job_match.sql` — `job_applications` table (job snapshot: title/company/location/apply_url/logo/salary; `match_score`/`match_reason`; `status` check-constrained to saved/applied/interview/offer/rejected; `notes`, `applied_at`). Owner-only RLS (mirrors `cvs`), unique `(user_id, external_job_id)` so re-saving upserts. **Applied by Sumair.**
+- **Libs (`lib/jobs/`):** `provider.ts` (`JobProvider` interface — future-proof for Adzuna etc.), `jsearch.ts` (RapidAPI client, lazy-reads `RAPIDAPI_KEY`, normalizes to `JobListing`, trims descriptions, `date_posted=month`), `match.ts` (`queryFromCv` derives role+location from the CV; `rankJobs` sends ≤12 listings to `claude-sonnet-4-6` for JSON `{i,score,reason}` scoring — best-effort, returns unranked on failure). Types in `types/jobs.ts`.
+- **API:** `POST /api/jobs/search` — `getAuthContext` (cookie + Bearer), `jobSearch` rate limit (8/min), loads the CV, searches, ranks, logs `job_search`. Missing key → 502 with a friendly message.
+- **UI:** `app/(dashboard)/jobs/page.tsx` (Suspense-wrapped for `useSearchParams`) — CV picker (defaults role/location from CV, honours `?cv=`), search form (+ remote-only), ranked job cards with colour-coded match badge + reason, Apply/Save, and an application tracker with inline status `<select>` pills + remove. Saves/updates go straight through the RLS-guarded client (like the cover-letter save), analytics via `track()`.
+- **Wiring:** `RAPIDAPI_KEY` added to `lib/env.ts` (optional) + `.env.example`; `jobSearch` rate-limit entry; Navbar "Jobs" link; CV page "Find Matching Jobs" button; `/jobs` added to protected middleware routes; ~20 i18n keys (EN/AR/UR/IT).
+- **Verified:** `tsc --noEmit` clean; dev server restarted on :3001 with the key loaded; `/jobs` compiles and now 307-redirects when unauthenticated. Key added to `.env.local` + Railway by Sumair.
+- **NEXT:** live smoke test — sign in, open a CV → Find Matching Jobs → confirm real JSearch results + Claude scores, Apply/Save, change a status, reload (persists). Deploy migration is already live; Railway will pick up code on next push.
+
+## 2026-07-05 — Job Match fixes (JSearch v2 endpoint + back button)
+- **JSearch 404 fix.** First live search returned `JSearch responded 404 / "Endpoint '/search' does not exist"`. Root cause: JSearch **retired `/search`; the current endpoint is `/search-v2`** (cursor-based, no `page` param), and the payload shape changed from `{ data: [...] }` to `{ data: { jobs: [...], cursor } }`. Updated `lib/jobs/jsearch.ts`: endpoint → `/search-v2`, parse `data.data.jobs`, drop `page`, fold `remoteOnly` into the query string. Also adopted v2's ready-made `job_location` + `job_salary_string` fields (currency field is gone) with the old min/max as fallback. (The key ending `…9a30b7` was correct all along — my earlier "not subscribed" read was wrong; the 404 was the moved endpoint.)
+- **Hardened error messages** in `jsearch.ts` (`rapidApiMessage`): clear guidance for not-subscribed/401/429 instead of raw "responded 404".
+- **Back button** added to the top of `/jobs` (arrow + "My CVs" → `/dashboard`), matching the CV page.
+- Verified: `tsc` clean; `/search-v2` returns real listings for both US and PK queries with the current key.
+
 ## 2026-06-28 — Pricing tiers + free limit + cover-letter teaser
 - **Free tier = 3 CVs, lifetime.** `profiles.cvs_created` counter (migration `012`, backfilled), incremented via `increment_cvs_created()` RPC after each new CV. `generate-cv` blocks (402) when `cvs_created >= 3 + cv_credits`; deleting a CV does NOT free a slot. (First shipped as "3 at a time" via a live-count check, then switched to lifetime at Sumair's request.)
 - **Two paid packs.** `/api/checkout` takes `{ pack: 'cv' | 'premium' }`: $3 → +3 CVs (`cv_credits`, migration `011`); $5 → premium pack + 3 CVs. Webhook grants per pack from `session.metadata.pack`.

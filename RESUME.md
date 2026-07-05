@@ -1,11 +1,19 @@
 # RESUME — pick up here after restart
 
-**Last save:** 2026-06-24
-**Web HEAD:** `2f3f6be` on `main` (pushed)
+**Last save:** 2026-07-04
+**Web HEAD:** `fe09be2` on `main` — **AI Job Match built on top, NOT yet committed** (working tree has the new feature)
 **Mobile HEAD:** `8850a8d` on `main` (pushed at `sumair95/voicecv-mobile`)
-**Stable tag to roll back to:** `v0.3.0-architecture-pass` (web) / mobile has no tag yet
+**Live:** vocv.app
 
-## Two open threads (pick one to resume with)
+## ⭐ Current thread — AI Job Match (built 2026-07-04, verified locally, uncommitted)
+- Full feature shipped into the working tree: `/jobs` page, `/api/jobs/search`, `lib/jobs/*`, `types/jobs.ts`, migration `015_job_match.sql`. See WORKLOG 2026-07-04 for the full breakdown.
+- **Done:** migration 015 applied in Supabase (Sumair); `RAPIDAPI_KEY` added to `.env.local` + Railway (Sumair); `tsc` clean; dev server verified on :3001.
+- **NEXT ACTIONS:**
+  1. **Live smoke test** — sign in, open a CV → "Find Matching Jobs" → confirm real JSearch listings + Claude match scores, Apply (opens link + tracks), Save, change a status pill, reload to confirm persistence.
+  2. **Commit + push** the feature (not yet committed — was waiting on smoke test).
+  3. Railway auto-deploys on push; `RAPIDAPI_KEY` already set there.
+
+## Older open threads (background)
 
 ### Thread A — "Page not found on signup" verification + Supabase URL config (in progress)
 We had just shipped commit `2f3f6be` which added:

@@ -61,4 +61,5 @@ export const LIMITS = {
   transcribe: { windowMs: 60_000, max: 20 }, // 20 audio chunks / min
   generateCv: { windowMs: 60_000, max: 4 }, // 4 full CV generations / min
   exportPdf: { windowMs: 60_000, max: 10 },
+  jobSearch: { windowMs: 60_000, max: 8 }, // 8 job searches / min (each hits JSearch + Claude)
 } as const;

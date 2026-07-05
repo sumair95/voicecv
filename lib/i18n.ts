@@ -924,6 +924,92 @@ export const t: Dict = {
     ur: "ایڈٹ موڈ — کسی بھی فیلڈ پر کلک کر کے تبدیل کریں، یا + بٹن سے مزید شامل کریں۔",
     it: "Modalità modifica — clicca su un campo per cambiarlo, o usa i pulsanti + per aggiungerne altri.",
   },
+
+  // AI Job Match
+  "nav.jobs": { en: "Jobs", ar: "الوظائف", ur: "نوکریاں", it: "Lavori" },
+  "cv.findJobs": {
+    en: "Find Matching Jobs",
+    ar: "ابحث عن وظائف مناسبة",
+    ur: "موزوں نوکریاں تلاش کریں",
+    it: "Trova lavori adatti",
+  },
+  "job.title": {
+    en: "AI Job Match",
+    ar: "مطابقة الوظائف بالذكاء الاصطناعي",
+    ur: "اے آئی جاب میچ",
+    it: "AI Job Match",
+  },
+  "job.intro": {
+    en: "We read your CV and find live jobs that fit — ranked by how well they match.",
+    ar: "نقرأ سيرتك الذاتية ونجد وظائف مناسبة — مرتّبة حسب درجة التطابق.",
+    ur: "ہم آپ کا CV پڑھ کر موزوں نوکریاں تلاش کرتے ہیں — میچ کے حساب سے ترتیب دی گئی۔",
+    it: "Leggiamo il tuo CV e troviamo offerte adatte — ordinate per grado di corrispondenza.",
+  },
+  "job.selectCv": {
+    en: "Match with CV",
+    ar: "طابق مع السيرة",
+    ur: "اس CV سے میچ کریں",
+    it: "Abbina al CV",
+  },
+  "job.role": {
+    en: "Role or keywords (e.g. electrician)",
+    ar: "المسمى الوظيفي أو كلمات مفتاحية",
+    ur: "عہدہ یا کلیدی الفاظ",
+    it: "Ruolo o parole chiave",
+  },
+  "job.location": {
+    en: "Location (e.g. Karachi, Pakistan)",
+    ar: "الموقع",
+    ur: "مقام",
+    it: "Località",
+  },
+  "job.remoteOnly": { en: "Remote only", ar: "عن بُعد فقط", ur: "صرف ریموٹ", it: "Solo da remoto" },
+  "job.find": { en: "Find Matches", ar: "ابحث عن تطابقات", ur: "میچ تلاش کریں", it: "Trova corrispondenze" },
+  "job.searching": {
+    en: "Searching and ranking jobs…",
+    ar: "جارٍ البحث وترتيب الوظائف…",
+    ur: "نوکریاں تلاش اور ترتیب دی جا رہی ہیں…",
+    it: "Ricerca e valutazione offerte…",
+  },
+  "job.noResults": {
+    en: "No jobs found. Try a broader role or a different location.",
+    ar: "لم يتم العثور على وظائف. جرّب مسمى أوسع أو موقعاً مختلفاً.",
+    ur: "کوئی نوکری نہیں ملی۔ وسیع عہدہ یا مختلف مقام آزمائیں۔",
+    it: "Nessun lavoro trovato. Prova un ruolo più ampio o un'altra località.",
+  },
+  "job.matchScore": { en: "{score}% match", ar: "{score}% تطابق", ur: "{score}% میچ", it: "{score}% match" },
+  "job.apply": { en: "Apply", ar: "تقديم", ur: "اپلائی", it: "Candidati" },
+  "job.save": { en: "Save", ar: "حفظ", ur: "محفوظ کریں", it: "Salva" },
+  "job.tracked": {
+    en: "Your applications",
+    ar: "طلباتك",
+    ur: "آپ کی درخواستیں",
+    it: "Le tue candidature",
+  },
+  "job.trackedEmpty": {
+    en: "Jobs you apply to or save will appear here so you can track their status.",
+    ar: "ستظهر هنا الوظائف التي تتقدّم لها أو تحفظها لتتابع حالتها.",
+    ur: "جن نوکریوں پر آپ اپلائی یا محفوظ کریں گے وہ یہاں دکھیں گی تاکہ آپ ان کی حالت دیکھ سکیں۔",
+    it: "I lavori a cui ti candidi o che salvi appariranno qui per seguirne lo stato.",
+  },
+  "job.status.saved": { en: "Saved", ar: "محفوظ", ur: "محفوظ", it: "Salvato" },
+  "job.status.applied": { en: "Applied", ar: "تم التقديم", ur: "اپلائیڈ", it: "Candidato" },
+  "job.status.interview": { en: "Interview", ar: "مقابلة", ur: "انٹرویو", it: "Colloquio" },
+  "job.status.offer": { en: "Offer", ar: "عرض", ur: "آفر", it: "Offerta" },
+  "job.status.rejected": { en: "Rejected", ar: "مرفوض", ur: "مسترد", it: "Rifiutato" },
+  "job.remove": { en: "Remove", ar: "إزالة", ur: "ہٹائیں", it: "Rimuovi" },
+  "job.needCv": {
+    en: "Create a CV first — Job Match uses it to find the right roles.",
+    ar: "أنشئ سيرة ذاتية أولاً — تعتمد عليها مطابقة الوظائف.",
+    ur: "پہلے CV بنائیں — جاب میچ اسی سے صحیح نوکریاں ڈھونڈتا ہے۔",
+    it: "Crea prima un CV — Job Match lo usa per trovare i ruoli giusti.",
+  },
+  "job.error": {
+    en: "Something went wrong searching for jobs. Please try again.",
+    ar: "حدث خطأ أثناء البحث عن وظائف. حاول مرة أخرى.",
+    ur: "نوکریاں تلاش کرتے وقت مسئلہ ہوا۔ دوبارہ کوشش کریں۔",
+    it: "Errore nella ricerca dei lavori. Riprova.",
+  },
 };
 
 export function tr(

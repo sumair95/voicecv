@@ -20,6 +20,9 @@ const serverSchema = sharedSchema.extend({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   ANTHROPIC_API_KEY: z.string().min(1),
   OPENAI_API_KEY: z.string().min(1),
+  // Optional: enables AI Job Match (JSearch on RapidAPI). Feature degrades to a
+  // clear "not configured" message when absent, so it's not required to boot.
+  RAPIDAPI_KEY: z.string().min(1).optional(),
 });
 
 function readShared() {
@@ -45,6 +48,7 @@ function readServer() {
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    RAPIDAPI_KEY: process.env.RAPIDAPI_KEY,
   });
   if (!parsed.success) {
     throw new Error(

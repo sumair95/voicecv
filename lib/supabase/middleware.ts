@@ -41,6 +41,7 @@ export async function updateSession(request: NextRequest) {
     url.pathname.startsWith("/dashboard") ||
     url.pathname.startsWith("/record") ||
     url.pathname.startsWith("/cv") ||
+    url.pathname.startsWith("/jobs") ||
     url.pathname.startsWith("/onboarding");
 
   if (!user && isProtected) {

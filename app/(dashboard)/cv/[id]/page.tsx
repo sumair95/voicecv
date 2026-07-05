@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Pencil, Check, Loader2, Info } from "lucide-react";
+import { ArrowLeft, Download, Pencil, Check, Loader2, Info, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CVPreview } from "@/components/CVPreview";
 import { CoverLetterPanel } from "@/components/CoverLetterPanel";
@@ -189,6 +190,12 @@ export default function CVDetailPage() {
           {t("dashboard.myCvs")}
         </Button>
         <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href={`/jobs?cv=${id}`}>
+              <Briefcase className="me-2 h-4 w-4" />
+              {t("cv.findJobs")}
+            </Link>
+          </Button>
           <Button
             variant="outline"
             onClick={() => setEditing((v) => !v)}
