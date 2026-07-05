@@ -15,7 +15,7 @@ import { logger } from "@/lib/log";
 
 const MODEL = "claude-sonnet-4-6";
 /** Cap how many listings we send to the ranker to bound token cost. */
-const MAX_RANK = 12;
+const MAX_RANK = 15;
 
 export function queryFromCv(cv: CVData): { query: string; location: string } {
   const role =

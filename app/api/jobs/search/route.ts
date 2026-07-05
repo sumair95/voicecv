@@ -5,6 +5,7 @@ import { badRequest, conflict, notFound, ok, unauthorized } from "@/lib/api/resp
 import { LIMITS, take } from "@/lib/rate-limit";
 import { logEvent } from "@/lib/analytics-server";
 import { jsearchProvider } from "@/lib/jobs/jsearch";
+import { countryCodeFrom } from "@/lib/jobs/geo";
 import { queryFromCv, rankJobs } from "@/lib/jobs/match";
 import { NextResponse } from "next/server";
 import type { CVRecord } from "@/types/cv";
@@ -56,12 +57,17 @@ export const POST = handle("jobs-search", async ({ req, log }) => {
     return badRequest("Add work experience to your CV, or type a role to search for.");
   }
 
+  // Target the right job market — without a country code JSearch defaults to
+  // the US and returns nothing for e.g. German/Pakistani/Gulf searches.
+  const country = countryCodeFrom(location, cvData.personal.country);
+
   let listings;
   try {
     listings = await jsearchProvider.search({
       query,
       location,
-      numPages: 1,
+      country,
+      numPages: 2,
       remoteOnly: body.remoteOnly,
     });
   } catch (err) {
@@ -77,9 +83,15 @@ export const POST = handle("jobs-search", async ({ req, log }) => {
     cvId: cv.id,
     query,
     location,
+    country,
     count: jobs.length,
   });
-  log.info("job search", { userId: user.id, cvId: cv.id, count: jobs.length });
+  log.info("job search", {
+    userId: user.id,
+    cvId: cv.id,
+    country,
+    count: jobs.length,
+  });
 
   return ok({ jobs, query, location });
 });

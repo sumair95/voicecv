@@ -100,38 +100,56 @@ export const jsearchProvider: JobProvider = {
       );
     }
 
-    const query = [params.query, params.location]
-      .filter((s) => s && s.trim())
-      .join(" in ");
+    const numPages = params.numPages ?? 2;
+    const datePosted = params.datePosted ?? "all";
+
     // /search (v1) was retired → 404. Current endpoint is /search-v2, which
     // returns { data: { jobs: [...] } } and no longer takes `page` (cursor-based).
-    const url = new URL(`https://${HOST}/search-v2`);
-    url.searchParams.set("query", params.remoteOnly ? `${query} remote` : query);
-    url.searchParams.set("num_pages", String(params.numPages ?? 1));
-    url.searchParams.set("date_posted", "month");
+    const runQuery = async (query: string): Promise<JobListing[]> => {
+      const url = new URL(`https://${HOST}/search-v2`);
+      url.searchParams.set("query", params.remoteOnly ? `${query} remote` : query);
+      url.searchParams.set("num_pages", String(numPages));
+      url.searchParams.set("date_posted", datePosted);
+      // The country param is what makes non-US markets return results at all.
+      if (params.country) url.searchParams.set("country", params.country);
 
-    const res = await withRetry(
-      async () => {
-        const r = await fetch(url, {
-          headers: { "X-RapidAPI-Key": key, "X-RapidAPI-Host": HOST },
-        });
-        if (!r.ok) {
-          const body = await r.text().catch(() => "");
-          const err = new Error(rapidApiMessage(r.status, body)) as Error & {
-            status?: number;
-          };
-          err.status = r.status;
-          throw err;
-        }
-        return r;
-      },
-      { onRetry: (err, attempt) => logger.warn("jsearch retry", { attempt, err }) },
-    );
+      const res = await withRetry(
+        async () => {
+          const r = await fetch(url, {
+            headers: { "X-RapidAPI-Key": key, "X-RapidAPI-Host": HOST },
+          });
+          if (!r.ok) {
+            const body = await r.text().catch(() => "");
+            const err = new Error(rapidApiMessage(r.status, body)) as Error & {
+              status?: number;
+            };
+            err.status = r.status;
+            throw err;
+          }
+          return r;
+        },
+        { onRetry: (err, attempt) => logger.warn("jsearch retry", { attempt, err }) },
+      );
 
-    const data = (await res.json()) as { data?: { jobs?: JSearchJob[] } };
-    const rows = Array.isArray(data.data?.jobs) ? data.data!.jobs! : [];
-    return rows
-      .map(normalize)
-      .filter((j): j is JobListing => j !== null);
+      const data = (await res.json()) as { data?: { jobs?: JSearchJob[] } };
+      const rows = Array.isArray(data.data?.jobs) ? data.data!.jobs! : [];
+      return rows.map(normalize).filter((j): j is JobListing => j !== null);
+    };
+
+    const located = [params.query, params.location]
+      .filter((s) => s && s.trim())
+      .join(" in ");
+
+    let jobs = await runQuery(located);
+    // Fallback: a too-specific "role in city" sometimes over-narrows to zero
+    // even when the country has plenty of matches. Retry with the role alone
+    // (country still scopes the market).
+    if (jobs.length === 0 && params.location && params.country) {
+      logger.info("jsearch empty with location; retrying role-only", {
+        country: params.country,
+      });
+      jobs = await runQuery(params.query);
+    }
+    return jobs;
   },
 };

@@ -18,6 +18,13 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - **Back button** added to the top of `/jobs` (arrow + "My CVs" → `/dashboard`), matching the CV page.
 - Verified: `tsc` clean; `/search-v2` returns real listings for both US and PK queries with the current key.
 
+## 2026-07-05 — Job Match search quality (country targeting + wider net)
+- **Problem (Sumair):** searches for non-US locations (e.g. "Early Childhood Educator in Germany/Melbourne") returned nothing, though Google shows plenty.
+- **Root cause (proven via live JSearch probes):** we never sent JSearch's `country` param, which **defaults to `us`** — so every search ran against the US market. With the correct code, results appear: `teacher in berlin`+`de`→10, Dubai+`ae`→10, London+`gb`/`uk`→10, Karachi+`pk`→10, India/Canada→10. Also we'd hardcoded `date_posted=month` (dropped older jobs) and pulled only 1 page (~10).
+- **Fix:** new `lib/jobs/geo.ts` `countryCodeFrom(location, cvCountry)` — maps ~55 countries (+ aliases: UK→gb, UAE→ae, KSA→sa…) and ~90 major cities (Melbourne→au, Dubai→ae, Karachi→pk, Milan→it…) to ISO2 via whole-word matching (so "us" doesn't match "houston"). Route derives the code from the typed location then the CV's country and passes it. `jsearch.ts` now: sends `country`, `date_posted=all` (widest), `num_pages=2` (~20 results), and a **fallback** — if "role in city" returns 0 but a country is known, retries role-only within that country. Ranker `MAX_RANK` 12→15.
+- **Known provider gap:** **Australia (`au`) returns 0** on the current JSearch plan regardless of query — so Melbourne/Sydney specifically won't return results (routing is correct, data just isn't there). If AU/AUS coverage matters, options are a higher JSearch tier or adding Adzuna (strong AU/UK) behind the existing `JobProvider` interface.
+- Verified: `tsc` clean; `countryCodeFrom` unit-checked across 16 cases.
+
 ## 2026-06-28 — Pricing tiers + free limit + cover-letter teaser
 - **Free tier = 3 CVs, lifetime.** `profiles.cvs_created` counter (migration `012`, backfilled), incremented via `increment_cvs_created()` RPC after each new CV. `generate-cv` blocks (402) when `cvs_created >= 3 + cv_credits`; deleting a CV does NOT free a slot. (First shipped as "3 at a time" via a live-count check, then switched to lifetime at Sumair's request.)
 - **Two paid packs.** `/api/checkout` takes `{ pack: 'cv' | 'premium' }`: $3 → +3 CVs (`cv_credits`, migration `011`); $5 → premium pack + 3 CVs. Webhook grants per pack from `session.metadata.pack`.
