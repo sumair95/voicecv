@@ -10,7 +10,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { CVData } from "@/types/cv";
 import type { JobListing } from "@/types/jobs";
-import { withRetry } from "@/lib/ai/retry";
 import { logger } from "@/lib/log";
 
 const MODEL = "claude-sonnet-4-6";
@@ -52,7 +51,9 @@ export async function rankJobs(
   if (!apiKey) return jobs;
 
   const subset = jobs.slice(0, MAX_RANK);
-  const anthropic = new Anthropic({ apiKey });
+  // Hard-bound the ranking call: ranking is a best-effort enhancement, so a
+  // slow model response must not stall the request until the edge proxy 502s.
+  const anthropic = new Anthropic({ apiKey, timeout: 20_000, maxRetries: 1 });
 
   const jobLines = subset
     .map(
@@ -71,16 +72,14 @@ Scoring guidance: 80-100 = strong fit (role + skills align), 50-79 = plausible f
   const user = `CANDIDATE:\n${candidateSummary(cv)}\n\nJOBS:\n${jobLines}\n\nReturn the JSON array now.`;
 
   try {
-    const response = await withRetry(
-      () =>
-        anthropic.messages.create({
-          model: MODEL,
-          max_tokens: 1024,
-          system,
-          messages: [{ role: "user", content: user }],
-        }),
-      { onRetry: (err, attempt) => logger.warn("job rank retry", { attempt, err }) },
-    );
+    // The SDK handles its own timeout + one retry; no outer withRetry so the
+    // total time stays bounded (~40s worst case, usually <10s).
+    const response = await anthropic.messages.create({
+      model: MODEL,
+      max_tokens: 1024,
+      system,
+      messages: [{ role: "user", content: user }],
+    });
     const block = response.content.find((b) => b.type === "text");
     if (!block || block.type !== "text") return jobs;
 

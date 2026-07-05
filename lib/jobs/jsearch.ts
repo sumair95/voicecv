@@ -13,6 +13,28 @@ import { withRetry } from "@/lib/ai/retry";
 import { logger } from "@/lib/log";
 
 const HOST = "jsearch.p.rapidapi.com";
+/** Hard cap per JSearch request so a slow/hung upstream can't stall the whole
+ * route until the edge proxy 502s. */
+const FETCH_TIMEOUT_MS = 12_000;
+
+async function fetchWithTimeout(url: URL, init: RequestInit): Promise<Response> {
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: ac.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      const e = new Error("Job search timed out — the provider took too long.") as Error & {
+        status?: number;
+      };
+      e.status = 504; // non-retriable-ish; surfaces a clean message
+      throw e;
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /** Raw JSearch job shape (only the fields we consume). */
 interface JSearchJob {
@@ -100,7 +122,7 @@ export const jsearchProvider: JobProvider = {
       );
     }
 
-    const numPages = params.numPages ?? 2;
+    const numPages = params.numPages ?? 1;
     const datePosted = params.datePosted ?? "all";
 
     // /search (v1) was retired → 404. Current endpoint is /search-v2, which
@@ -115,7 +137,7 @@ export const jsearchProvider: JobProvider = {
 
       const res = await withRetry(
         async () => {
-          const r = await fetch(url, {
+          const r = await fetchWithTimeout(url, {
             headers: { "X-RapidAPI-Key": key, "X-RapidAPI-Host": HOST },
           });
           if (!r.ok) {
@@ -128,7 +150,10 @@ export const jsearchProvider: JobProvider = {
           }
           return r;
         },
-        { onRetry: (err, attempt) => logger.warn("jsearch retry", { attempt, err }) },
+        {
+          attempts: 2, // bound worst-case latency (2 × 12s) well under the edge timeout
+          onRetry: (err, attempt) => logger.warn("jsearch retry", { attempt, err }),
+        },
       );
 
       const data = (await res.json()) as { data?: { jobs?: JSearchJob[] } };

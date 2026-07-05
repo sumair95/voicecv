@@ -25,6 +25,15 @@ Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 - **Known provider gap:** **Australia (`au`) returns 0** on the current JSearch plan regardless of query — so Melbourne/Sydney specifically won't return results (routing is correct, data just isn't there). If AU/AUS coverage matters, options are a higher JSearch tier or adding Adzuna (strong AU/UK) behind the existing `JobProvider` interface.
 - Verified: `tsc` clean; `countryCodeFrom` unit-checked across 16 cases.
 
+## 2026-07-05 — Job Match production 502 (request hardening)
+- **Symptom:** `/jobs` search on vocv.app returned Cloudflare **502 Bad Gateway** (HTML, "Host: vocv.app Error"), while `/api/health` stayed 200 and container uptime kept growing — so the container was NOT crash-looping; a single search request was hanging/too slow, and the edge proxy 502'd it.
+- **Root cause:** the JSearch `fetch` had **no timeout**. If RapidAPI is slow/hangs from Railway's datacenter IP, the request hangs indefinitely → Cloudflare 502. The Claude ranking call was also unbounded (outer `withRetry` × SDK retries could compound). Full pipeline measured ~16s locally (JSearch 2pg 7.3s + Claude 8.5s) — fine locally, but unbounded upstream latency is unsafe in prod.
+- **Fix (all best-effort, so the route always returns fast):**
+  - `jsearch.ts`: `fetchWithTimeout` via `AbortController` (12s cap) → aborts map to a clean "timed out" message; `withRetry` attempts 3→2; **`num_pages` default 2→1** (halves JSearch time, ~10 results is plenty).
+  - `match.ts`: Anthropic client `{ timeout: 20_000, maxRetries: 1 }`, removed the outer `withRetry` (SDK handles retry) → ranking bounded to ~40s worst case, usually <10s; still returns unranked on failure.
+- **Bonus:** if the real cause wasn't latency, the search now surfaces a *specific* error (timeout / provider HTTP code) instead of an opaque 502 — which will pinpoint it.
+- Verified: **full `npm run build` clean** (per the build-before-push lesson), all 24 routes.
+
 ## 2026-06-28 — Pricing tiers + free limit + cover-letter teaser
 - **Free tier = 3 CVs, lifetime.** `profiles.cvs_created` counter (migration `012`, backfilled), incremented via `increment_cvs_created()` RPC after each new CV. `generate-cv` blocks (402) when `cvs_created >= 3 + cv_credits`; deleting a CV does NOT free a slot. (First shipped as "3 at a time" via a live-count check, then switched to lifetime at Sumair's request.)
 - **Two paid packs.** `/api/checkout` takes `{ pack: 'cv' | 'premium' }`: $3 → +3 CVs (`cv_credits`, migration `011`); $5 → premium pack + 3 CVs. Webhook grants per pack from `session.metadata.pack`.
