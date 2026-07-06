@@ -4,7 +4,7 @@ import { handle } from "@/lib/api/handle";
 import { badRequest, conflict, notFound, ok, unauthorized } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
 import { logEvent } from "@/lib/analytics-server";
-import { jsearchProvider } from "@/lib/jobs/jsearch";
+import { searchJobs } from "@/lib/jobs/search";
 import { countryCodeFrom } from "@/lib/jobs/geo";
 import { queryFromCv, rankJobs } from "@/lib/jobs/match";
 import { NextResponse } from "next/server";
@@ -63,7 +63,7 @@ export const POST = handle("jobs-search", async ({ req, log }) => {
 
   let listings;
   try {
-    listings = await jsearchProvider.search({
+    listings = await searchJobs({
       query,
       location,
       country,

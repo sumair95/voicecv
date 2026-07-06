@@ -23,6 +23,10 @@ const serverSchema = sharedSchema.extend({
   // Optional: enables AI Job Match (JSearch on RapidAPI). Feature degrades to a
   // clear "not configured" message when absent, so it's not required to boot.
   RAPIDAPI_KEY: z.string().min(1).optional(),
+  // Optional: Adzuna is the backup job provider (covers Australia + rescues
+  // JSearch timeouts). Both are needed together; absent = provider is skipped.
+  ADZUNA_APP_ID: z.string().min(1).optional(),
+  ADZUNA_APP_KEY: z.string().min(1).optional(),
 });
 
 function readShared() {
@@ -49,6 +53,8 @@ function readServer() {
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     RAPIDAPI_KEY: process.env.RAPIDAPI_KEY,
+    ADZUNA_APP_ID: process.env.ADZUNA_APP_ID,
+    ADZUNA_APP_KEY: process.env.ADZUNA_APP_KEY,
   });
   if (!parsed.success) {
     throw new Error(
