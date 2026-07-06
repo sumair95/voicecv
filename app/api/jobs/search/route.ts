@@ -67,7 +67,9 @@ export const POST = handle("jobs-search", async ({ req, log }) => {
       query,
       location,
       country,
-      numPages: 2,
+      // One page (~10 results) is plenty and roughly halves upstream latency —
+      // JSearch time scales with num_pages and was timing out at 2 from Railway.
+      numPages: 1,
       remoteOnly: body.remoteOnly,
     });
   } catch (err) {

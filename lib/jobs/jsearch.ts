@@ -15,7 +15,7 @@ import { logger } from "@/lib/log";
 const HOST = "jsearch.p.rapidapi.com";
 /** Hard cap per JSearch request so a slow/hung upstream can't stall the whole
  * route until the edge proxy 502s. */
-const FETCH_TIMEOUT_MS = 12_000;
+const FETCH_TIMEOUT_MS = 18_000;
 
 async function fetchWithTimeout(url: URL, init: RequestInit): Promise<Response> {
   const ac = new AbortController();
