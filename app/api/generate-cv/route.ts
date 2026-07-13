@@ -1,4 +1,5 @@
-import { generateCV, outputLanguageFor, CV_MODEL } from "@/lib/claude";
+import { outputLanguageFor } from "@/lib/claude";
+import { generateBestCV } from "@/lib/cv-models/generate";
 import { getAuthContext } from "@/lib/api/auth";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, paymentRequired, unauthorized } from "@/lib/api/respond";
@@ -75,7 +76,13 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
       ? body.outputLanguage
       : outputLanguageFor(body.language);
 
-  const cvData = await generateCV(body.qaPairs, body.language, cvLanguage);
+  // Multi-model competition when enabled (highest blind-judged CV wins); single
+  // Claude call otherwise. `winningModel` is the model whose CV we keep.
+  const { cvData, model: winningModel, scores } = await generateBestCV(
+    body.qaPairs,
+    body.language,
+    cvLanguage,
+  );
   const title = cvData.personal?.full_name || "My CV";
 
   let cvId = body.cvId;
@@ -90,7 +97,7 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
         // Immutable snapshot of the AI's original output for edit-diff learning
         // (cv_data gets overwritten by edits; this never does).
         generated_cv_data: cvData,
-        generated_by: CV_MODEL,
+        generated_by: winningModel,
         title,
         language: cvLanguage,
       })
@@ -107,7 +114,7 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
         cv_data: cvData,
         // Regenerating is a fresh AI output — reset the original snapshot too.
         generated_cv_data: cvData,
-        generated_by: CV_MODEL,
+        generated_by: winningModel,
         transcript,
         title,
         status: "ready",
@@ -119,9 +126,25 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
     if (error) throw error;
   }
 
+  // Multi-model validation log: record every model's blind score for this CV.
+  // Best-effort — must never fail the generation.
+  if (scores.length > 0 && cvId) {
+    const { error: scoreErr } = await supabase.from("cv_model_scores").insert(
+      scores.map((s) => ({
+        cv_id: cvId,
+        user_id: user.id,
+        model: s.model,
+        score: s.score,
+        won: s.won,
+      })),
+    );
+    if (scoreErr) log.warn("cv_model_scores insert failed", { err: scoreErr });
+  }
+
   await logEvent(supabase, user.id, "cv_generated", {
     isNew: !body.cvId,
     language: cvLanguage,
+    model: winningModel,
   });
 
   log.info("cv generated", { cvId, userId: user.id });
