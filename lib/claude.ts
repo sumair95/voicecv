@@ -5,6 +5,9 @@ import { logger } from "@/lib/log";
 
 const MODEL = "claude-sonnet-4-6";
 
+/** Exported so callers can record which model produced a CV (edit-diff learning). */
+export const CV_MODEL = MODEL;
+
 const LANGUAGE_NAME: Record<Language, string> = {
   en: "English",
   it: "Italian",

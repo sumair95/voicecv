@@ -79,7 +79,17 @@ export default function CVDetailPage() {
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);
-    if (error) toast.error("Save failed: " + error.message);
+    if (error) {
+      toast.error("Save failed: " + error.message);
+      return;
+    }
+    // Record the (AI original -> human-approved final) pair for edit-diff
+    // learning. Fire-and-forget — never block or surface errors to the editor.
+    void fetch("/api/cv/log-edit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cvId: id }),
+    }).catch(() => {});
   });
 
   function handleChange(updated: CVData) {

@@ -1,4 +1,4 @@
-import { generateCV, outputLanguageFor } from "@/lib/claude";
+import { generateCV, outputLanguageFor, CV_MODEL } from "@/lib/claude";
 import { getAuthContext } from "@/lib/api/auth";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, paymentRequired, unauthorized } from "@/lib/api/respond";
@@ -87,6 +87,10 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
         status: "ready",
         transcript,
         cv_data: cvData,
+        // Immutable snapshot of the AI's original output for edit-diff learning
+        // (cv_data gets overwritten by edits; this never does).
+        generated_cv_data: cvData,
+        generated_by: CV_MODEL,
         title,
         language: cvLanguage,
       })
@@ -101,6 +105,9 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
       .from("cvs")
       .update({
         cv_data: cvData,
+        // Regenerating is a fresh AI output — reset the original snapshot too.
+        generated_cv_data: cvData,
+        generated_by: CV_MODEL,
         transcript,
         title,
         status: "ready",
