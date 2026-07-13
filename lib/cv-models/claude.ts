@@ -24,6 +24,7 @@ export const claudeCVProvider: CVModelProvider = {
     qaPairs: QAPair[],
     language: Language,
     outputLanguage: Language,
+    exemplars: string[] = [],
   ): Promise<CVData> {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set");
@@ -37,7 +38,10 @@ export const claudeCVProvider: CVModelProvider = {
           max_tokens: 2500,
           system: buildSystemPrompt(outputName),
           messages: [
-            { role: "user", content: buildUserMessage(qaPairs, language, outputName) },
+            {
+              role: "user",
+              content: buildUserMessage(qaPairs, language, outputName, exemplars),
+            },
           ],
         }),
       { onRetry: (err, attempt) => logger.warn("claude cv retry", { attempt, err }) },

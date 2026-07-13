@@ -16,5 +16,7 @@ export interface CVModelProvider {
     qaPairs: import("@/types/cv").QAPair[],
     language: Language,
     outputLanguage: Language,
+    /** Redacted few-shot reference CVs (structure/quality only). */
+    exemplars?: string[],
   ): Promise<CVData>;
 }

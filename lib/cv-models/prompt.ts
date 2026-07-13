@@ -82,6 +82,7 @@ export function buildUserMessage(
   qaPairs: QAPair[],
   inputLanguage: Language,
   outputName: string,
+  exemplars: string[] = [],
 ): string {
   const qaBlock = qaPairs
     .map(
@@ -90,12 +91,23 @@ export function buildUserMessage(
     )
     .join("\n\n");
 
+  // Retrieval-augmented few-shot: strong, human-approved CVs for a similar role
+  // guide STRUCTURE and QUALITY only. Identifiers are pre-stripped, and the
+  // model is forbidden from copying any fact — every fact must come from THIS
+  // candidate's answers above.
+  const referenceBlock =
+    exemplars.length > 0
+      ? `\n\nREFERENCE — ${exemplars.length} strong, human-approved CV${exemplars.length > 1 ? "s" : ""} for a similar role. Use ONLY to guide structure, tone, bullet style, and the level of specificity. NEVER copy any fact (names, employers, dates, numbers, skills) from them — every fact in your output must come from THIS candidate's answers above. Personal identifiers have been removed.\n\n${exemplars
+          .map((ex, i) => `Reference CV ${i + 1}:\n${ex}`)
+          .join("\n\n")}`
+      : "";
+
   return `The candidate answered the questions in: ${LANGUAGE_NAME[inputLanguage]}.
 Write the CV in ${outputName} — translate from ${LANGUAGE_NAME[inputLanguage]} where needed.
 
 Questions and answers from the job seeker:
 
-${qaBlock}
+${qaBlock}${referenceBlock}
 
 Generate the structured CV JSON now (${outputName}).`;
 }

@@ -1,5 +1,6 @@
 import { outputLanguageFor } from "@/lib/claude";
 import { generateBestCV } from "@/lib/cv-models/generate";
+import { fetchExemplars } from "@/lib/cv-models/exemplars";
 import { getAuthContext } from "@/lib/api/auth";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, paymentRequired, unauthorized } from "@/lib/api/respond";
@@ -76,12 +77,23 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
       ? body.outputLanguage
       : outputLanguageFor(body.language);
 
+  // Retrieval-augmented few-shot: pull redacted, human-approved CVs for a
+  // similar role + language to guide structure/quality (never facts). Best-
+  // effort — an empty result means generation behaves exactly as before.
+  const roleHint =
+    body.qaPairs.find((qa) => qa.field_key === "recent_job")?.answer ?? "";
+  const exemplars = await fetchExemplars(supabase, cvLanguage, roleHint);
+  if (exemplars.length > 0) {
+    log.info("few-shot exemplars used", { count: exemplars.length });
+  }
+
   // Multi-model competition when enabled (highest blind-judged CV wins); single
   // Claude call otherwise. `winningModel` is the model whose CV we keep.
   const { cvData, model: winningModel, scores } = await generateBestCV(
     body.qaPairs,
     body.language,
     cvLanguage,
+    exemplars,
   );
   const title = cvData.personal?.full_name || "My CV";
 

@@ -46,19 +46,20 @@ export async function generateBestCV(
   qaPairs: QAPair[],
   language: Language,
   outputLanguage: Language,
+  exemplars: string[] = [],
 ): Promise<BestCVResult> {
   const configured = PROVIDERS.filter((p) => p.isConfigured());
 
   // Single-model mode (default) OR only one model available → original path.
   if (!multiModelEnabled() || configured.length <= 1) {
     const provider = configured[0] ?? claudeCVProvider;
-    const cvData = await provider.generate(qaPairs, language, outputLanguage);
+    const cvData = await provider.generate(qaPairs, language, outputLanguage, exemplars);
     return { cvData, model: provider.name, scores: [] };
   }
 
   // Multi-model: generate with every configured model in parallel.
   const results = await Promise.allSettled(
-    configured.map((p) => p.generate(qaPairs, language, outputLanguage)),
+    configured.map((p) => p.generate(qaPairs, language, outputLanguage, exemplars)),
   );
 
   const candidates: { provider: CVModelProvider; cv: CVData }[] = [];

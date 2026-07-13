@@ -30,6 +30,7 @@ export const openaiCVProvider: CVModelProvider = {
     qaPairs: QAPair[],
     language: Language,
     outputLanguage: Language,
+    exemplars: string[] = [],
   ): Promise<CVData> {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
@@ -52,7 +53,10 @@ export const openaiCVProvider: CVModelProvider = {
           response_format: { type: "json_object" },
           messages: [
             { role: "system", content: buildSystemPrompt(outputName) },
-            { role: "user", content: buildUserMessage(qaPairs, language, outputName) },
+            {
+              role: "user",
+              content: buildUserMessage(qaPairs, language, outputName, exemplars),
+            },
           ],
         }),
       });
