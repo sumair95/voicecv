@@ -927,6 +927,52 @@ export const t: Dict = {
 
   // AI Job Match
   "nav.jobs": { en: "Jobs", ar: "الوظائف", ur: "نوکریاں", it: "Lavori" },
+  "nav.profile": { en: "Profile", ar: "الملف الشخصي", ur: "پروفائل", it: "Profilo" },
+  "profile.title": { en: "My Profile", ar: "ملفي الشخصي", ur: "میرا پروفائل", it: "Il mio profilo" },
+  "profile.subtitle": {
+    en: "Your details are saved here and reused across your CVs. Edit them any time.",
+    ar: "تُحفظ بياناتك هنا وتُستخدم في سِيَرك الذاتية. عدّلها في أي وقت.",
+    ur: "آپ کی تفصیلات یہاں محفوظ ہیں اور آپ کے CVs میں دوبارہ استعمال ہوتی ہیں۔ کسی بھی وقت ترمیم کریں۔",
+    it: "I tuoi dati sono salvati qui e riutilizzati nei tuoi CV. Modificali quando vuoi.",
+  },
+  "profile.fullName": { en: "Full name", ar: "الاسم الكامل", ur: "پورا نام", it: "Nome completo" },
+  "profile.email": { en: "Email", ar: "البريد الإلكتروني", ur: "ای میل", it: "Email" },
+  "profile.phone": { en: "Phone", ar: "الهاتف", ur: "فون", it: "Telefono" },
+  "profile.city": { en: "City", ar: "المدينة", ur: "شہر", it: "Città" },
+  "profile.country": { en: "Country", ar: "الدولة", ur: "ملک", it: "Paese" },
+  "profile.nationality": { en: "Nationality", ar: "الجنسية", ur: "قومیت", it: "Nazionalità" },
+  "profile.save": { en: "Save profile", ar: "حفظ الملف", ur: "پروفائل محفوظ کریں", it: "Salva profilo" },
+  "profile.saved": { en: "Profile saved", ar: "تم حفظ الملف", ur: "پروفائل محفوظ ہو گیا", it: "Profilo salvato" },
+  "profile.saveError": {
+    en: "Couldn't save profile",
+    ar: "تعذّر حفظ الملف",
+    ur: "پروفائل محفوظ نہیں ہو سکا",
+    it: "Impossibile salvare il profilo",
+  },
+  "profile.hint": {
+    en: "Tip: generate a CV and we'll fill this in for you automatically.",
+    ar: "نصيحة: أنشئ سيرة ذاتية وسنملأ هذا تلقائياً.",
+    ur: "ٹپ: ایک CV بنائیں اور ہم یہ خودکار طور پر بھر دیں گے۔",
+    it: "Suggerimento: genera un CV e compileremo questo automaticamente.",
+  },
+  "profile.applyToCv": {
+    en: "Use my profile details",
+    ar: "استخدم بيانات ملفي",
+    ur: "میرے پروفائل کی تفصیلات استعمال کریں",
+    it: "Usa i dati del mio profilo",
+  },
+  "profile.applied": {
+    en: "Profile details applied",
+    ar: "تم تطبيق بيانات الملف",
+    ur: "پروفائل کی تفصیلات لاگو ہو گئیں",
+    it: "Dati del profilo applicati",
+  },
+  "profile.applyEmpty": {
+    en: "Your profile is empty — fill it in on the Profile tab first.",
+    ar: "ملفك فارغ — املأه أولاً من تبويب الملف الشخصي.",
+    ur: "آپ کا پروفائل خالی ہے — پہلے پروفائل ٹیب میں بھریں۔",
+    it: "Il tuo profilo è vuoto — compilalo prima nella scheda Profilo.",
+  },
   "cv.findJobs": {
     en: "Find Matching Jobs",
     ar: "ابحث عن وظائف مناسبة",

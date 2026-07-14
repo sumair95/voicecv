@@ -33,6 +33,9 @@ export function Navbar({
               <Button asChild variant="ghost" size="sm">
                 <Link href="/jobs">{t("nav.jobs")}</Link>
               </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/profile">{t("nav.profile")}</Link>
+              </Button>
               {onSignOut && (
                 <Button onClick={onSignOut} variant="outline" size="sm">
                   {t("auth.signOut")}

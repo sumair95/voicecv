@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Pencil, Check, Loader2, Info, Briefcase } from "lucide-react";
+import { ArrowLeft, Download, Pencil, Check, Loader2, Info, Briefcase, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CVPreview } from "@/components/CVPreview";
 import { CoverLetterPanel } from "@/components/CoverLetterPanel";
@@ -95,6 +95,44 @@ export default function CVDetailPage() {
   function handleChange(updated: CVData) {
     setCv((prev) => (prev ? { ...prev, cv_data: updated } : prev));
     scheduleSave(updated);
+  }
+
+  // Pull the user's saved profile details into this CV's personal fields
+  // (profile values win where present). Lets a user update city/phone/etc. once
+  // on their profile and push it into whichever CV they choose.
+  async function applyProfile() {
+    if (!cv || !cv.cv_data) return;
+    const cvData = cv.cv_data;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("full_name, email, phone, city, country, nationality")
+      .eq("id", user.id)
+      .single();
+    const hasAny =
+      prof &&
+      (prof.full_name || prof.email || prof.phone || prof.city || prof.country || prof.nationality);
+    if (!hasAny) {
+      toast.error(t("profile.applyEmpty"));
+      return;
+    }
+    const p = cvData.personal ?? {};
+    handleChange({
+      ...cvData,
+      personal: {
+        ...p,
+        full_name: prof.full_name || p.full_name || "",
+        email: prof.email || p.email || "",
+        phone: prof.phone || p.phone || "",
+        city: prof.city || p.city || "",
+        country: prof.country || p.country || "",
+        nationality: prof.nationality || p.nationality || "",
+      },
+    });
+    toast.success(t("profile.applied"));
   }
 
   async function changeTemplate(next: TemplateId) {
@@ -222,6 +260,12 @@ export default function CVDetailPage() {
               </>
             )}
           </Button>
+          {editing && (
+            <Button variant="outline" onClick={applyProfile}>
+              <UserRound className="me-2 h-4 w-4" />
+              {t("profile.applyToCv")}
+            </Button>
+          )}
           <Button
             onClick={downloadPdf}
             disabled={downloading}

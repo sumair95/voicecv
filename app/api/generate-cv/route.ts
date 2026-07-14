@@ -15,8 +15,40 @@ import { logEvent } from "@/lib/analytics-server";
 import { logger } from "@/lib/log";
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Language, QAPair } from "@/types/cv";
+import type { CVData, Language, QAPair } from "@/types/cv";
 import { OUTPUT_LANGUAGES } from "@/types/cv";
+
+/**
+ * Seed the user's reusable profile from a generated CV — fills only the fields
+ * that are still empty, so the first CV populates the profile and later CVs
+ * never overwrite edits the user made on the Profile tab. Best-effort.
+ */
+async function seedProfile(
+  supabase: SupabaseClient,
+  userId: string,
+  cv: CVData,
+): Promise<void> {
+  try {
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("full_name, email, phone, city, country, nationality")
+      .eq("id", userId)
+      .single();
+    if (!prof) return;
+    const p = cv.personal ?? {};
+    const patch: Record<string, string> = {};
+    const fill = (col: keyof typeof p) => {
+      const val = (p[col] ?? "").toString().trim();
+      if (val && !(prof as Record<string, unknown>)[col]) patch[col] = val;
+    };
+    (["full_name", "email", "phone", "city", "country", "nationality"] as const).forEach(fill);
+    if (Object.keys(patch).length > 0) {
+      await supabase.from("profiles").update(patch).eq("id", userId);
+    }
+  } catch (err) {
+    logger.warn("seedProfile failed", { err, userId });
+  }
+}
 
 /**
  * Background multi-model competition. Runs AFTER the primary CV is returned, so
@@ -214,6 +246,10 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
       .eq("user_id", user.id);
     if (error) throw error;
   }
+
+  // Seed the reusable profile from this CV (fills empty fields only). Best-
+  // effort, not awaited.
+  if (cvId) void seedProfile(supabase, user.id, cvData);
 
   // Fire the multi-model competition in the BACKGROUND (Railway keeps the Node
   // process alive) — challengers + judge run after we respond; the winner is
