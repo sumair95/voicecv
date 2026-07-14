@@ -1,17 +1,18 @@
 /**
  * CV generation orchestrator.
  *
- * Flag OFF (default): behaves exactly like the original single-model path —
- * generate with Claude only. Zero added cost/latency; the live demo path is
- * untouched.
+ * Fast path — `generatePrimaryCV`: generate with the primary (first configured)
+ * model, Claude. Always used, always returned immediately.
  *
- * Flag ON (CV_MULTI_MODEL=true): every configured model generates a CV in
- * parallel, a blind judge scores each 0–10, and the HIGHEST-rated CV is
- * returned. All per-model scores are returned so the caller can log them for
- * future validation. Claude is always the guaranteed fallback: if other models
- * or the judge fail, Claude's CV is used.
+ * Competition — `runChallengers`: when CV_MULTI_MODEL is on and other models are
+ * configured, generate with them too, blind-judge [primary + challengers], and
+ * return the winner + all scores. The route runs this in the BACKGROUND after
+ * responding, so the user never waits for it (see generate-cv route).
  *
- * New models (Grok, Gemini, …) are added by dropping a provider into PROVIDERS.
+ * `generateBestCV` composes both for callers that want the synchronous result
+ * (e.g. the e2e test). Claude is always the guaranteed fallback and wins ties.
+ *
+ * New models (Grok, Gemini, …) drop into PROVIDERS — same pattern as lib/jobs.
  */
 
 import type { CVData, Language, QAPair } from "@/types/cv";
@@ -30,79 +31,113 @@ export interface ModelScore {
   won: boolean;
 }
 
-export interface BestCVResult {
+export interface GeneratedCV {
   cvData: CVData;
-  /** The model whose CV was chosen. */
   model: string;
-  /** Per-model scores (empty in single-model mode). */
+}
+
+export interface BestCVResult extends GeneratedCV {
   scores: ModelScore[];
 }
 
-function multiModelEnabled(): boolean {
+export interface ChallengerResult {
+  scores: ModelScore[];
+  /** The winning challenger's CV, or null when the primary (Claude) wins. */
+  winner: GeneratedCV | null;
+}
+
+export function multiModelEnabled(): boolean {
   return process.env.CV_MULTI_MODEL === "true";
 }
 
-export async function generateBestCV(
+function configuredProviders(): CVModelProvider[] {
+  return PROVIDERS.filter((p) => p.isConfigured());
+}
+
+/** True when a background competition would actually run (enabled + a challenger exists). */
+export function hasChallengers(): boolean {
+  return multiModelEnabled() && configuredProviders().length > 1;
+}
+
+/** Fast path — generate with the primary (first configured) model. */
+export async function generatePrimaryCV(
   qaPairs: QAPair[],
   language: Language,
   outputLanguage: Language,
   exemplars: string[] = [],
-): Promise<BestCVResult> {
-  const configured = PROVIDERS.filter((p) => p.isConfigured());
+): Promise<GeneratedCV> {
+  const provider = configuredProviders()[0] ?? claudeCVProvider;
+  const cvData = await provider.generate(qaPairs, language, outputLanguage, exemplars);
+  return { cvData, model: provider.name };
+}
 
-  // Single-model mode (default) OR only one model available → original path.
-  if (!multiModelEnabled() || configured.length <= 1) {
-    const provider = configured[0] ?? claudeCVProvider;
-    const cvData = await provider.generate(qaPairs, language, outputLanguage, exemplars);
-    return { cvData, model: provider.name, scores: [] };
-  }
+/**
+ * Generate with the challenger models, blind-judge them against the primary,
+ * and return the winner (null if the primary wins) + every model's score.
+ * Best-effort: a failed challenger is skipped; a failed judge leaves the
+ * primary as winner.
+ */
+export async function runChallengers(
+  qaPairs: QAPair[],
+  language: Language,
+  outputLanguage: Language,
+  exemplars: string[],
+  primary: GeneratedCV,
+): Promise<ChallengerResult> {
+  const challengers = configuredProviders().filter((p) => p.name !== primary.model);
+  if (challengers.length === 0) return { scores: [], winner: null };
 
-  // Multi-model: generate with every configured model in parallel.
   const results = await Promise.allSettled(
-    configured.map((p) => p.generate(qaPairs, language, outputLanguage, exemplars)),
+    challengers.map((p) => p.generate(qaPairs, language, outputLanguage, exemplars)),
   );
 
-  const candidates: { provider: CVModelProvider; cv: CVData }[] = [];
+  // Index 0 is always the primary, so a tie or a judge failure keeps Claude.
+  const candidates: GeneratedCV[] = [{ cvData: primary.cvData, model: primary.model }];
   results.forEach((r, i) => {
     if (r.status === "fulfilled") {
-      candidates.push({ provider: configured[i], cv: r.value });
+      candidates.push({ cvData: r.value, model: challengers[i].name });
     } else {
-      logger.warn("cv model failed", { model: configured[i].name, err: r.reason });
+      logger.warn("challenger cv failed", { model: challengers[i].name, err: r.reason });
     }
   });
+  if (candidates.length === 1) return { scores: [], winner: null };
 
-  if (candidates.length === 0) {
-    // Everything failed — surface the first error (route handles it).
-    const firstReject = results.find((r) => r.status === "rejected");
-    throw firstReject && firstReject.status === "rejected"
-      ? firstReject.reason
-      : new Error("All CV models failed");
-  }
+  const judged = await scoreCVs(qaPairs, candidates.map((c) => c.cvData));
 
-  // Blind-score the candidates.
-  const judged = await scoreCVs(qaPairs, candidates.map((c) => c.cv));
-
-  // Pick the highest score. Ties (and an all-zero judge failure) prefer the
-  // earliest provider — Claude — since PROVIDERS is in preference order.
   let bestIdx = 0;
   for (let i = 1; i < candidates.length; i++) {
     if ((judged[i] ?? 0) > (judged[bestIdx] ?? 0)) bestIdx = i;
   }
 
   const scores: ModelScore[] = candidates.map((c, i) => ({
-    model: c.provider.name,
+    model: c.model,
     score: judged[i] ?? 0,
     won: i === bestIdx,
   }));
-
   logger.info("cv multi-model pick", {
-    winner: candidates[bestIdx].provider.name,
+    winner: candidates[bestIdx].model,
     scores: scores.map((s) => `${s.model}:${s.score}`),
   });
 
-  return {
-    cvData: candidates[bestIdx].cv,
-    model: candidates[bestIdx].provider.name,
-    scores,
-  };
+  return { scores, winner: bestIdx === 0 ? null : candidates[bestIdx] };
+}
+
+/** Synchronous best-of-N (primary + challengers). Used by the e2e test. */
+export async function generateBestCV(
+  qaPairs: QAPair[],
+  language: Language,
+  outputLanguage: Language,
+  exemplars: string[] = [],
+): Promise<BestCVResult> {
+  const primary = await generatePrimaryCV(qaPairs, language, outputLanguage, exemplars);
+  if (!hasChallengers()) return { ...primary, scores: [] };
+
+  const { scores, winner } = await runChallengers(
+    qaPairs,
+    language,
+    outputLanguage,
+    exemplars,
+    primary,
+  );
+  return { ...(winner ?? primary), scores };
 }

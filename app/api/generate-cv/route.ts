@@ -1,5 +1,10 @@
 import { outputLanguageFor } from "@/lib/claude";
-import { generateBestCV } from "@/lib/cv-models/generate";
+import {
+  generatePrimaryCV,
+  hasChallengers,
+  runChallengers,
+  type GeneratedCV,
+} from "@/lib/cv-models/generate";
 import { fetchExemplars } from "@/lib/cv-models/exemplars";
 import { getAuthContext } from "@/lib/api/auth";
 import { handle } from "@/lib/api/handle";
@@ -7,9 +12,78 @@ import { badRequest, ok, paymentRequired, unauthorized } from "@/lib/api/respond
 import { LIMITS, take } from "@/lib/rate-limit";
 import { FREE_CV_LIMIT } from "@/lib/premium";
 import { logEvent } from "@/lib/analytics-server";
+import { logger } from "@/lib/log";
 import { NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Language, QAPair } from "@/types/cv";
 import { OUTPUT_LANGUAGES } from "@/types/cv";
+
+/**
+ * Background multi-model competition. Runs AFTER the primary CV is returned, so
+ * the user never waits. Logs every model's blind score and, if a challenger
+ * beats Claude, swaps the stored CV to the winner — but only when the user
+ * hasn't edited it yet (never clobbers edits).
+ */
+async function runCompetitionInBackground(
+  supabase: SupabaseClient,
+  userId: string,
+  cvId: string,
+  qaPairs: QAPair[],
+  language: Language,
+  outputLanguage: Language,
+  exemplars: string[],
+  primary: GeneratedCV,
+): Promise<void> {
+  try {
+    const { scores, winner } = await runChallengers(
+      qaPairs,
+      language,
+      outputLanguage,
+      exemplars,
+      primary,
+    );
+
+    if (scores.length > 0) {
+      await supabase.from("cv_model_scores").insert(
+        scores.map((s) => ({
+          cv_id: cvId,
+          user_id: userId,
+          model: s.model,
+          score: s.score,
+          won: s.won,
+        })),
+      );
+    }
+
+    if (winner) {
+      // Edit-safe swap: only replace cv_data if it's still exactly the primary
+      // output (i.e. the user hasn't started editing in the few seconds since).
+      const { data: cur } = await supabase
+        .from("cvs")
+        .select("cv_data")
+        .eq("id", cvId)
+        .eq("user_id", userId)
+        .single();
+      if (cur && JSON.stringify(cur.cv_data) === JSON.stringify(primary.cvData)) {
+        await supabase
+          .from("cvs")
+          .update({
+            cv_data: winner.cvData,
+            generated_cv_data: winner.cvData,
+            generated_by: winner.model,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", cvId)
+          .eq("user_id", userId);
+        logger.info("multi-model background swap", { cvId, winner: winner.model });
+      } else {
+        logger.info("multi-model swap skipped (cv already changed)", { cvId });
+      }
+    }
+  } catch (err) {
+    logger.warn("background competition failed", { err, cvId });
+  }
+}
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -87,14 +161,17 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
     log.info("few-shot exemplars used", { count: exemplars.length });
   }
 
-  // Multi-model competition when enabled (highest blind-judged CV wins); single
-  // Claude call otherwise. `winningModel` is the model whose CV we keep.
-  const { cvData, model: winningModel, scores } = await generateBestCV(
+  // Generate the PRIMARY CV (Claude) and return it immediately. When
+  // multi-model is enabled, challenger models + the blind judge run in the
+  // background after we respond (see below) — the user never waits for them.
+  const primary = await generatePrimaryCV(
     body.qaPairs,
     body.language,
     cvLanguage,
     exemplars,
   );
+  const cvData = primary.cvData;
+  const primaryModel = primary.model;
   const title = cvData.personal?.full_name || "My CV";
 
   let cvId = body.cvId;
@@ -109,7 +186,7 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
         // Immutable snapshot of the AI's original output for edit-diff learning
         // (cv_data gets overwritten by edits; this never does).
         generated_cv_data: cvData,
-        generated_by: winningModel,
+        generated_by: primaryModel,
         title,
         language: cvLanguage,
       })
@@ -126,7 +203,7 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
         cv_data: cvData,
         // Regenerating is a fresh AI output — reset the original snapshot too.
         generated_cv_data: cvData,
-        generated_by: winningModel,
+        generated_by: primaryModel,
         transcript,
         title,
         status: "ready",
@@ -138,25 +215,26 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
     if (error) throw error;
   }
 
-  // Multi-model validation log: record every model's blind score for this CV.
-  // Best-effort — must never fail the generation.
-  if (scores.length > 0 && cvId) {
-    const { error: scoreErr } = await supabase.from("cv_model_scores").insert(
-      scores.map((s) => ({
-        cv_id: cvId,
-        user_id: user.id,
-        model: s.model,
-        score: s.score,
-        won: s.won,
-      })),
+  // Fire the multi-model competition in the BACKGROUND (Railway keeps the Node
+  // process alive) — challengers + judge run after we respond; the winner is
+  // swapped in only if the user hasn't started editing. Not awaited.
+  if (hasChallengers() && cvId) {
+    void runCompetitionInBackground(
+      supabase,
+      user.id,
+      cvId,
+      body.qaPairs,
+      body.language,
+      cvLanguage,
+      exemplars,
+      primary,
     );
-    if (scoreErr) log.warn("cv_model_scores insert failed", { err: scoreErr });
   }
 
   await logEvent(supabase, user.id, "cv_generated", {
     isNew: !body.cvId,
     language: cvLanguage,
-    model: winningModel,
+    model: primaryModel,
   });
 
   log.info("cv generated", { cvId, userId: user.id });
