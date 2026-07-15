@@ -1011,6 +1011,33 @@ export const t: Dict = {
     ur: "پیشہ ورانہ تصویر تیار ہے",
     it: "Foto professionale pronta",
   },
+  "photo.capture": { en: "Capture", ar: "التقاط", ur: "کیپچر", it: "Scatta" },
+  "photo.cancel": { en: "Cancel", ar: "إلغاء", ur: "منسوخ", it: "Annulla" },
+  "photo.cameraError": {
+    en: "Camera unavailable or permission denied. Allow camera access and try again.",
+    ar: "الكاميرا غير متاحة أو تم رفض الإذن. اسمح بالوصول إلى الكاميرا وحاول مجدداً.",
+    ur: "کیمرہ دستیاب نہیں یا اجازت مسترد۔ کیمرے کی اجازت دیں اور دوبارہ کوشش کریں۔",
+    it: "Fotocamera non disponibile o permesso negato. Consenti l'accesso e riprova.",
+  },
+  "profile.applyCvsTitle": {
+    en: "Apply to your CVs",
+    ar: "تطبيق على سِيَرك الذاتية",
+    ur: "اپنے CVs پر لاگو کریں",
+    it: "Applica ai tuoi CV",
+  },
+  "profile.applyCvsHint": {
+    en: "Push your saved details into a CV. This updates that CV's personal info.",
+    ar: "طبّق بياناتك المحفوظة على سيرة ذاتية. سيحدّث ذلك المعلومات الشخصية لتلك السيرة.",
+    ur: "اپنی محفوظ تفصیلات کسی CV میں شامل کریں۔ یہ اس CV کی ذاتی معلومات اپ ڈیٹ کرے گا۔",
+    it: "Applica i tuoi dati salvati a un CV. Aggiorna le informazioni personali di quel CV.",
+  },
+  "profile.apply": { en: "Apply", ar: "تطبيق", ur: "لاگو کریں", it: "Applica" },
+  "profile.noCvs": {
+    en: "No CVs yet — create one first.",
+    ar: "لا توجد سِيَر بعد — أنشئ واحدة أولاً.",
+    ur: "ابھی کوئی CV نہیں — پہلے ایک بنائیں۔",
+    it: "Nessun CV ancora — creane uno prima.",
+  },
   "profile.applyEmpty": {
     en: "Your profile is empty — fill it in on the Profile tab first.",
     ar: "ملفك فارغ — املأه أولاً من تبويب الملف الشخصي.",

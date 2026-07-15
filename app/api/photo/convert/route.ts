@@ -8,6 +8,7 @@
  */
 
 import { getAuthContext } from "@/lib/api/auth";
+import { createServiceClient } from "@/lib/supabase/server";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, serverError, unauthorized } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
@@ -18,7 +19,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export const POST = handle("photo-convert", async ({ req, log }) => {
-  const { user, supabase } = await getAuthContext(req);
+  const { user } = await getAuthContext(req);
   if (!user) return unauthorized();
 
   if (!isPhotoEnhanceConfigured()) {
@@ -41,7 +42,9 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
 
   // TODO (billing): gate behind a paid formal-photo credit here before converting.
 
-  const { data: prof } = await supabase
+  // Service client for the privileged storage write (avoids browser storage RLS).
+  const admin = createServiceClient();
+  const { data: prof } = await admin
     .from("profiles")
     .select("photo_url")
     .eq("id", user.id)
@@ -58,17 +61,17 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
   }
 
   const path = `${user.id}/formal-${Date.now()}.jpg`;
-  const { error: upErr } = await supabase.storage
+  const { error: upErr } = await admin.storage
     .from("avatars")
     .upload(path, bytes, { contentType: "image/jpeg", upsert: true });
   if (upErr) {
     log.warn("converted photo upload failed", { err: upErr });
     return serverError("Couldn't save the converted photo");
   }
-  const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+  const { data: pub } = admin.storage.from("avatars").getPublicUrl(path);
   const formalUrl = pub.publicUrl;
 
-  await supabase
+  await admin
     .from("profiles")
     .update({ photo_formal_url: formalUrl, photo_choice: "formal" })
     .eq("id", user.id);

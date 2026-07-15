@@ -1,25 +1,26 @@
 "use client";
 
 /**
- * Profile tab — reusable personal details + a profile photo.
+ * Profile tab — reusable personal details, a profile photo, and a way to push
+ * the saved details into any of the user's CVs.
  *
- * Details are seeded from the user's first CV and editable here. The photo is
- * uploaded or captured (mobile camera), stored in the `avatars` bucket, and the
- * user chooses whether their CV uses the ORIGINAL or a paid "professional"
- * (AI-enhanced) version. The professional conversion is a Premium placeholder
- * for now — the AI provider gets wired in Phase 2.
+ * Uploads go through /api/photo/upload (server + service-role) so browser
+ * storage RLS can't block them. "Take photo" opens a live camera (getUserMedia).
+ * The professional conversion (remove.bg) is a paid add-on shown as a placeholder.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Camera, Upload, Trash2, Sparkles, Loader2 } from "lucide-react";
+import { Camera, Upload, Trash2, Sparkles, Loader2, FileText } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
+import { CameraCapture } from "@/components/CameraCapture";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCurrency } from "@/lib/pricing";
-import { FORMAL_PHOTO_USD_CENTS } from "@/lib/pricing";
+import { useCurrency, FORMAL_PHOTO_USD_CENTS } from "@/lib/pricing";
+import { migrateCvData } from "@/lib/cv/migrate";
+import type { CVData } from "@/types/cv";
 
 type Fields = {
   full_name: string;
@@ -39,6 +40,12 @@ const EMPTY: Fields = {
   nationality: "",
 };
 
+interface CvRow {
+  id: string;
+  title: string | null;
+  cv_data: CVData | null;
+}
+
 export default function ProfilePage() {
   const { t } = useLanguage();
   const { price } = useCurrency();
@@ -47,13 +54,15 @@ export default function ProfilePage() {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [formalUrl, setFormalUrl] = useState<string | null>(null);
   const [choice, setChoice] = useState<"original" | "formal">("original");
+  const [cvs, setCvs] = useState<CvRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [converting, setConverting] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const [applyingId, setApplyingId] = useState<string | null>(null);
 
   const uploadRef = useRef<HTMLInputElement>(null);
-  const cameraRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     (async () => {
@@ -64,13 +73,21 @@ export default function ProfilePage() {
         setLoading(false);
         return;
       }
-      const { data } = await supabase
-        .from("profiles")
-        .select(
-          "full_name, email, phone, city, country, nationality, photo_url, photo_formal_url, photo_choice",
-        )
-        .eq("id", user.id)
-        .single();
+      const [{ data }, { data: cvRows }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select(
+            "full_name, email, phone, city, country, nationality, photo_url, photo_formal_url, photo_choice",
+          )
+          .eq("id", user.id)
+          .single(),
+        supabase
+          .from("cvs")
+          .select("id, title, cv_data")
+          .eq("user_id", user.id)
+          .not("cv_data", "is", null)
+          .order("updated_at", { ascending: false }),
+      ]);
       if (data) {
         setFields({
           full_name: data.full_name ?? "",
@@ -84,6 +101,7 @@ export default function ProfilePage() {
         setFormalUrl(data.photo_formal_url ?? null);
         setChoice(data.photo_choice === "formal" ? "formal" : "original");
       }
+      setCvs((cvRows as CvRow[]) ?? []);
       setLoading(false);
     })();
   }, [supabase]);
@@ -107,32 +125,23 @@ export default function ProfilePage() {
     else toast.success(t("profile.saved"));
   }
 
+  // Upload via the server route (service-role storage write — no browser RLS).
   async function onFile(file: File | undefined) {
     if (!file) return;
     setUploading(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("avatars")
-        .upload(path, file, { upsert: true, contentType: file.type || "image/jpeg" });
-      if (upErr) {
-        toast.error(t("photo.uploadError"));
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/photo/upload", { method: "POST", body: fd });
+      const json = (await res.json().catch(() => ({}))) as {
+        photoUrl?: string;
+        error?: string;
+      };
+      if (!res.ok || !json.photoUrl) {
+        toast.error(json.error || t("photo.uploadError"));
         return;
       }
-      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
-      const url = pub.publicUrl;
-      // New upload replaces the original and invalidates the old professional
-      // version (it was made from the previous photo).
-      await supabase
-        .from("profiles")
-        .update({ photo_url: url, photo_formal_url: null, photo_choice: "original" })
-        .eq("id", user.id);
-      setPhotoUrl(url);
+      setPhotoUrl(json.photoUrl);
       setFormalUrl(null);
       setChoice("original");
       toast.success(t("photo.uploaded"));
@@ -164,7 +173,7 @@ export default function ProfilePage() {
     await supabase.from("profiles").update({ photo_choice: next }).eq("id", user.id);
   }
 
-  // Paid AI "professional" conversion (background removal + white bg + crop).
+  // Paid AI conversion (background removal + white bg + crop).
   async function makeFormal() {
     setConverting(true);
     try {
@@ -187,6 +196,39 @@ export default function ProfilePage() {
     }
   }
 
+  // Push saved profile details into one CV (profile values win where present).
+  async function applyToCv(cv: CvRow) {
+    if (!cv.cv_data) return;
+    setApplyingId(cv.id);
+    try {
+      const base = migrateCvData(cv.cv_data);
+      const p = base.personal ?? {};
+      const merged: CVData = {
+        ...base,
+        personal: {
+          ...p,
+          full_name: fields.full_name || p.full_name || "",
+          email: fields.email || p.email || "",
+          phone: fields.phone || p.phone || "",
+          city: fields.city || p.city || "",
+          country: fields.country || p.country || "",
+          nationality: fields.nationality || p.nationality || "",
+        },
+      };
+      const { error } = await supabase
+        .from("cvs")
+        .update({ cv_data: merged, updated_at: new Date().toISOString() })
+        .eq("id", cv.id);
+      if (error) toast.error(t("profile.saveError"));
+      else {
+        setCvs((list) => list.map((c) => (c.id === cv.id ? { ...c, cv_data: merged } : c)));
+        toast.success(t("profile.applied"));
+      }
+    } finally {
+      setApplyingId(null);
+    }
+  }
+
   const rows: [keyof Fields, string][] = [
     ["full_name", t("profile.fullName")],
     ["email", t("profile.email")],
@@ -201,6 +243,13 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
+      {showCamera && (
+        <CameraCapture
+          onCapture={(file) => onFile(file)}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
+
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-navy-900">
           {t("profile.title")}
@@ -235,29 +284,24 @@ export default function ProfilePage() {
               hidden
               onChange={(e) => onFile(e.target.files?.[0])}
             />
-            {/* `capture` opens the camera directly on mobile. */}
-            <input
-              ref={cameraRef}
-              type="file"
-              accept="image/*"
-              capture="user"
-              hidden
-              onChange={(e) => onFile(e.target.files?.[0])}
-            />
             <Button
               variant="outline"
               size="sm"
               disabled={uploading}
               onClick={() => uploadRef.current?.click()}
             >
-              <Upload className="me-2 h-4 w-4" />
+              {uploading ? (
+                <Loader2 className="me-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="me-2 h-4 w-4" />
+              )}
               {t("photo.upload")}
             </Button>
             <Button
               variant="outline"
               size="sm"
               disabled={uploading}
-              onClick={() => cameraRef.current?.click()}
+              onClick={() => setShowCamera(true)}
             >
               <Camera className="me-2 h-4 w-4" />
               {t("photo.take")}
@@ -273,7 +317,6 @@ export default function ProfilePage() {
 
         {photoUrl && (
           <>
-            {/* Keep original vs. use professional */}
             <div className="flex flex-wrap gap-2">
               <Button
                 variant={choice === "original" ? "default" : "outline"}
@@ -294,7 +337,6 @@ export default function ProfilePage() {
               </Button>
             </div>
 
-            {/* Paid AI conversion (placeholder) */}
             {!formalUrl && (
               <button
                 onClick={makeFormal}
@@ -352,6 +394,42 @@ export default function ProfilePage() {
           </>
         )}
       </div>
+
+      {/* Apply to CVs */}
+      {!loading && (
+        <div className="space-y-4 rounded-xl border border-navy-100 bg-white p-6 shadow-sm">
+          <div>
+            <h2 className="font-semibold text-navy-900">{t("profile.applyCvsTitle")}</h2>
+            <p className="mt-0.5 text-sm text-navy-400">{t("profile.applyCvsHint")}</p>
+          </div>
+          {cvs.length === 0 ? (
+            <p className="text-sm text-navy-400">{t("profile.noCvs")}</p>
+          ) : (
+            <ul className="divide-y divide-navy-100">
+              {cvs.map((cv) => (
+                <li key={cv.id} className="flex items-center justify-between gap-3 py-2.5">
+                  <span className="flex items-center gap-2 truncate text-navy-800">
+                    <FileText className="h-4 w-4 shrink-0 text-navy-300" />
+                    <span className="truncate">{cv.title || "My CV"}</span>
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={applyingId === cv.id}
+                    onClick={() => applyToCv(cv)}
+                  >
+                    {applyingId === cv.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      t("profile.apply")
+                    )}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }
