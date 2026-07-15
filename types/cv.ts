@@ -50,6 +50,8 @@ export const DEFAULT_TEMPLATE: TemplateId = "modern";
 
 export interface CVPersonal {
   full_name: string;
+  /** Professional title / headline shown under the name, e.g. "Data Analyst". */
+  job_title: string;
   nationality: string;
   city: string;
   country: string;
@@ -149,6 +151,7 @@ export interface QAPair {
 export const EMPTY_CV: CVData = {
   personal: {
     full_name: "",
+    job_title: "",
     nationality: "",
     city: "",
     country: "",

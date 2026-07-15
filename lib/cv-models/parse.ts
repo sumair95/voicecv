@@ -18,6 +18,7 @@ export function parseCVJson(raw: string): CVData {
   return {
     personal: {
       full_name: parsed.personal?.full_name ?? "",
+      job_title: parsed.personal?.job_title ?? "",
       nationality: parsed.personal?.nationality ?? "",
       city: parsed.personal?.city ?? "",
       country: parsed.personal?.country ?? "",

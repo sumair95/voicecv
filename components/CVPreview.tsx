@@ -290,6 +290,18 @@ export function CVPreview({
               placeholder={t("auth.fullName")}
             />
           </h1>
+          {(editable || data.personal.job_title) && (
+            <p className="mt-1 text-lg font-medium text-teal-600">
+              <Editable
+                value={data.personal.job_title}
+                editable={editable}
+                onChange={(v) =>
+                  patch({ personal: { ...data.personal, job_title: v } })
+                }
+                placeholder={t("cv.jobTitle")}
+              />
+            </p>
+          )}
           {editable ? (
             <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-sm text-navy-400">
               <Editable
@@ -844,6 +856,18 @@ export function CVPreview({
               placeholder={t("auth.fullName")}
             />
           </h1>
+          {(editable || data.personal.job_title) && (
+            <p className="text-sm font-medium text-teal-300">
+              <Editable
+                value={data.personal.job_title}
+                editable={editable}
+                onChange={(v) =>
+                  patch({ personal: { ...data.personal, job_title: v } })
+                }
+                placeholder={t("cv.jobTitle")}
+              />
+            </p>
+          )}
           {(data.personal.city || data.personal.country || editable) && (
             <div className="flex flex-wrap items-center justify-center gap-1.5 text-sm text-white/80">
               <MapPin className="h-3.5 w-3.5 shrink-0" />

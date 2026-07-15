@@ -54,6 +54,16 @@ export function ExecutiveTemplate({ data, editable, patch, t, isRtl }: Props) {
             placeholder={t("auth.fullName")}
           />
         </h1>
+        {(editable || data.personal.job_title) && (
+          <p className="mt-1 text-lg font-medium text-teal-200">
+            <Editable
+              value={data.personal.job_title}
+              editable={editable}
+              onChange={(v) => patch({ personal: { ...data.personal, job_title: v } })}
+              placeholder={t("cv.jobTitle")}
+            />
+          </p>
+        )}
         <p className="mt-3 text-sm text-white/70">
           <ContactInline {...ctx} />
         </p>

@@ -56,6 +56,16 @@ export function ClassicTemplate({ data, editable, patch, t, isRtl }: Props) {
             placeholder={t("auth.fullName")}
           />
         </h1>
+        {(editable || data.personal.job_title) && (
+          <p className="mt-1 text-lg font-medium text-navy-500">
+            <Editable
+              value={data.personal.job_title}
+              editable={editable}
+              onChange={(v) => patch({ personal: { ...data.personal, job_title: v } })}
+              placeholder={t("cv.jobTitle")}
+            />
+          </p>
+        )}
         <div className="mx-auto mt-3 h-px w-24 bg-navy-300" />
         <p className="mt-3 text-sm text-navy-400">
           <ContactInline {...ctx} />

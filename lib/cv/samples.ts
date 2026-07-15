@@ -10,6 +10,7 @@ import type { CVData } from "@/types/cv";
 export const SAMPLE_CONSTRUCTION: CVData = {
   personal: {
     full_name: "Mohammed Imran",
+    job_title: "Mason",
     nationality: "Pakistani",
     city: "Riyadh",
     country: "Saudi Arabia",
@@ -73,6 +74,7 @@ export const SAMPLE_CONSTRUCTION: CVData = {
 export const SAMPLE_DRIVER: CVData = {
   personal: {
     full_name: "Arjun Sharma",
+    job_title: "Delivery Driver",
     nationality: "Indian",
     city: "Dubai",
     country: "United Arab Emirates",
@@ -136,6 +138,7 @@ export const SAMPLE_DRIVER: CVData = {
 export const SAMPLE_HOSPITALITY: CVData = {
   personal: {
     full_name: "Maria Santos",
+    job_title: "Housekeeping Supervisor",
     nationality: "Filipino",
     city: "Jeddah",
     country: "Saudi Arabia",

@@ -45,6 +45,7 @@ async function main() {
   console.log(`\nwinning model: ${model}`);
   console.log("winning CV preview:");
   console.log(`  name:      ${cvData.personal.full_name}`);
+  console.log(`  job_title: ${cvData.personal.job_title}`);
   console.log(`  objective: ${(cvData.objective || "").slice(0, 120)}…`);
   console.log(`  role:      ${cvData.experience?.[0]?.role}`);
   console.log(`  skills:    ${(cvData.skills || []).slice(0, 6).join(", ")}`);

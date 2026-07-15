@@ -1038,6 +1038,12 @@ export const t: Dict = {
     ur: "ابھی کوئی CV نہیں — پہلے ایک بنائیں۔",
     it: "Nessun CV ancora — creane uno prima.",
   },
+  "cv.jobTitle": {
+    en: "Professional title (e.g. Data Analyst)",
+    ar: "المسمى المهني (مثل محلل بيانات)",
+    ur: "پیشہ ورانہ عنوان (مثلاً ڈیٹا اینالسٹ)",
+    it: "Titolo professionale (es. Data Analyst)",
+  },
   "profile.applyEmpty": {
     en: "Your profile is empty — fill it in on the Profile tab first.",
     ar: "ملفك فارغ — املأه أولاً من تبويب الملف الشخصي.",

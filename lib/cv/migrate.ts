@@ -16,6 +16,7 @@ export function migrateCvData(raw: unknown): CVData {
 
   const personal: CVPersonal = {
     full_name: src.personal?.full_name ?? "",
+    job_title: src.personal?.job_title ?? "",
     nationality: src.personal?.nationality ?? "",
     city: src.personal?.city ?? "",
     country: src.personal?.country ?? "",

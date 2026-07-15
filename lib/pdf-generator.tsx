@@ -572,6 +572,11 @@ function ModernDocument({
             <Text style={s.avatarText}>{initials(cv.personal.full_name)}</Text>
           </View>
           <Text style={s.name}>{cv.personal.full_name || ""}</Text>
+          {cv.personal.job_title ? (
+            <Text style={{ fontSize: 10, textAlign: "center", color: TEAL, marginTop: 2 }}>
+              {cv.personal.job_title}
+            </Text>
+          ) : null}
           {[cv.personal.city, cv.personal.country].filter(Boolean).length > 0 ? (
             <Text style={s.sub}>
               {[cv.personal.city, cv.personal.country].filter(Boolean).join(", ")}
@@ -823,6 +828,11 @@ function MinimalistDocument({
     <Document>
       <Page size="A4" style={s.page}>
         <Text style={s.name}>{cv.personal.full_name || ""}</Text>
+        {cv.personal.job_title ? (
+          <Text style={{ fontSize: 12, textAlign: "center", color: TEAL, marginTop: 2 }}>
+            {cv.personal.job_title}
+          </Text>
+        ) : null}
         {contactBits.length > 0 ? (
           <Text style={s.headerContact}>{contactBits.join("   •   ")}</Text>
         ) : null}
@@ -996,6 +1006,11 @@ function ClassicDocument({ cv, language }: { cv: CVData; language: Language }) {
     <Document>
       <Page size="A4" style={s.page}>
         <Text style={s.name}>{cv.personal.full_name || ""}</Text>
+        {cv.personal.job_title ? (
+          <Text style={{ fontSize: 12, textAlign: "center", color: "#64748B", marginTop: 3, letterSpacing: 1 }}>
+            {cv.personal.job_title}
+          </Text>
+        ) : null}
         <View style={s.headerRule} />
         {contact.length > 0 && <Text style={s.contact}>{contact.join("   ·   ")}</Text>}
         {socials.length > 0 && <Text style={s.contact}>{socials.join("   ·   ")}</Text>}
@@ -1137,6 +1152,9 @@ function ExecutiveDocument({ cv, language }: { cv: CVData; language: Language })
       <Page size="A4" style={s.page}>
         <View style={s.header}>
           <Text style={s.name}>{cv.personal.full_name || ""}</Text>
+          {cv.personal.job_title ? (
+            <Text style={{ fontSize: 12, color: TEAL, marginTop: 3 }}>{cv.personal.job_title}</Text>
+          ) : null}
           {contact.length > 0 && <Text style={s.headerContact}>{contact.join("   ·   ")}</Text>}
           {socials.length > 0 && <Text style={s.headerContact}>{socials.join("   ·   ")}</Text>}
         </View>

@@ -26,6 +26,7 @@ JSON shape (every field is required; use empty string/array/null if not provided
 {
   "personal": {
     "full_name": "string",
+    "job_title": "string (a concise 2-4 word professional title/headline shown under the name, e.g. 'Construction Site Supervisor', 'Data Analyst', 'Delivery Driver' — derived from the most recent role or the job the candidate is targeting)",
     "nationality": "string",
     "city": "string",
     "country": "string (country of residence — distinct from nationality)",
@@ -73,6 +74,7 @@ Quality rules:
 - Write ALL natural-language content in **${outputLanguage}**, regardless of the candidate's input language. Personal names, city names, and country names should be written in Latin script (e.g. "أحمد" → "Ahmed", "ریاض" → "Riyadh").
 - Do NOT invent facts (companies, dates, qualifications). If information is missing OR the user skipped the question (empty answer), return empty string/array/null for those fields.
 - Make the objective compelling and specific to the role + market the candidate wants.
+- job_title: a short professional headline (2-4 words), not a sentence. If the candidate gave no role at all, leave it "".
 - Normalize phone numbers to international format if obvious (e.g. +966, +39).
 - For skills, prefer specific items ("Toyota forklift licence", "MIG welding", "fluent in English + Italian") over vague ones ("hardworking", "team player").
 - Experience descriptions MUST be newline-separated bullets, one achievement per line, no markers.
