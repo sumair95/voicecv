@@ -14,6 +14,9 @@ import { useEffect, useState } from "react";
  */
 export type Currency = "USD" | "PKR" | "INR" | "SAR";
 
+/** Indicative price for the AI "formal photo" conversion (paid add-on). */
+export const FORMAL_PHOTO_USD_CENTS = 200;
+
 interface CurrencyInfo {
   symbol: string;
   rate: number; // indicative USD -> currency (≈ mid-2026)

@@ -1,18 +1,25 @@
 "use client";
 
 /**
- * Profile tab — reusable personal details, seeded from the user's first CV and
- * editable here. Saved to the profiles row; used to pre-fill the personal
- * fields of a CV via the "Use my profile details" button on the CV page.
+ * Profile tab — reusable personal details + a profile photo.
+ *
+ * Details are seeded from the user's first CV and editable here. The photo is
+ * uploaded or captured (mobile camera), stored in the `avatars` bucket, and the
+ * user chooses whether their CV uses the ORIGINAL or a paid "professional"
+ * (AI-enhanced) version. The professional conversion is a Premium placeholder
+ * for now — the AI provider gets wired in Phase 2.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Camera, Upload, Trash2, Sparkles } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useCurrency } from "@/lib/pricing";
+import { FORMAL_PHOTO_USD_CENTS } from "@/lib/pricing";
 
 type Fields = {
   full_name: string;
@@ -34,10 +41,18 @@ const EMPTY: Fields = {
 
 export default function ProfilePage() {
   const { t } = useLanguage();
+  const { price } = useCurrency();
   const supabase = useMemo(() => createClient(), []);
   const [fields, setFields] = useState<Fields>(EMPTY);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [formalUrl, setFormalUrl] = useState<string | null>(null);
+  const [choice, setChoice] = useState<"original" | "formal">("original");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const uploadRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     (async () => {
@@ -50,7 +65,9 @@ export default function ProfilePage() {
       }
       const { data } = await supabase
         .from("profiles")
-        .select("full_name, email, phone, city, country, nationality")
+        .select(
+          "full_name, email, phone, city, country, nationality, photo_url, photo_formal_url, photo_choice",
+        )
         .eq("id", user.id)
         .single();
       if (data) {
@@ -62,6 +79,9 @@ export default function ProfilePage() {
           country: data.country ?? "",
           nationality: data.nationality ?? "",
         });
+        setPhotoUrl(data.photo_url ?? null);
+        setFormalUrl(data.photo_formal_url ?? null);
+        setChoice(data.photo_choice === "formal" ? "formal" : "original");
       }
       setLoading(false);
     })();
@@ -86,6 +106,66 @@ export default function ProfilePage() {
     else toast.success(t("profile.saved"));
   }
 
+  async function onFile(file: File | undefined) {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type || "image/jpeg" });
+      if (upErr) {
+        toast.error(t("photo.uploadError"));
+        return;
+      }
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = pub.publicUrl;
+      // New upload replaces the original and resets the CV back to the original.
+      await supabase
+        .from("profiles")
+        .update({ photo_url: url, photo_choice: "original" })
+        .eq("id", user.id);
+      setPhotoUrl(url);
+      setChoice("original");
+      toast.success(t("photo.uploaded"));
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function removePhoto() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase
+      .from("profiles")
+      .update({ photo_url: null, photo_formal_url: null, photo_choice: "original" })
+      .eq("id", user.id);
+    setPhotoUrl(null);
+    setFormalUrl(null);
+    setChoice("original");
+  }
+
+  async function chooseVariant(next: "original" | "formal") {
+    setChoice(next);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("profiles").update({ photo_choice: next }).eq("id", user.id);
+  }
+
+  // Placeholder: the paid AI "professional" conversion is wired in Phase 2.
+  function makeFormal() {
+    toast(t("photo.formalSoon"));
+  }
+
   const rows: [keyof Fields, string][] = [
     ["full_name", t("profile.fullName")],
     ["email", t("profile.email")],
@@ -96,6 +176,7 @@ export default function ProfilePage() {
   ];
 
   const isEmpty = Object.values(fields).every((v) => !v);
+  const shown = choice === "formal" && formalUrl ? formalUrl : photoUrl;
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
@@ -106,6 +187,115 @@ export default function ProfilePage() {
         <p className="mt-1 text-navy-400">{t("profile.subtitle")}</p>
       </div>
 
+      {/* Photo */}
+      <div className="space-y-4 rounded-xl border border-navy-100 bg-white p-6 shadow-sm">
+        <div>
+          <h2 className="font-semibold text-navy-900">{t("photo.title")}</h2>
+          <p className="mt-0.5 text-sm text-navy-400">{t("photo.subtitle")}</p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="h-24 w-24 shrink-0 overflow-hidden rounded-full border border-navy-100 bg-navy-50">
+            {shown ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={shown} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="grid h-full w-full place-items-center text-navy-300">
+                <Camera className="h-8 w-8" />
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <input
+              ref={uploadRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(e) => onFile(e.target.files?.[0])}
+            />
+            {/* `capture` opens the camera directly on mobile. */}
+            <input
+              ref={cameraRef}
+              type="file"
+              accept="image/*"
+              capture="user"
+              hidden
+              onChange={(e) => onFile(e.target.files?.[0])}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={uploading}
+              onClick={() => uploadRef.current?.click()}
+            >
+              <Upload className="me-2 h-4 w-4" />
+              {t("photo.upload")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={uploading}
+              onClick={() => cameraRef.current?.click()}
+            >
+              <Camera className="me-2 h-4 w-4" />
+              {t("photo.take")}
+            </Button>
+            {photoUrl && (
+              <Button variant="ghost" size="sm" onClick={removePhoto}>
+                <Trash2 className="me-2 h-4 w-4" />
+                {t("photo.remove")}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {photoUrl && (
+          <>
+            {/* Keep original vs. use professional */}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={choice === "original" ? "default" : "outline"}
+                size="sm"
+                className={choice === "original" ? "bg-teal hover:bg-teal-600" : ""}
+                onClick={() => chooseVariant("original")}
+              >
+                {t("photo.useOriginal")}
+              </Button>
+              <Button
+                variant={choice === "formal" ? "default" : "outline"}
+                size="sm"
+                className={choice === "formal" ? "bg-teal hover:bg-teal-600" : ""}
+                disabled={!formalUrl}
+                onClick={() => chooseVariant("formal")}
+              >
+                {t("photo.useFormal")}
+              </Button>
+            </div>
+
+            {/* Paid AI conversion (placeholder) */}
+            {!formalUrl && (
+              <button
+                onClick={makeFormal}
+                className="flex w-full items-center justify-between rounded-lg border border-teal/30 bg-teal-50 px-4 py-3 text-start transition hover:bg-teal-100"
+              >
+                <span className="flex items-center gap-2 font-medium text-teal-800">
+                  <Sparkles className="h-4 w-4" />
+                  {t("photo.makeFormal")}
+                </span>
+                <span className="flex items-center gap-2 text-sm">
+                  <span className="rounded-full bg-teal px-2 py-0.5 text-xs font-semibold text-white">
+                    {t("photo.premium")}
+                  </span>
+                  <span className="text-teal-700">{price(FORMAL_PHOTO_USD_CENTS)}</span>
+                </span>
+              </button>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Personal details */}
       <div className="space-y-4 rounded-xl border border-navy-100 bg-white p-6 shadow-sm">
         {loading ? (
           <p className="text-navy-400">…</p>
