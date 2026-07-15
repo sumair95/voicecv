@@ -5,7 +5,7 @@
  */
 
 import { getAuthContext } from "@/lib/api/auth";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, serverError, unauthorized } from "@/lib/api/respond";
 
@@ -30,7 +30,7 @@ export const POST = handle("photo-upload", async ({ req, log }) => {
   const path = `${user.id}/avatar-${Date.now()}.${ext}`;
   const bytes = Buffer.from(await file.arrayBuffer());
 
-  const admin = createServiceClient();
+  const admin = createAdminClient();
   const { error: upErr } = await admin.storage
     .from("avatars")
     .upload(path, bytes, { contentType: file.type || "image/jpeg", upsert: true });

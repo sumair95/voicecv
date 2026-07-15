@@ -11,10 +11,11 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   // Don't leak full URL to third-party links.
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  // Lock down what features the page can request.
+  // Lock down what features the page can request. camera=(self) enables the
+  // profile-photo live capture on our own pages (still blocked for embeds).
   {
     key: "Permissions-Policy",
-    value: "microphone=(self), camera=(), geolocation=()",
+    value: "microphone=(self), camera=(self), geolocation=()",
   },
 ];
 

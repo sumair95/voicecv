@@ -8,7 +8,7 @@
  */
 
 import { getAuthContext } from "@/lib/api/auth";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, serverError, unauthorized } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
@@ -42,8 +42,8 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
 
   // TODO (billing): gate behind a paid formal-photo credit here before converting.
 
-  // Service client for the privileged storage write (avoids browser storage RLS).
-  const admin = createServiceClient();
+  // True service-role client for the privileged storage write (bypasses RLS).
+  const admin = createAdminClient();
   const { data: prof } = await admin
     .from("profiles")
     .select("photo_url")
