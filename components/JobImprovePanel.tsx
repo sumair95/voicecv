@@ -7,6 +7,8 @@
  */
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Sparkles, Lock, Loader2, Crown } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { useCurrency } from "@/lib/pricing";
@@ -25,7 +27,9 @@ export function JobImprovePanel({
   const { t } = useLanguage();
   const { price } = useCurrency();
   const [loading, setLoading] = useState(false);
+  const [tailoring, setTailoring] = useState(false);
   const [data, setData] = useState<{ keywords: string[]; tips: string[] } | null>(null);
+  const router = useRouter();
 
   async function reveal() {
     if (loading || data) return;
@@ -47,6 +51,36 @@ export function JobImprovePanel({
       setData({ keywords: json.keywords ?? [], tips: json.tips ?? [] });
     } finally {
       setLoading(false);
+    }
+  }
+
+  // Premium action: rewrite the CV for this job. 402 → open the $5 upsell.
+  async function tailor() {
+    if (tailoring) return;
+    setTailoring(true);
+    try {
+      const res = await fetch("/api/jobs/tailor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cvId,
+          jobTitle: job.title,
+          jobDescription: job.description,
+        }),
+      });
+      if (res.status === 402) {
+        onUpsell();
+        return;
+      }
+      const json = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        toast.error(json.error || t("job.improve.tailorError"));
+        return;
+      }
+      toast.success(t("job.improve.tailored"));
+      router.push(`/cv/${cvId}`);
+    } finally {
+      setTailoring(false);
     }
   }
 
@@ -98,13 +132,18 @@ export function JobImprovePanel({
           </div>
 
           <button
-            onClick={onUpsell}
-            className="flex w-full items-center justify-between gap-2 rounded-lg border-2 border-amber-300 bg-white px-4 py-3 text-start transition hover:border-amber-400"
+            onClick={tailor}
+            disabled={tailoring}
+            className="flex w-full items-center justify-between gap-2 rounded-lg border-2 border-amber-300 bg-white px-4 py-3 text-start transition hover:border-amber-400 disabled:opacity-70"
           >
             <span className="min-w-0">
               <span className="flex items-center gap-1.5 text-sm font-semibold text-navy-900">
-                <Lock className="h-4 w-4 shrink-0 text-amber-500" />
-                {t("job.improve.unlock")}
+                {tailoring ? (
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin text-amber-500" />
+                ) : (
+                  <Lock className="h-4 w-4 shrink-0 text-amber-500" />
+                )}
+                {tailoring ? t("job.improve.tailoring") : t("job.improve.unlock")}
               </span>
               {lockedCount > 0 && (
                 <span className="mt-0.5 block text-xs text-navy-400">

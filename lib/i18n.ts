@@ -1162,6 +1162,24 @@ export const t: Dict = {
     ur: "+{count} مزید تجاویز مقفل",
     it: "+{count} altri suggerimenti bloccati",
   },
+  "job.improve.tailoring": {
+    en: "Tailoring your CV…",
+    ar: "جارٍ تخصيص سيرتك…",
+    ur: "آپ کا CV تیار کیا جا رہا ہے…",
+    it: "Adattamento del CV…",
+  },
+  "job.improve.tailored": {
+    en: "Your CV is now tailored to this job",
+    ar: "تم تخصيص سيرتك لهذه الوظيفة",
+    ur: "آپ کا CV اب اس نوکری کے مطابق ہے",
+    it: "Il tuo CV è ora su misura per questo lavoro",
+  },
+  "job.improve.tailorError": {
+    en: "Couldn't tailor the CV — please try again.",
+    ar: "تعذّر تخصيص السيرة — حاول مجدداً.",
+    ur: "CV تیار نہیں ہو سکا — دوبارہ کوشش کریں۔",
+    it: "Impossibile adattare il CV — riprova.",
+  },
   "job.improve.upsellTitle": {
     en: "Land this job with a tailored CV",
     ar: "احصل على هذه الوظيفة بسيرة مخصّصة",

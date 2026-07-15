@@ -64,4 +64,5 @@ export const LIMITS = {
   jobSearch: { windowMs: 60_000, max: 8 }, // 8 job searches / min (each hits JSearch + Claude)
   photoConvert: { windowMs: 60_000, max: 5 }, // 5 photo conversions / min (each spends a remove.bg credit)
   jobImprove: { windowMs: 60_000, max: 6 }, // 6 "improve match" analyses / min (each hits Claude)
+  jobTailor: { windowMs: 60_000, max: 4 }, // 4 CV tailors / min (each hits Claude + spends a credit)
 } as const;
