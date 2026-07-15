@@ -11,7 +11,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Camera, Upload, Trash2, Sparkles, Loader2, FileText, FlipHorizontal } from "lucide-react";
+import { Camera, Upload, Trash2, Sparkles, Loader2, FileText, FlipHorizontal, ZoomIn } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import { CameraCapture } from "@/components/CameraCapture";
@@ -61,6 +61,9 @@ export default function ProfilePage() {
   const [converting, setConverting] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [mirroring, setMirroring] = useState(false);
+  // Mirror is offered only right after a fresh upload/capture, until dismissed.
+  const [pendingMirror, setPendingMirror] = useState(false);
+  const [zoom, setZoom] = useState(false);
   const [applyingId, setApplyingId] = useState<string | null>(null);
 
   const uploadRef = useRef<HTMLInputElement>(null);
@@ -145,6 +148,7 @@ export default function ProfilePage() {
       setPhotoUrl(json.photoUrl);
       setFormalUrl(null);
       setChoice("original");
+      setPendingMirror(true); // offer a flip for this just-added photo
       toast.success(t("photo.uploaded"));
     } finally {
       setUploading(false);
@@ -198,6 +202,7 @@ export default function ProfilePage() {
     setPhotoUrl(null);
     setFormalUrl(null);
     setChoice("original");
+    setPendingMirror(false);
   }
 
   async function chooseVariant(next: "original" | "formal") {
@@ -286,6 +291,20 @@ export default function ProfilePage() {
         />
       )}
 
+      {zoom && shown && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4"
+          onClick={() => setZoom(false)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={shown}
+            alt=""
+            className="max-h-[85vh] max-w-full rounded-lg object-contain shadow-2xl"
+          />
+        </div>
+      )}
+
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-navy-900">
           {t("profile.title")}
@@ -301,16 +320,24 @@ export default function ProfilePage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
-          <div className="h-24 w-24 shrink-0 overflow-hidden rounded-full border border-navy-100 bg-navy-50">
-            {shown ? (
-              // eslint-disable-next-line @next/next/no-img-element
+          {shown ? (
+            <button
+              type="button"
+              onClick={() => setZoom(true)}
+              aria-label={t("photo.enlarge")}
+              className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-navy-100 bg-navy-50"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={shown} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <div className="grid h-full w-full place-items-center text-navy-300">
-                <Camera className="h-8 w-8" />
-              </div>
-            )}
-          </div>
+              <span className="absolute inset-0 grid place-items-center bg-navy-900/0 text-white opacity-0 transition group-hover:bg-navy-900/40 group-hover:opacity-100">
+                <ZoomIn className="h-6 w-6" />
+              </span>
+            </button>
+          ) : (
+            <div className="grid h-24 w-24 shrink-0 place-items-center rounded-full border border-navy-100 bg-navy-50 text-navy-300">
+              <Camera className="h-8 w-8" />
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-2">
             <input
@@ -343,21 +370,6 @@ export default function ProfilePage() {
               {t("photo.take")}
             </Button>
             {photoUrl && (
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={mirroring || uploading}
-                onClick={mirrorPhoto}
-              >
-                {mirroring ? (
-                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <FlipHorizontal className="me-2 h-4 w-4" />
-                )}
-                {t("photo.mirror")}
-              </Button>
-            )}
-            {photoUrl && (
               <Button variant="ghost" size="sm" onClick={removePhoto}>
                 <Trash2 className="me-2 h-4 w-4" />
                 {t("photo.remove")}
@@ -365,6 +377,33 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
+
+        {/* Transient: offer to mirror the just-added photo, until dismissed. */}
+        {pendingMirror && photoUrl && (
+          <div className="flex flex-wrap items-center gap-2 rounded-lg bg-navy-50 px-3 py-2 text-sm">
+            <span className="text-navy-500">{t("photo.mirrorPrompt")}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={mirroring || uploading}
+              onClick={mirrorPhoto}
+            >
+              {mirroring ? (
+                <Loader2 className="me-2 h-4 w-4 animate-spin" />
+              ) : (
+                <FlipHorizontal className="me-2 h-4 w-4" />
+              )}
+              {t("photo.mirror")}
+            </Button>
+            <Button
+              size="sm"
+              className="bg-teal hover:bg-teal-600"
+              onClick={() => setPendingMirror(false)}
+            >
+              {t("photo.useThis")}
+            </Button>
+          </div>
+        )}
 
         {photoUrl && (
           <>

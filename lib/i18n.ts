@@ -978,6 +978,24 @@ export const t: Dict = {
   "photo.take": { en: "Take photo", ar: "التقاط صورة", ur: "تصویر لیں", it: "Scatta foto" },
   "photo.remove": { en: "Remove", ar: "إزالة", ur: "ہٹائیں", it: "Rimuovi" },
   "photo.mirror": { en: "Mirror", ar: "عكس", ur: "آئینہ", it: "Specchia" },
+  "photo.mirrorPrompt": {
+    en: "Photo looks flipped?",
+    ar: "هل تبدو الصورة معكوسة؟",
+    ur: "کیا تصویر الٹی لگ رہی ہے؟",
+    it: "La foto sembra rovesciata?",
+  },
+  "photo.useThis": {
+    en: "Use this photo",
+    ar: "استخدم هذه الصورة",
+    ur: "یہ تصویر استعمال کریں",
+    it: "Usa questa foto",
+  },
+  "photo.enlarge": {
+    en: "Enlarge photo",
+    ar: "تكبير الصورة",
+    ur: "تصویر بڑی کریں",
+    it: "Ingrandisci foto",
+  },
   "photo.mirrorError": {
     en: "Couldn't mirror the photo — try re-uploading it.",
     ar: "تعذّر عكس الصورة — حاول رفعها مجدداً.",
