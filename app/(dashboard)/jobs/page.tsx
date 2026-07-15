@@ -18,6 +18,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { UpsellModal } from "@/components/UpsellModal";
+import { JobImprovePanel } from "@/components/JobImprovePanel";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import { track } from "@/lib/analytics";
@@ -57,6 +59,7 @@ function JobsInner() {
 
   const [apps, setApps] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
+  const [upsellOpen, setUpsellOpen] = useState(false);
 
   // Which listing ids are already tracked (so we can show status inline).
   const trackedById = useMemo(
@@ -401,6 +404,13 @@ function JobsInner() {
                     </Button>
                   </div>
                 </CardContent>
+                {typeof job.score === "number" && job.score < 55 && cvId && (
+                  <JobImprovePanel
+                    cvId={cvId}
+                    job={job}
+                    onUpsell={() => setUpsellOpen(true)}
+                  />
+                )}
               </Card>
             );
           })}
@@ -455,6 +465,13 @@ function JobsInner() {
           </div>
         )}
       </section>
+
+      <UpsellModal
+        open={upsellOpen}
+        onClose={() => setUpsellOpen(false)}
+        title={t("job.improve.upsellTitle")}
+        subtitle={t("job.improve.upsellSubtitle")}
+      />
     </div>
   );
 }
