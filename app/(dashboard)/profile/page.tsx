@@ -11,7 +11,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Camera, Upload, Trash2, Sparkles, Loader2, FileText } from "lucide-react";
+import { Camera, Upload, Trash2, Sparkles, Loader2, FileText, FlipHorizontal } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import { CameraCapture } from "@/components/CameraCapture";
@@ -60,6 +60,7 @@ export default function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [converting, setConverting] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [mirroring, setMirroring] = useState(false);
   const [applyingId, setApplyingId] = useState<string | null>(null);
 
   const uploadRef = useRef<HTMLInputElement>(null);
@@ -147,6 +148,41 @@ export default function ProfilePage() {
       toast.success(t("photo.uploaded"));
     } finally {
       setUploading(false);
+    }
+  }
+
+  // Horizontally flip the original photo and re-upload (bakes the mirror into
+  // the stored image so it persists on the profile + CV). Flipping twice returns
+  // to the original — so this acts as a toggle.
+  async function mirrorPhoto() {
+    if (!photoUrl || mirroring) return;
+    setMirroring(true);
+    try {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      const bust = `${photoUrl}${photoUrl.includes("?") ? "&" : "?"}t=${Date.now()}`;
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("load failed"));
+        img.src = bust;
+      });
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("no canvas");
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(img, 0, 0);
+      const blob = await new Promise<Blob | null>((res) =>
+        canvas.toBlob(res, "image/jpeg", 0.92),
+      );
+      if (!blob) throw new Error("encode failed");
+      await onFile(new File([blob], `mirror-${Date.now()}.jpg`, { type: "image/jpeg" }));
+    } catch {
+      toast.error(t("photo.mirrorError"));
+    } finally {
+      setMirroring(false);
     }
   }
 
@@ -306,6 +342,21 @@ export default function ProfilePage() {
               <Camera className="me-2 h-4 w-4" />
               {t("photo.take")}
             </Button>
+            {photoUrl && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={mirroring || uploading}
+                onClick={mirrorPhoto}
+              >
+                {mirroring ? (
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <FlipHorizontal className="me-2 h-4 w-4" />
+                )}
+                {t("photo.mirror")}
+              </Button>
+            )}
             {photoUrl && (
               <Button variant="ghost" size="sm" onClick={removePhoto}>
                 <Trash2 className="me-2 h-4 w-4" />

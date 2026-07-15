@@ -977,6 +977,13 @@ export const t: Dict = {
   "photo.upload": { en: "Upload", ar: "رفع", ur: "اپ لوڈ", it: "Carica" },
   "photo.take": { en: "Take photo", ar: "التقاط صورة", ur: "تصویر لیں", it: "Scatta foto" },
   "photo.remove": { en: "Remove", ar: "إزالة", ur: "ہٹائیں", it: "Rimuovi" },
+  "photo.mirror": { en: "Mirror", ar: "عكس", ur: "آئینہ", it: "Specchia" },
+  "photo.mirrorError": {
+    en: "Couldn't mirror the photo — try re-uploading it.",
+    ar: "تعذّر عكس الصورة — حاول رفعها مجدداً.",
+    ur: "تصویر کو آئینہ نہیں کیا جا سکا — دوبارہ اپ لوڈ کریں۔",
+    it: "Impossibile specchiare la foto — prova a ricaricarla.",
+  },
   "photo.uploaded": { en: "Photo saved", ar: "تم حفظ الصورة", ur: "تصویر محفوظ ہو گئی", it: "Foto salvata" },
   "photo.uploadError": {
     en: "Couldn't upload photo",
