@@ -999,6 +999,18 @@ export const t: Dict = {
     ur: "AI پیشہ ورانہ تصویر جلد آ رہی ہے — آپ اسے یہاں سے کھول سکیں گے۔",
     it: "La foto professionale AI arriverà presto — potrai sbloccarla qui.",
   },
+  "photo.converting": {
+    en: "Making it professional…",
+    ar: "جارٍ جعلها احترافية…",
+    ur: "پیشہ ورانہ بنایا جا رہا ہے…",
+    it: "Rendendola professionale…",
+  },
+  "photo.formalDone": {
+    en: "Professional photo ready",
+    ar: "الصورة الاحترافية جاهزة",
+    ur: "پیشہ ورانہ تصویر تیار ہے",
+    it: "Foto professionale pronta",
+  },
   "profile.applyEmpty": {
     en: "Your profile is empty — fill it in on the Profile tab first.",
     ar: "ملفك فارغ — املأه أولاً من تبويب الملف الشخصي.",

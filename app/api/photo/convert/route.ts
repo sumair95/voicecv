@@ -1,0 +1,78 @@
+/**
+ * Convert the user's uploaded photo into a professional (white-background,
+ * cropped) headshot via remove.bg, store it, and mark it as the CV's photo.
+ *
+ * Billing: the "professional photo" is a paid add-on. The paywall (Stripe pack
+ * + credit) is the final wiring step — for now the conversion runs for
+ * authenticated users (beta) and the UI shows the price as a placeholder.
+ */
+
+import { getAuthContext } from "@/lib/api/auth";
+import { handle } from "@/lib/api/handle";
+import { badRequest, ok, serverError, unauthorized } from "@/lib/api/respond";
+import { LIMITS, take } from "@/lib/rate-limit";
+import { isPhotoEnhanceConfigured, toProfessionalPhoto } from "@/lib/photo/enhance";
+import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
+export const POST = handle("photo-convert", async ({ req, log }) => {
+  const { user, supabase } = await getAuthContext(req);
+  if (!user) return unauthorized();
+
+  if (!isPhotoEnhanceConfigured()) {
+    return NextResponse.json(
+      { error: "Professional photo isn't available yet." },
+      { status: 501 },
+    );
+  }
+
+  const rate = take(`photo:${user.id}`, LIMITS.photoConvert);
+  if (!rate.ok) {
+    return NextResponse.json(
+      { error: "Too many conversions. Try again shortly." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(Math.ceil((rate.resetAt - Date.now()) / 1000)) },
+      },
+    );
+  }
+
+  // TODO (billing): gate behind a paid formal-photo credit here before converting.
+
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("photo_url")
+    .eq("id", user.id)
+    .single();
+  const src = (prof?.photo_url as string | undefined) ?? undefined;
+  if (!src) return badRequest("Upload a photo first");
+
+  let bytes: Buffer;
+  try {
+    bytes = await toProfessionalPhoto(src);
+  } catch (err) {
+    log.warn("photo conversion failed", { err });
+    return serverError(err instanceof Error ? err.message : "Photo conversion failed");
+  }
+
+  const path = `${user.id}/formal-${Date.now()}.jpg`;
+  const { error: upErr } = await supabase.storage
+    .from("avatars")
+    .upload(path, bytes, { contentType: "image/jpeg", upsert: true });
+  if (upErr) {
+    log.warn("converted photo upload failed", { err: upErr });
+    return serverError("Couldn't save the converted photo");
+  }
+  const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+  const formalUrl = pub.publicUrl;
+
+  await supabase
+    .from("profiles")
+    .update({ photo_formal_url: formalUrl, photo_choice: "formal" })
+    .eq("id", user.id);
+
+  log.info("photo converted", { userId: user.id });
+  return ok({ formalUrl });
+});

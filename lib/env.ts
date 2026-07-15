@@ -27,6 +27,9 @@ const serverSchema = sharedSchema.extend({
   // JSearch timeouts). Both are needed together; absent = provider is skipped.
   ADZUNA_APP_ID: z.string().min(1).optional(),
   ADZUNA_APP_KEY: z.string().min(1).optional(),
+  // Optional: remove.bg key for the paid "professional photo" conversion. Absent
+  // = the feature returns "not available yet".
+  REMOVEBG_API_KEY: z.string().min(1).optional(),
 });
 
 function readShared() {
@@ -55,6 +58,7 @@ function readServer() {
     RAPIDAPI_KEY: process.env.RAPIDAPI_KEY,
     ADZUNA_APP_ID: process.env.ADZUNA_APP_ID,
     ADZUNA_APP_KEY: process.env.ADZUNA_APP_KEY,
+    REMOVEBG_API_KEY: process.env.REMOVEBG_API_KEY,
   });
   if (!parsed.success) {
     throw new Error(

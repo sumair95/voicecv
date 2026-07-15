@@ -62,4 +62,5 @@ export const LIMITS = {
   generateCv: { windowMs: 60_000, max: 4 }, // 4 full CV generations / min
   exportPdf: { windowMs: 60_000, max: 10 },
   jobSearch: { windowMs: 60_000, max: 8 }, // 8 job searches / min (each hits JSearch + Claude)
+  photoConvert: { windowMs: 60_000, max: 5 }, // 5 photo conversions / min (each spends a remove.bg credit)
 } as const;

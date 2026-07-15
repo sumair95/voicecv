@@ -12,7 +12,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Camera, Upload, Trash2, Sparkles } from "lucide-react";
+import { Camera, Upload, Trash2, Sparkles, Loader2 } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [converting, setConverting] = useState(false);
 
   const uploadRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -125,12 +126,14 @@ export default function ProfilePage() {
       }
       const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
       const url = pub.publicUrl;
-      // New upload replaces the original and resets the CV back to the original.
+      // New upload replaces the original and invalidates the old professional
+      // version (it was made from the previous photo).
       await supabase
         .from("profiles")
-        .update({ photo_url: url, photo_choice: "original" })
+        .update({ photo_url: url, photo_formal_url: null, photo_choice: "original" })
         .eq("id", user.id);
       setPhotoUrl(url);
+      setFormalUrl(null);
       setChoice("original");
       toast.success(t("photo.uploaded"));
     } finally {
@@ -161,9 +164,27 @@ export default function ProfilePage() {
     await supabase.from("profiles").update({ photo_choice: next }).eq("id", user.id);
   }
 
-  // Placeholder: the paid AI "professional" conversion is wired in Phase 2.
-  function makeFormal() {
-    toast(t("photo.formalSoon"));
+  // Paid AI "professional" conversion (background removal + white bg + crop).
+  async function makeFormal() {
+    setConverting(true);
+    try {
+      const res = await fetch("/api/photo/convert", { method: "POST" });
+      const json = (await res.json().catch(() => ({}))) as {
+        formalUrl?: string;
+        error?: string;
+      };
+      if (!res.ok) {
+        toast.error(json.error || t("photo.formalSoon"));
+        return;
+      }
+      if (json.formalUrl) {
+        setFormalUrl(json.formalUrl);
+        setChoice("formal");
+        toast.success(t("photo.formalDone"));
+      }
+    } finally {
+      setConverting(false);
+    }
   }
 
   const rows: [keyof Fields, string][] = [
@@ -277,11 +298,16 @@ export default function ProfilePage() {
             {!formalUrl && (
               <button
                 onClick={makeFormal}
-                className="flex w-full items-center justify-between rounded-lg border border-teal/30 bg-teal-50 px-4 py-3 text-start transition hover:bg-teal-100"
+                disabled={converting}
+                className="flex w-full items-center justify-between rounded-lg border border-teal/30 bg-teal-50 px-4 py-3 text-start transition hover:bg-teal-100 disabled:opacity-70"
               >
                 <span className="flex items-center gap-2 font-medium text-teal-800">
-                  <Sparkles className="h-4 w-4" />
-                  {t("photo.makeFormal")}
+                  {converting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  {converting ? t("photo.converting") : t("photo.makeFormal")}
                 </span>
                 <span className="flex items-center gap-2 text-sm">
                   <span className="rounded-full bg-teal px-2 py-0.5 text-xs font-semibold text-white">
