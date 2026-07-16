@@ -17,6 +17,7 @@ import {
 } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
 import { migrateCvData } from "@/lib/cv/migrate";
+import { isCompAccount } from "@/lib/premium/access";
 import { tailorCV } from "@/lib/jobs/tailor";
 import { logEvent } from "@/lib/analytics-server";
 import { NextResponse } from "next/server";
@@ -48,14 +49,8 @@ export const POST = handle("jobs-tailor", async ({ req, log }) => {
     return badRequest("cvId and jobDescription required");
   }
 
-  // Gate: spend a premium-CV credit (idempotent — an already-premium CV is free,
-  // and also enables premium templates). Returns false → no credit → upsell.
-  const { data: unlocked, error: rpcErr } = await supabase.rpc("consume_premium_cv_credit", {
-    p_cv: body.cvId,
-  });
-  if (rpcErr) throw rpcErr;
-  if (!unlocked) return paymentRequired("Premium required");
-
+  // Verify the CV exists and belongs to the caller BEFORE charging, so an
+  // invalid cvId can never burn a credit.
   const { data: cvRow } = await supabase
     .from("cvs")
     .select("cv_data, language")
@@ -63,6 +58,23 @@ export const POST = handle("jobs-tailor", async ({ req, log }) => {
     .eq("user_id", user.id)
     .single();
   if (!cvRow?.cv_data) return notFound("CV not found");
+
+  // Gate: spend a premium-CV credit (idempotent — an already-premium CV is free,
+  // and also enables premium templates). Comped reviewers skip the charge but
+  // still get the CV genuinely unlocked. Returns false → no credit → upsell.
+  if (await isCompAccount(supabase)) {
+    await supabase
+      .from("cvs")
+      .update({ premium_unlocked: true })
+      .eq("id", body.cvId)
+      .eq("user_id", user.id);
+  } else {
+    const { data: unlocked, error: rpcErr } = await supabase.rpc("consume_premium_cv_credit", {
+      p_cv: body.cvId,
+    });
+    if (rpcErr) throw rpcErr;
+    if (!unlocked) return paymentRequired("Premium required");
+  }
 
   const cv = migrateCvData(cvRow.cv_data);
   const lang = (cvRow.language as Language) ?? "en";

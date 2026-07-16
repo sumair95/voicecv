@@ -3,6 +3,7 @@ import { getAuthContext } from "@/lib/api/auth";
 import { CoverLetterDocument } from "@/lib/cover-letter-pdf";
 import { handle } from "@/lib/api/handle";
 import { badRequest, conflict, notFound, unauthorized, serverError, paymentRequired } from "@/lib/api/respond";
+import { isCompAccount } from "@/lib/premium/access";
 import { logEvent } from "@/lib/analytics-server";
 import { NextResponse } from "next/server";
 import type { CVRecord, Language } from "@/types/cv";
@@ -29,19 +30,29 @@ export const POST = handle("export-cover-letter-pdf", async ({ req, log }) => {
   if (!cv.cover_letter) return conflict("No cover letter yet");
 
   // Download is premium. First download for a CV spends one cover_letter_credit
-  // and unlocks the CV permanently; after that, re-downloads are free.
+  // and unlocks the CV permanently; after that, re-downloads are free. Comped
+  // reviewers unlock for free (no credit spent).
   if (!cv.cover_letter_unlocked) {
-    const { data: spent, error: rpcErr } = await supabase.rpc(
-      "consume_cover_letter_credit",
-    );
-    if (rpcErr) throw rpcErr;
-    if (!spent) return paymentRequired("Cover letter download is a Premium feature");
-    await supabase
-      .from("cvs")
-      .update({ cover_letter_unlocked: true })
-      .eq("id", cvId)
-      .eq("user_id", user.id);
-    await logEvent(supabase, user.id, "cover_letter_unlocked", { cvId });
+    if (await isCompAccount(supabase)) {
+      await supabase
+        .from("cvs")
+        .update({ cover_letter_unlocked: true })
+        .eq("id", cvId)
+        .eq("user_id", user.id);
+      await logEvent(supabase, user.id, "cover_letter_unlocked", { cvId, comp: true });
+    } else {
+      const { data: spent, error: rpcErr } = await supabase.rpc(
+        "consume_cover_letter_credit",
+      );
+      if (rpcErr) throw rpcErr;
+      if (!spent) return paymentRequired("Cover letter download is a Premium feature");
+      await supabase
+        .from("cvs")
+        .update({ cover_letter_unlocked: true })
+        .eq("id", cvId)
+        .eq("user_id", user.id);
+      await logEvent(supabase, user.id, "cover_letter_unlocked", { cvId });
+    }
   }
 
   const language: Language = cv.language ?? "en";

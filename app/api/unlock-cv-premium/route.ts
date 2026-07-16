@@ -1,6 +1,7 @@
 import { getAuthContext } from "@/lib/api/auth";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, paymentRequired, unauthorized } from "@/lib/api/respond";
+import { isCompAccount } from "@/lib/premium/access";
 import { logEvent } from "@/lib/analytics-server";
 
 export const runtime = "nodejs";
@@ -15,11 +16,21 @@ export const POST = handle("unlock-cv-premium", async ({ req, log }) => {
   const { cvId } = (await req.json()) as { cvId: string };
   if (!cvId) return badRequest("cvId required");
 
-  const { data: unlocked, error } = await supabase.rpc("consume_premium_cv_credit", {
-    p_cv: cvId,
-  });
-  if (error) throw error;
-  if (!unlocked) return paymentRequired("No premium CV credits left");
+  // Comped reviewers unlock for free (no credit spent); everyone else spends one.
+  if (await isCompAccount(supabase)) {
+    const { error: upErr } = await supabase
+      .from("cvs")
+      .update({ premium_unlocked: true })
+      .eq("id", cvId)
+      .eq("user_id", user.id);
+    if (upErr) throw upErr;
+  } else {
+    const { data: unlocked, error } = await supabase.rpc("consume_premium_cv_credit", {
+      p_cv: cvId,
+    });
+    if (error) throw error;
+    if (!unlocked) return paymentRequired("No premium CV credits left");
+  }
 
   await logEvent(supabase, user.id, "premium_unlocked", { cvId });
   log.info("cv premium unlocked", { cvId, userId: user.id });
