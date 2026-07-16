@@ -13,22 +13,35 @@ Problem → Solution → **See it work (voice → CV)** → It's real & polished
 
 ---
 
+> **⚡ Updated 2026-07-16** — now covers the features shipped since this script was first written: **optional photo on the CV** (Scene 4), **AI tailored rewrite** per job (Scene 5), and the **comp toggle** so you can record premium features without real charges.
+
 ## PRE-RECORD CHECKLIST (do this first — 15 min)
+- [ ] **Turn comp access ON for the demo account** → `vocv.app/admin` → master toggle **ON** + add the demo email to the allowlist. Now Premium templates, cover letter, tailored rewrite, and the photo conversion are **free while you record — no real Stripe charges.** (Flip OFF afterward.)
 - [ ] **Two browser profiles / states ready:** (1) logged-out for the landing shot, (2) logged-in on a clean demo account.
-- [ ] **Pre-seed ONE strong CV** on the demo account (a construction worker or driver persona) so the "generated CV", templates, PDF, and Job Match beats show polished, complete data — don't gamble on live-day generation quality for those shots.
+- [ ] **Pre-seed ONE strong CV** on the demo account (use the persona below) so the "generated CV", templates, PDF, photo, and Job Match beats show polished, complete data — don't gamble on live-day generation quality for those shots.
+- [ ] On that pre-seeded CV, **pre-warm the premium beats**: unlock the **Executive** template, turn the **photo ON** once, and run one **Tailor** against a job — so those shots are instant and clean on the day.
 - [ ] Still **record the voice-recording flow live** (that authenticity is the whole point) — but keep the pre-seeded CV as the thing you open right after, so the cut is clean.
 - [ ] **Prepare your spoken answers** (see persona below) and rehearse them 2–3× so they're crisp.
 - [ ] Browser at **1920×1080**, zoom 100%, hide bookmarks bar, close other tabs, enable Do-Not-Disturb (no notifications on screen).
 - [ ] Good mic, quiet room. Record narration **separately** and lay it over the screen capture if you can — it's far cleaner than talking while clicking.
 - [ ] Tools: **OBS Studio** (free) or Loom for capture; any editor (CapCut, DaVinci Resolve free) to trim + add captions.
 
-### Demo persona (Arabic voice input)
-**Ahmed**, a construction worker in **Riyadh, Saudi Arabia**. Suggested spoken answers when the app asks:
-- *Name & location:* "اسمي أحمد، أعيش في الرياض، المملكة العربية السعودية" (My name is Ahmed, I live in Riyadh, Saudi Arabia)
-- *Most recent job:* speak ~2 sentences about site work, safety, teamwork.
-- Keep answers short and natural — Whisper handles conversational speech well.
+### Demo persona — "Ahmed", a site foreman in Riyadh
+Real, blue-collar, no written CV — exactly the target user. **Record in whichever language you speak most naturally** (Arabic gives the best RTL "wow" in Scene 3; Urdu works identically — both output an English CV). Speak these answers *naturally* — a little rambling is good, it shows the AI cleaning it up. They map 1:1 to the app's 9 questions:
 
-> **Urdu swap:** same script, persona = **a driver in Karachi, Pakistan** speaking Urdu. Everything else is identical. Whichever you can record most naturally will read as more genuine to judges.
+| # | The app asks… | Speak this (English meaning) |
+|---|---|---|
+| 1 | Name, nationality, city, mobile, email | "My name is Ahmed Hassan. I'm Egyptian, from Cairo. I live in Riyadh. My number is 05-0-1-2-3-4-5-6-7, email ahmed.hassan@gmail.com." |
+| 2 | Most recent / current job | "Now I work for Al Rajhi Construction in Riyadh as a site foreman, about four years. I supervise the workers, check safety, and keep the work on schedule." |
+| 3 | Previous roles | "Before that I was a general labourer on building sites for three years, and I did some steel-fixing work too." |
+| 4 | Skills / tools / licences | "Concrete work, steel fixing, reading building drawings, site safety, and I can operate a concrete mixer. I have a Saudi driving licence." |
+| 5 | Languages | "Arabic is my mother tongue, fluent. English I'm conversational, enough for the site." |
+| 6 | Highest education | "I finished secondary school in Cairo." |
+| 7 | Certificates / training | "I have a site-safety certificate — OSHA basic — and a scaffolding course." |
+| 8 | Hobbies | "Football, and I like to cook." |
+| 9 | Achievement (STAR) | "One project was two weeks behind. **Situation** — big delay. **Task** — catch up before the deadline. **Action** — I split the crews into two shifts and fixed the material supply. **Result** — we finished on time and passed the safety inspection." |
+
+> **Urdu swap:** same answers, persona = **a driver/warehouse worker in Karachi or Riyadh** speaking Urdu. Whichever you record most naturally reads as more genuine to judges.
 
 ---
 
@@ -67,25 +80,25 @@ Problem → Solution → **See it work (voice → CV)** → It's real & polished
 
 ---
 
-## SCENE 4 — It's real: edit + download (1:25–2:05)
-🎬 **Cut to the pre-seeded, polished CV** (`/cv/[id]`). Scroll it slowly — clean, complete. Click one field, edit inline to show it's live-editable. Show the **template options** (Modern → a premium one). Click **Download PDF** and show the file opening.
+## SCENE 4 — It's real: edit, photo, download (1:25–2:05)
+🎬 **Cut to the pre-seeded, polished CV** (`/cv/[id]`). Scroll it slowly — clean, complete. Click one field, edit inline to show it's live-editable. Switch **Modern → Executive** (premium). In edit mode, flip **"Show my photo on this CV"** ON so the headshot appears on the CV. Click **Download PDF** and show the file opening (photo included).
 
-🎙️ *"The result isn't a rough draft — it's a finished CV. Every field is editable by tap. Choose from professional templates, including premium designs. And download a print-ready PDF in one click. This is running live, today, at vocv.app."*
+🎙️ *"The result isn't a rough draft — it's a finished CV. Every field is editable by tap. Choose professional templates, including premium designs, and add an optional photo. Then download a print-ready PDF in one click. Running live, today, at vocv.app."*
 
-💬 Caption: **"Fully editable · Premium templates · One-click PDF · Live now"**
+💬 Caption: **"Editable · Premium templates · Optional photo · One-click PDF · Live now"**
 
 *(≈45 words)*
 
 ---
 
-## SCENE 5 — It goes further: AI Job Match (2:05–2:30)  *(cuttable if over time)*
-🎬 Open **/jobs**. Pick the CV → run a search. Show the **ranked job listings** with match scores + the one-line "why it fits" reason. Click **Apply** on one.
+## SCENE 5 — It goes further: AI Job Match + tailoring (2:05–2:35)  *(cuttable if over time)*
+🎬 Open **/jobs**. Pick the CV → run a search. Show the **ranked job listings** with match scores + the one-line "why it fits" reason. On one job, hit **Tailor** and show the CV rewrite to that job's keywords (opens `/cv/[id]`). Click **Apply** on another.
 
-🎙️ *"And once you have a CV, VoiceCV finds work. It searches live job listings, and Claude ranks each one against your profile with a reason it fits — then you apply and track your applications, all in the app."*
+🎙️ *"And once you have a CV, VoiceCV finds work. It searches live job listings and ranks each one against your profile with a reason it fits. Pick a job, and AI rewrites the CV to match it — same facts, better keywords. Then apply and track it all in the app."*
 
-💬 Caption: **"AI-matched jobs · ranked to your CV · apply & track"**
+💬 Caption: **"AI-matched jobs · ranked to your CV · one-tap tailoring · apply & track"**
 
-*(≈40 words)*
+*(≈50 words)*
 
 > ✂️ **If you're over 3:00, cut this scene entirely** and add one line to Scene 6: *"— it even matches you to live jobs and tracks your applications."*
 
