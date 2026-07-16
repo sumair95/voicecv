@@ -359,8 +359,8 @@ export default function CVDetailPage() {
             aria-checked={photoOn}
             onClick={togglePhoto}
             disabled={!profilePhoto && !photoOn}
-            className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-40 ${
-              photoOn ? "bg-teal" : "bg-navy-200"
+            className={`relative h-7 w-12 shrink-0 rounded-full ring-1 ring-inset ring-black/10 transition disabled:opacity-40 ${
+              photoOn ? "bg-teal" : "bg-navy-300"
             }`}
           >
             <span

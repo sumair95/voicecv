@@ -148,8 +148,8 @@ export function AdminCompPanel() {
           aria-checked={enabled}
           disabled={busy}
           onClick={toggle}
-          className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-60 ${
-            enabled ? "bg-teal" : "bg-navy-200"
+          className={`relative h-7 w-12 shrink-0 rounded-full ring-1 ring-inset ring-black/10 transition disabled:opacity-60 ${
+            enabled ? "bg-teal" : "bg-navy-300"
           }`}
         >
           <span
