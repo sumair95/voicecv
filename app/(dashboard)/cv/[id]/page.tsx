@@ -245,7 +245,7 @@ export default function CVDetailPage() {
   if (!cv || !cv.cv_data) {
     return (
       <div className="space-y-4 text-center">
-        <p className="text-navy-400">
+        <p className="text-muted-foreground">
           {cv?.status === "processing"
             ? t("status.processing")
             : "CV not found or still being prepared."}
@@ -324,23 +324,23 @@ export default function CVDetailPage() {
       />
 
       {editing && (
-        <div className="no-print flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy-100 bg-white px-4 py-3">
+        <div className="no-print flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
           <div className="flex items-center gap-3">
             {photoOn && profilePhoto ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={profilePhoto}
                 alt=""
-                className="h-10 w-10 rounded-full object-cover ring-1 ring-navy-100"
+                className="h-10 w-10 rounded-full object-cover ring-1 ring-border"
               />
             ) : (
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-navy-50 text-navy-300">
+              <span className="grid h-10 w-10 place-items-center rounded-full bg-muted text-muted-foreground">
                 <UserRound className="h-5 w-5" />
               </span>
             )}
             <div>
-              <p className="text-sm font-medium text-navy-900">{t("cv.photoToggle")}</p>
-              <p className="text-xs text-navy-400">
+              <p className="text-sm font-medium text-foreground">{t("cv.photoToggle")}</p>
+              <p className="text-xs text-muted-foreground">
                 {profilePhoto ? (
                   t("cv.photoHint")
                 ) : (
@@ -364,7 +364,7 @@ export default function CVDetailPage() {
             }`}
           >
             <span
-              className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${
+              className={`absolute top-1 h-5 w-5 rounded-full bg-card shadow transition-all ${
                 photoOn ? "left-6" : "left-1"
               }`}
             />

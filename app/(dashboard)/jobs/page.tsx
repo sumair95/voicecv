@@ -35,7 +35,7 @@ interface CvOption {
 }
 
 const STATUS_STYLES: Record<JobStatus, string> = {
-  saved: "bg-navy-100 text-navy-700",
+  saved: "bg-muted text-foreground",
   applied: "bg-teal/15 text-teal-700",
   interview: "bg-amber-100 text-amber-700",
   offer: "bg-green-100 text-green-700",
@@ -252,15 +252,15 @@ function JobsInner() {
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-teal text-white">
             <Briefcase className="h-5 w-5" />
           </span>
-          <h1 className="text-2xl font-bold text-navy-900">{t("job.title")}</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("job.title")}</h1>
         </div>
-        <p className="text-navy-400">{t("job.intro")}</p>
+        <p className="text-muted-foreground">{t("job.intro")}</p>
       </header>
 
       {cvs.length === 0 ? (
         <Card>
           <CardContent className="space-y-4 p-8 text-center">
-            <p className="text-navy-500">{t("job.needCv")}</p>
+            <p className="text-muted-foreground">{t("job.needCv")}</p>
             <Button asChild className="bg-teal hover:bg-teal-600">
               <Link href="/record">{t("dashboard.create")}</Link>
             </Button>
@@ -271,11 +271,11 @@ function JobsInner() {
           <CardContent className="space-y-4 p-6">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="space-y-1 text-sm">
-                <span className="font-medium text-navy-600">{t("job.selectCv")}</span>
+                <span className="font-medium text-foreground">{t("job.selectCv")}</span>
                 <select
                   value={cvId}
                   onChange={(e) => applyCvDefaults(e.target.value, cvs)}
-                  className="w-full rounded-lg border border-navy-100 bg-white px-3 py-2 text-navy-800 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/40"
+                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/40"
                 >
                   {cvs.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -284,12 +284,12 @@ function JobsInner() {
                   ))}
                 </select>
               </label>
-              <label className="flex items-end gap-2 pb-2 text-sm text-navy-600">
+              <label className="flex items-end gap-2 pb-2 text-sm text-foreground">
                 <input
                   type="checkbox"
                   checked={remoteOnly}
                   onChange={(e) => setRemoteOnly(e.target.checked)}
-                  className="h-4 w-4 rounded border-navy-200 text-teal focus:ring-teal"
+                  className="h-4 w-4 rounded border-border text-teal focus:ring-teal"
                 />
                 {t("job.remoteOnly")}
               </label>
@@ -324,14 +324,14 @@ function JobsInner() {
 
       {/* Results */}
       {searching && (
-        <div className="flex items-center gap-2 text-navy-400">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
           {t("job.searching")}
         </div>
       )}
 
       {!searching && searched && results.length === 0 && (
-        <p className="text-navy-400">{t("job.noResults")}</p>
+        <p className="text-muted-foreground">{t("job.noResults")}</p>
       )}
 
       {results.length > 0 && (
@@ -343,7 +343,7 @@ function JobsInner() {
                 <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-start">
                   <div className="min-w-0 flex-1 space-y-1.5">
                     <div className="flex items-start gap-2">
-                      <h3 className="font-semibold text-navy-900">{job.title}</h3>
+                      <h3 className="font-semibold text-foreground">{job.title}</h3>
                       {typeof job.score === "number" && (
                         <span
                           className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${
@@ -351,14 +351,14 @@ function JobsInner() {
                               ? "bg-green-100 text-green-700"
                               : job.score >= 50
                                 ? "bg-teal/15 text-teal-700"
-                                : "bg-navy-100 text-navy-500"
+                                : "bg-muted text-muted-foreground"
                           }`}
                         >
                           {t("job.matchScore", { score: job.score })}
                         </span>
                       )}
                     </div>
-                    <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-navy-500">
+                    <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-muted-foreground">
                       <span className="inline-flex items-center gap-1">
                         <Building2 className="h-3.5 w-3.5" />
                         {job.company || "—"}
@@ -370,7 +370,7 @@ function JobsInner() {
                         </span>
                       )}
                       {job.salaryText && (
-                        <span className="font-medium text-navy-600">{job.salaryText}</span>
+                        <span className="font-medium text-foreground">{job.salaryText}</span>
                       )}
                     </p>
                     {job.reason && (
@@ -419,17 +419,17 @@ function JobsInner() {
 
       {/* Application tracker */}
       <section className="space-y-3">
-        <h2 className="text-lg font-bold text-navy-900">{t("job.tracked")}</h2>
+        <h2 className="text-lg font-bold text-foreground">{t("job.tracked")}</h2>
         {apps.length === 0 ? (
-          <p className="text-sm text-navy-400">{t("job.trackedEmpty")}</p>
+          <p className="text-sm text-muted-foreground">{t("job.trackedEmpty")}</p>
         ) : (
           <div className="space-y-2">
             {apps.map((app) => (
               <Card key={app.id}>
                 <CardContent className="flex flex-wrap items-center gap-3 p-4">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-navy-900">{app.title}</p>
-                    <p className="truncate text-sm text-navy-500">
+                    <p className="truncate font-medium text-foreground">{app.title}</p>
+                    <p className="truncate text-sm text-muted-foreground">
                       {[app.company, app.location].filter(Boolean).join(" · ")}
                     </p>
                   </div>

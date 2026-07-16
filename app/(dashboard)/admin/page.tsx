@@ -15,8 +15,8 @@ export default function AdminPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-navy-900">Admin · Comp access</h1>
-        <p className="mt-1 text-navy-400">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Admin · Comp access</h1>
+        <p className="mt-1 text-muted-foreground">
           Give reviewers free access to Premium CV, Cover Letter download, and the job-match CV
           rewrite — no card, no credit spent. Real users are never affected.
         </p>

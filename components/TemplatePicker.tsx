@@ -15,7 +15,7 @@ interface Props {
 export function TemplatePicker({ value, onChange, className, premiumEnabled }: Props) {
   return (
     <div className={`no-print ${className ?? ""}`}>
-      <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-navy-400">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Template
       </div>
       <div className="flex flex-wrap gap-2">
@@ -40,8 +40,8 @@ export function TemplatePicker({ value, onChange, className, premiumEnabled }: P
                 active
                   ? "border-teal bg-teal/10 text-teal-700"
                   : locked
-                    ? "border-navy-100 bg-navy-50/40 text-navy-400 opacity-60"
-                    : "border-navy-100 text-navy-700 hover:border-teal/50 hover:bg-teal/5"
+                    ? "border-border bg-muted/40 text-muted-foreground opacity-60"
+                    : "border-border text-foreground hover:border-teal/50 hover:bg-teal/5"
               }`}
             >
               {tpl.premium && (

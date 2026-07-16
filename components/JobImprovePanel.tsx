@@ -107,15 +107,15 @@ export function JobImprovePanel({
           {t("job.improve.cta")}
         </button>
       ) : kw.length === 0 && tips.length === 0 ? (
-        <p className="mt-1 text-sm text-navy-400">{t("job.improve.none")}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{t("job.improve.none")}</p>
       ) : (
         <div className="mt-2 space-y-2.5">
-          <p className="text-xs text-navy-500">{t("job.improve.addKeywords")}</p>
+          <p className="text-xs text-muted-foreground">{t("job.improve.addKeywords")}</p>
           <div className="flex flex-wrap gap-1.5">
             {teaser.map((k, i) => (
               <span
                 key={`t${i}`}
-                className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-navy-700 ring-1 ring-navy-100"
+                className="rounded-full bg-card px-2.5 py-1 text-xs font-medium text-foreground ring-1 ring-border"
               >
                 {k}
               </span>
@@ -124,7 +124,7 @@ export function JobImprovePanel({
               <span
                 key={`h${i}`}
                 aria-hidden
-                className="pointer-events-none select-none rounded-full bg-white px-2.5 py-1 text-xs font-medium text-navy-700 ring-1 ring-navy-100 blur-sm"
+                className="pointer-events-none select-none rounded-full bg-card px-2.5 py-1 text-xs font-medium text-foreground ring-1 ring-border blur-sm"
               >
                 {k}
               </span>
@@ -134,10 +134,10 @@ export function JobImprovePanel({
           <button
             onClick={tailor}
             disabled={tailoring}
-            className="flex w-full items-center justify-between gap-2 rounded-lg border-2 border-amber-300 bg-white px-4 py-3 text-start transition hover:border-amber-400 disabled:opacity-70"
+            className="flex w-full items-center justify-between gap-2 rounded-lg border-2 border-amber-300 bg-card px-4 py-3 text-start transition hover:border-amber-400 disabled:opacity-70"
           >
             <span className="min-w-0">
-              <span className="flex items-center gap-1.5 text-sm font-semibold text-navy-900">
+              <span className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
                 {tailoring ? (
                   <Loader2 className="h-4 w-4 shrink-0 animate-spin text-amber-500" />
                 ) : (
@@ -146,7 +146,7 @@ export function JobImprovePanel({
                 {tailoring ? t("job.improve.tailoring") : t("job.improve.unlock")}
               </span>
               {lockedCount > 0 && (
-                <span className="mt-0.5 block text-xs text-navy-400">
+                <span className="mt-0.5 block text-xs text-muted-foreground">
                   {t("job.improve.locked", { count: lockedCount })}
                 </span>
               )}

@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { Inter, Noto_Sans_Arabic, Noto_Nastaliq_Urdu } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { LanguageProvider } from "@/components/LanguageProvider";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
+
+// Runs before paint to set the theme class from the saved choice / OS — no flash.
+const NO_FLASH = `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||((!t||t==='system')&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`;
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const notoArabic = Noto_Sans_Arabic({
@@ -31,8 +35,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="font-sans">
-        <LanguageProvider>{children}</LanguageProvider>
-        <Toaster richColors position="top-right" />
+        <script dangerouslySetInnerHTML={{ __html: NO_FLASH }} />
+        <ThemeProvider>
+          <LanguageProvider>{children}</LanguageProvider>
+          <Toaster richColors position="top-right" />
+        </ThemeProvider>
       </body>
     </html>
   );

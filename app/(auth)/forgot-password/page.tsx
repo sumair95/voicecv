@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-teal/5">
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-semibold text-navy-900">
+        <Link href="/" className="flex items-center gap-2 font-semibold text-foreground">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-teal text-white">
             <Mic className="h-5 w-5" />
           </span>
@@ -51,12 +51,12 @@ export default function ForgotPasswordPage() {
       </div>
 
       <div className="container flex items-center justify-center py-16">
-        <Card className="w-full max-w-md border-navy-100/60 shadow-lg">
+        <Card className="w-full max-w-md border-border/60 shadow-lg">
           <CardContent className="p-8">
-            <h1 className="text-2xl font-bold text-navy-900">
+            <h1 className="text-2xl font-bold text-foreground">
               {t("auth.forgot.title")}
             </h1>
-            <p className="mt-2 text-sm text-navy-400">
+            <p className="mt-2 text-sm text-muted-foreground">
               {sent ? t("auth.forgot.sent") : t("auth.forgot.desc")}
             </p>
 
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
               </div>
             )}
 
-            <p className="mt-6 text-center text-sm text-navy-400">
+            <p className="mt-6 text-center text-sm text-muted-foreground">
               <Link href="/login" className="font-medium text-teal-700 hover:underline">
                 {t("auth.forgot.backToLogin")}
               </Link>

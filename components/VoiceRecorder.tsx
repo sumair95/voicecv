@@ -245,12 +245,12 @@ export function VoiceRecorder({
   const ss = String(seconds % 60).padStart(2, "0");
 
   return (
-    <Card className="border-navy-100/60">
+    <Card className="border-border/60">
       <CardContent className="p-8">
         <div className="text-xs font-medium uppercase tracking-wider text-teal-700">
           {t("rec.questionOf", { n: questionNumber, total: totalQuestions })}
         </div>
-        <p className="mt-3 text-xl font-semibold leading-relaxed text-navy-900 md:text-2xl">
+        <p className="mt-3 text-xl font-semibold leading-relaxed text-foreground md:text-2xl">
           {question}
         </p>
         {speechSupported && (
@@ -261,7 +261,7 @@ export function VoiceRecorder({
             className={`mt-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${
               speaking
                 ? "border-teal bg-teal/10 text-teal-700"
-                : "border-navy-100 text-navy-400 hover:border-teal/40 hover:text-teal-700"
+                : "border-border text-muted-foreground hover:border-teal/40 hover:text-teal-700"
             }`}
           >
             <Volume2 className={`h-4 w-4 ${speaking ? "animate-pulse" : ""}`} />
@@ -311,7 +311,7 @@ export function VoiceRecorder({
           )}
 
           {state === "recording" && (
-            <div className="font-mono text-lg tabular-nums text-navy-900">
+            <div className="font-mono text-lg tabular-nums text-foreground">
               {mm}:{ss}
             </div>
           )}
@@ -320,7 +320,7 @@ export function VoiceRecorder({
             <button
               type="button"
               onClick={onSkip}
-              className="inline-flex items-center gap-1.5 text-sm text-navy-400 underline-offset-4 transition hover:text-teal-700 hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 transition hover:text-teal-700 hover:underline"
             >
               <SkipForward className="h-4 w-4" />
               {t("rec.skip")}
@@ -341,7 +341,7 @@ export function VoiceRecorder({
           )}
 
           {state === "submitting" && (
-            <div className="flex items-center gap-2 text-navy-400">
+            <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="h-5 w-5 animate-spin" />
               {t("rec.processing.transcribing")}
             </div>
@@ -360,7 +360,7 @@ export function VoiceRecorder({
           )}
 
           {state === "idle" && (
-            <p className="text-sm text-navy-400">{t("rec.idleHint")}</p>
+            <p className="text-sm text-muted-foreground">{t("rec.idleHint")}</p>
           )}
         </div>
       </CardContent>

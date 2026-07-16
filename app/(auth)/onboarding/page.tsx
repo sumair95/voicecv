@@ -33,7 +33,7 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-teal/5">
       <div className="container flex min-h-screen flex-col items-center justify-center py-12">
-        <h1 className="text-center text-3xl font-bold text-navy-900 md:text-4xl">
+        <h1 className="text-center text-3xl font-bold text-foreground md:text-4xl">
           {t("onb.title")}
         </h1>
         <div className="mt-10 grid w-full max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4">
@@ -50,12 +50,12 @@ export default function OnboardingPage() {
                   className={`cursor-pointer border-2 p-6 transition ${
                     active
                       ? "border-teal bg-teal/5 shadow-md"
-                      : "border-navy-100 hover:border-teal/50"
+                      : "border-border hover:border-teal/50"
                   }`}
                   dir={l.dir}
                 >
-                  <div className="text-2xl font-bold text-navy-900">{l.label}</div>
-                  <div className="mt-2 text-sm text-navy-400">{l.english}</div>
+                  <div className="text-2xl font-bold text-foreground">{l.label}</div>
+                  <div className="mt-2 text-sm text-muted-foreground">{l.english}</div>
                 </Card>
               </button>
             );

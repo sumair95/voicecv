@@ -54,9 +54,9 @@ function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md border-navy-100/60 shadow-lg">
+    <Card className="w-full max-w-md border-border/60 shadow-lg">
       <CardContent className="p-8">
-        <h1 className="text-2xl font-bold text-navy-900">{t("auth.login.title")}</h1>
+        <h1 className="text-2xl font-bold text-foreground">{t("auth.login.title")}</h1>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="email">{t("auth.email")}</Label>
@@ -100,9 +100,9 @@ function LoginForm() {
         </form>
 
         <div className="my-6 flex items-center gap-3">
-          <span className="h-px flex-1 bg-navy-100" />
-          <span className="text-xs text-navy-400">or</span>
-          <span className="h-px flex-1 bg-navy-100" />
+          <span className="h-px flex-1 bg-muted" />
+          <span className="text-xs text-muted-foreground">or</span>
+          <span className="h-px flex-1 bg-muted" />
         </div>
 
         <Button
@@ -114,7 +114,7 @@ function LoginForm() {
           Continue with Google
         </Button>
 
-        <p className="mt-6 text-center text-sm text-navy-400">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           {t("auth.noAccount")}{" "}
           <Link href="/signup" className="font-medium text-teal-700 hover:underline">
             {t("auth.signUp")}
@@ -130,7 +130,7 @@ export default function LoginPage() {
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background to-teal/5">
       <div className="gradient-mesh pointer-events-none absolute inset-0 -z-10 opacity-40" aria-hidden />
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-semibold text-navy-900">
+        <Link href="/" className="flex items-center gap-2 font-semibold text-foreground">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-teal text-white">
             <Mic className="h-5 w-5" />
           </span>
@@ -140,7 +140,7 @@ export default function LoginPage() {
       </div>
 
       <div className="container flex items-center justify-center py-16">
-        <Suspense fallback={<div className="text-navy-400">Loading…</div>}>
+        <Suspense fallback={<div className="text-muted-foreground">Loading…</div>}>
           <LoginForm />
         </Suspense>
       </div>

@@ -137,7 +137,7 @@ export function CoverLetterPanel({
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-amber-400 text-white">
             <FileText className="h-4 w-4" />
           </span>
-          <h2 className="text-lg font-bold text-navy-900">{t("letter.title")}</h2>
+          <h2 className="text-lg font-bold text-foreground">{t("letter.title")}</h2>
           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
             {t("letter.badge")}
           </span>
@@ -146,7 +146,7 @@ export function CoverLetterPanel({
         {/* Generate form (free for everyone) */}
         {!letter && !generating && (
           <>
-            <p className="text-sm text-navy-400">{t("letter.intro")}</p>
+            <p className="text-sm text-muted-foreground">{t("letter.intro")}</p>
             <div className="grid gap-2 sm:grid-cols-2">
               <Input
                 placeholder={t("letter.targetRole")}
@@ -167,7 +167,7 @@ export function CoverLetterPanel({
         )}
 
         {generating && (
-          <div className="flex items-center gap-2 py-4 text-navy-400">
+          <div className="flex items-center gap-2 py-4 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
             {t("letter.generating")}
           </div>
@@ -178,16 +178,16 @@ export function CoverLetterPanel({
           <>
             {/* Letterhead context (name + contact come from the CV and appear
                 in the downloaded PDF; edit those on the CV itself). */}
-            <div className="rounded-t-lg border border-b-0 border-navy-100 bg-navy-50/40 px-4 py-2 text-sm font-bold text-teal-700">
+            <div className="rounded-t-lg border border-b-0 border-border bg-muted/40 px-4 py-2 text-sm font-bold text-teal-700">
               {name}
             </div>
             <textarea
               value={letter}
               onChange={(e) => setLetter(e.target.value)}
               rows={18}
-              className="w-full resize-y rounded-b-lg border border-navy-100 p-4 text-sm leading-relaxed text-navy-700 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/40"
+              className="w-full resize-y rounded-b-lg border border-border p-4 text-sm leading-relaxed text-foreground focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/40"
             />
-            <p className="text-xs text-navy-400">{t("letter.editHint")}</p>
+            <p className="text-xs text-muted-foreground">{t("letter.editHint")}</p>
 
             <div className="flex flex-wrap gap-2">
               <Button onClick={saveEdits} disabled={saving} variant="outline">
@@ -216,7 +216,7 @@ export function CoverLetterPanel({
             </div>
 
             {!entitled && (
-              <p className="flex items-center gap-1.5 text-xs text-navy-400">
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Crown className="h-3.5 w-3.5 text-amber-500" />
                 {t("letter.downloadLocked.desc")}
               </p>

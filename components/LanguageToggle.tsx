@@ -39,7 +39,7 @@ export function LanguageToggle({ className }: { className?: string }) {
       {open && (
         <div
           role="menu"
-          className="absolute end-0 z-50 mt-2 w-44 overflow-hidden rounded-xl border border-navy-100 bg-white shadow-lg"
+          className="absolute end-0 z-50 mt-2 w-44 overflow-hidden rounded-xl border border-border bg-card shadow-lg"
         >
           {LANGUAGES.map((l) => (
             <button
@@ -50,7 +50,7 @@ export function LanguageToggle({ className }: { className?: string }) {
                 setOpen(false);
               }}
               className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-sm transition hover:bg-teal/5 ${
-                l.code === lang ? "bg-teal/5 text-teal-700" : "text-navy-900"
+                l.code === lang ? "bg-teal/5 text-teal-700" : "text-foreground"
               }`}
               dir={l.dir}
             >

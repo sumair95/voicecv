@@ -28,14 +28,14 @@ export function VideoDemo() {
   return (
     <section className="container py-20">
       <div className="mx-auto max-w-3xl text-center">
-        <h2 className="text-3xl font-bold tracking-tight text-navy-900 md:text-4xl">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
           {t("landing.video.title")}
         </h2>
-        <p className="mt-3 text-navy-400">{t("landing.video.subtitle")}</p>
+        <p className="mt-3 text-muted-foreground">{t("landing.video.subtitle")}</p>
       </div>
 
       <div className="mx-auto mt-10 max-w-4xl">
-        <div className="relative aspect-video overflow-hidden rounded-2xl border border-navy-100/60 bg-navy-900 shadow-xl">
+        <div className="relative aspect-video overflow-hidden rounded-2xl border border-border/60 bg-navy-900 shadow-xl">
           {playing ? (
             <iframe
               src={`${DEMO_VIDEO_EMBED}${DEMO_VIDEO_EMBED.includes("?") ? "&" : "?"}autoplay=1`}

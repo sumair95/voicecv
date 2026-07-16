@@ -46,7 +46,7 @@ function initialsOf(name: string) {
 function SampleCVCard({ cv }: { cv: CVData }) {
   const topJob = cv.experience[0];
   return (
-    <Card className="h-full overflow-hidden border-navy-100/60 transition hover:-translate-y-1 hover:border-teal/50 hover:shadow-lg">
+    <Card className="h-full overflow-hidden border-border/60 transition hover:-translate-y-1 hover:border-teal/50 hover:shadow-lg">
       <div className="flex items-center gap-3 bg-navy-900 p-5 text-white">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-teal text-sm font-bold">
           {initialsOf(cv.personal.full_name)}
@@ -59,7 +59,7 @@ function SampleCVCard({ cv }: { cv: CVData }) {
         </div>
       </div>
       <CardContent className="space-y-3 p-5">
-        <p className="line-clamp-2 text-sm leading-relaxed text-navy-400">
+        <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
           {cv.objective}
         </p>
         <div className="flex flex-wrap gap-1.5">
@@ -72,12 +72,12 @@ function SampleCVCard({ cv }: { cv: CVData }) {
             </span>
           ))}
         </div>
-        <div className="space-y-1.5 border-t border-navy-100 pt-3 text-xs text-navy-400">
+        <div className="space-y-1.5 border-t border-border pt-3 text-xs text-muted-foreground">
           {topJob && (
             <div className="flex items-center gap-1.5">
               <Briefcase className="h-3 w-3 shrink-0 text-teal" />
               <span className="truncate">
-                <span className="font-semibold text-navy-600">
+                <span className="font-semibold text-foreground">
                   {topJob.role}
                 </span>{" "}
                 · {topJob.company}
@@ -125,23 +125,23 @@ function SampleCVs({ caption }: { caption: string }) {
         {cards.map((c, i) => (
           <div
             key={i}
-            className={`relative h-20 w-14 shrink-0 overflow-hidden rounded-md bg-white shadow-md ring-1 ring-navy-100 transition hover:z-10 hover:-translate-y-1 hover:rotate-0 ${c.rotate}`}
+            className={`relative h-20 w-14 shrink-0 overflow-hidden rounded-md bg-card shadow-md ring-1 ring-border transition hover:z-10 hover:-translate-y-1 hover:rotate-0 ${c.rotate}`}
             style={{ zIndex: 5 - i }}
             aria-hidden
           >
             <div className={`h-4 w-full ${c.header}`} />
             <div className="space-y-1 p-1.5">
-              <div className="h-1 w-2/3 rounded-full bg-navy-100" />
-              <div className="h-1 w-3/4 rounded-full bg-navy-100" />
+              <div className="h-1 w-2/3 rounded-full bg-muted" />
+              <div className="h-1 w-3/4 rounded-full bg-muted" />
               <div className={`h-1 w-1/2 rounded-full ${c.accent}`} />
-              <div className="h-1 w-2/3 rounded-full bg-navy-100" />
-              <div className="h-1 w-3/5 rounded-full bg-navy-100" />
+              <div className="h-1 w-2/3 rounded-full bg-muted" />
+              <div className="h-1 w-3/5 rounded-full bg-muted" />
               <div className={`h-1 w-2/5 rounded-full ${c.accent}`} />
             </div>
           </div>
         ))}
       </div>
-      <span className="text-xs font-medium text-navy-400">{caption}</span>
+      <span className="text-xs font-medium text-muted-foreground">{caption}</span>
     </div>
   );
 }
@@ -189,10 +189,10 @@ export default function LandingPage() {
                 <Sparkles className="h-3.5 w-3.5" />
                 {t("landing.trust.powered")}
               </div>
-              <h1 className="mt-5 text-5xl font-extrabold leading-[1.05] tracking-tight text-navy-900 md:text-7xl">
+              <h1 className="mt-5 text-5xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-7xl">
                 {t("landing.tagline")}
               </h1>
-              <p className="mt-5 max-w-xl text-lg leading-relaxed text-navy-400 md:text-xl">
+              <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground md:text-xl">
                 {t("landing.subhead")}
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
@@ -202,11 +202,11 @@ export default function LandingPage() {
                     <ArrowRight className="ms-2 h-5 w-5 rtl:-scale-x-100" />
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="border-navy-100">
+                <Button asChild size="lg" variant="outline" className="border-border">
                   <Link href="/samples">{t("landing.cta.secondary")}</Link>
                 </Button>
               </div>
-              <div className="mt-10 flex flex-wrap items-center gap-4 text-sm text-navy-400">
+              <div className="mt-10 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <ShieldCheck className="h-4 w-4 text-teal" />
                   {t("landing.trust.vision")}
@@ -260,7 +260,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="border-y border-navy-100/60 bg-white">
+      <section className="border-y border-border/60 bg-card">
         <div className="container grid grid-cols-2 gap-8 py-12 md:grid-cols-4">
           {stats.map((s, i) => (
             <motion.div
@@ -271,15 +271,15 @@ export default function LandingPage() {
               transition={{ duration: 0.4, delay: i * 0.08 }}
               className="text-center"
             >
-              <div className="text-3xl font-bold text-navy-900 md:text-4xl">{s.value}</div>
-              <div className="mt-1 text-sm text-navy-400">{t(s.labelKey)}</div>
+              <div className="text-3xl font-bold text-foreground md:text-4xl">{s.value}</div>
+              <div className="mt-1 text-sm text-muted-foreground">{t(s.labelKey)}</div>
             </motion.div>
           ))}
         </div>
       </section>
 
       <section id="how" className="container py-20">
-        <h2 className="text-center text-3xl font-bold tracking-tight text-navy-900 md:text-4xl">
+        <h2 className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl">
           {t("landing.steps.title")}
         </h2>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -291,7 +291,7 @@ export default function LandingPage() {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: i * 0.12 }}
             >
-              <Card className="h-full border-navy-100/60 transition hover:-translate-y-1 hover:shadow-lg">
+              <Card className="h-full border-border/60 transition hover:-translate-y-1 hover:shadow-lg">
                 <CardContent className="p-8">
                   <div className="mb-5 inline-flex items-center gap-3">
                     <span className="grid h-10 w-10 place-items-center rounded-full bg-teal/10 text-sm font-bold text-teal-700">
@@ -299,8 +299,8 @@ export default function LandingPage() {
                     </span>
                     <step.icon className="h-6 w-6 text-teal" />
                   </div>
-                  <h3 className="text-xl font-semibold text-navy-900">{t(step.titleKey)}</h3>
-                  <p className="mt-2 text-navy-400">{t(step.descKey)}</p>
+                  <h3 className="text-xl font-semibold text-foreground">{t(step.titleKey)}</h3>
+                  <p className="mt-2 text-muted-foreground">{t(step.descKey)}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -310,12 +310,12 @@ export default function LandingPage() {
 
       <VideoDemo />
 
-      <section className="bg-white py-20">
+      <section className="bg-card py-20">
         <div className="container">
-          <h2 className="text-center text-3xl font-bold tracking-tight text-navy-900 md:text-4xl">
+          <h2 className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl">
             {t("samples.title")}
           </h2>
-          <p className="mt-2 text-center text-sm text-navy-400">
+          <p className="mt-2 text-center text-sm text-muted-foreground">
             {t("samples.subtitle")}
           </p>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -334,7 +334,7 @@ export default function LandingPage() {
             ))}
           </div>
           <div className="mt-10 text-center">
-            <Button asChild variant="outline" size="lg" className="border-navy-100">
+            <Button asChild variant="outline" size="lg" className="border-border">
               <Link href="/samples">
                 {t("samples.link")}
                 <ArrowRight className="ms-2 h-5 w-5 rtl:-scale-x-100" />
@@ -345,18 +345,18 @@ export default function LandingPage() {
       </section>
 
       <section className="container py-16">
-        <div className="relative overflow-hidden rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white px-8 py-12">
+        <div className="relative overflow-hidden rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white px-8 py-12 dark:border-amber-900/40 dark:from-amber-950/30 dark:to-card">
           <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
             <div className="max-w-xl">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
                 <Crown className="h-3.5 w-3.5" />
                 {t("landing.premium.badge")}
               </span>
-              <h2 className="mt-3 text-3xl font-bold tracking-tight text-navy-900">
+              <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
                 {t("landing.premium.title", { price: price(PREMIUM_PRICE_USD_CENTS) })}
               </h2>
-              <p className="mt-2 text-navy-400">{t("landing.premium.desc")}</p>
-              <ul className="mt-4 space-y-1.5 text-sm text-navy-600">
+              <p className="mt-2 text-muted-foreground">{t("landing.premium.desc")}</p>
+              <ul className="mt-4 space-y-1.5 text-sm text-foreground">
                 {["landing.premium.f1", "landing.premium.f2", "landing.premium.f3"].map((k) => (
                   <li key={k} className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-amber-500" />
@@ -366,7 +366,7 @@ export default function LandingPage() {
               </ul>
             </div>
             <div className="shrink-0 text-center">
-              <div className="whitespace-nowrap text-4xl font-extrabold text-navy-900">
+              <div className="whitespace-nowrap text-4xl font-extrabold text-foreground">
                 {price(PREMIUM_PRICE_USD_CENTS)}
               </div>
               <Button asChild size="lg" className="mt-4 bg-amber-500 text-white hover:bg-amber-600">
@@ -396,8 +396,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-navy-100/60 bg-white">
-        <div className="container flex flex-col items-center justify-between gap-3 py-6 text-sm text-navy-400 md:flex-row">
+      <footer className="border-t border-border/60 bg-card">
+        <div className="container flex flex-col items-center justify-between gap-3 py-6 text-sm text-muted-foreground md:flex-row">
           <span>{t("landing.footer.copyright")}</span>
           <span className="flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5 text-teal" />

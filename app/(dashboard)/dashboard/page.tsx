@@ -162,10 +162,10 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-navy-900">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             {t("dashboard.welcome")}{greetingName ? `, ${greetingName}` : ""} 👋
           </h1>
-          <p className="mt-1 text-navy-400">{t("dashboard.myCvs")}</p>
+          <p className="mt-1 text-muted-foreground">{t("dashboard.myCvs")}</p>
         </div>
         <Button
           size="lg"
@@ -187,19 +187,19 @@ export default function DashboardPage() {
       {loading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i} className="border-navy-100/60">
-              <CardContent className="h-40 animate-pulse bg-navy-50/40" />
+            <Card key={i} className="border-border/60">
+              <CardContent className="h-40 animate-pulse bg-muted/40" />
             </Card>
           ))}
         </div>
       ) : cvs.length === 0 ? (
-        <Card className="border-dashed border-navy-100">
+        <Card className="border-dashed border-border">
           <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
             <div className="grid h-16 w-16 place-items-center rounded-full bg-teal/10 text-teal">
               <Sparkles className="h-8 w-8" />
             </div>
-            <h2 className="text-xl font-semibold text-navy-900">{t("dashboard.empty.title")}</h2>
-            <p className="max-w-md text-navy-400">{t("dashboard.empty.desc")}</p>
+            <h2 className="text-xl font-semibold text-foreground">{t("dashboard.empty.title")}</h2>
+            <p className="max-w-md text-muted-foreground">{t("dashboard.empty.desc")}</p>
             <Button asChild size="lg" className="bg-teal hover:bg-teal-600">
               <Link href="/record">
                 <Plus className="me-2 h-5 w-5" />
@@ -223,7 +223,7 @@ export default function DashboardPage() {
               className="relative"
             >
               <Link href={`/cv/${cv.id}`}>
-                <Card className="h-full border-navy-100/60 transition hover:-translate-y-0.5 hover:border-teal/50 hover:shadow-md">
+                <Card className="h-full border-border/60 transition hover:-translate-y-0.5 hover:border-teal/50 hover:shadow-md">
                   <CardContent className="space-y-3 p-6">
                     <div className="flex items-center justify-between gap-2">
                       <span className="grid h-10 w-10 place-items-center rounded-xl bg-teal/10 text-teal">
@@ -234,10 +234,10 @@ export default function DashboardPage() {
                       </Badge>
                     </div>
                     <div>
-                      <div className="line-clamp-1 pe-7 font-semibold text-navy-900">
+                      <div className="line-clamp-1 pe-7 font-semibold text-foreground">
                         {cv.title ?? cv.cv_data?.personal?.full_name ?? "Untitled CV"}
                       </div>
-                      <div className="mt-1 text-sm text-navy-400">
+                      <div className="mt-1 text-sm text-muted-foreground">
                         {format(new Date(cv.created_at), lang === "ar" ? "yyyy/MM/dd" : "MMM d, yyyy")}
                       </div>
                     </div>
@@ -257,7 +257,7 @@ export default function DashboardPage() {
                       e.stopPropagation();
                       downloadPdf(cv);
                     }}
-                    className="grid h-8 w-8 place-items-center rounded-lg text-navy-300 transition hover:bg-teal/10 hover:text-teal disabled:opacity-60"
+                    className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-teal/10 hover:text-teal disabled:opacity-60"
                   >
                     {downloadingId === cv.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -275,7 +275,7 @@ export default function DashboardPage() {
                     e.stopPropagation();
                     setConfirmingId(cv.id);
                   }}
-                  className="grid h-8 w-8 place-items-center rounded-lg text-navy-300 transition hover:bg-red-50 hover:text-red-600"
+                  className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-red-50 hover:text-red-600"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -285,13 +285,13 @@ export default function DashboardPage() {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="absolute inset-0 z-10 flex flex-col justify-center gap-3 rounded-xl border border-navy-100/60 bg-white/95 p-6 text-center backdrop-blur"
+                  className="absolute inset-0 z-10 flex flex-col justify-center gap-3 rounded-xl border border-border/60 bg-card/95 p-6 text-center backdrop-blur"
                 >
                   <div>
-                    <div className="font-semibold text-navy-900">
+                    <div className="font-semibold text-foreground">
                       {t("dashboard.delete.confirmTitle")}
                     </div>
-                    <div className="mt-1 text-sm text-navy-400">
+                    <div className="mt-1 text-sm text-muted-foreground">
                       {t("dashboard.delete.confirmDesc")}
                     </div>
                   </div>

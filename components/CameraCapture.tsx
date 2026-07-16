@@ -85,7 +85,7 @@ export function CameraCapture({
       onClick={close}
     >
       <div
-        className="w-full max-w-md space-y-3 rounded-xl bg-white p-4 shadow-xl"
+        className="w-full max-w-md space-y-3 rounded-xl bg-card p-4 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {error ? (

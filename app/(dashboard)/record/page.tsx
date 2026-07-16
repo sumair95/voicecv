@@ -148,7 +148,7 @@ export default function RecordPage() {
         variant="ghost"
         size="sm"
         onClick={() => router.back()}
-        className="mb-4 text-navy-400"
+        className="mb-4 text-muted-foreground"
       >
         <ArrowLeft className="me-2 h-4 w-4" />
         {t("common.back")}
@@ -162,9 +162,9 @@ export default function RecordPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
           >
-            <Card className="border-navy-100/60">
+            <Card className="border-border/60">
               <CardContent className="p-8">
-                <h1 className="text-2xl font-bold text-navy-900">{t("onb.title")}</h1>
+                <h1 className="text-2xl font-bold text-foreground">{t("onb.title")}</h1>
                 <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {LANGUAGES.map((l) => {
                     const active = pickedLang === l.code;
@@ -180,22 +180,22 @@ export default function RecordPage() {
                         className={`rounded-xl border-2 p-5 transition ${
                           active
                             ? "border-teal bg-teal/5"
-                            : "border-navy-100 hover:border-teal/40"
+                            : "border-border hover:border-teal/40"
                         }`}
                         dir={l.dir}
                       >
-                        <div className="text-xl font-bold text-navy-900">{l.label}</div>
-                        <div className="mt-1 text-xs text-navy-400">{l.english}</div>
+                        <div className="text-xl font-bold text-foreground">{l.label}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">{l.english}</div>
                       </button>
                     );
                   })}
                 </div>
 
                 <div className="mt-8">
-                  <h2 className="text-lg font-semibold text-navy-900">
+                  <h2 className="text-lg font-semibold text-foreground">
                     {t("rec.outputLang.title")}
                   </h2>
-                  <p className="mt-1 text-sm text-navy-400">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     {t("rec.outputLang.desc")}
                   </p>
                   <div className="mt-4 grid grid-cols-2 gap-3">
@@ -208,12 +208,12 @@ export default function RecordPage() {
                           className={`rounded-xl border-2 p-4 text-start transition ${
                             active
                               ? "border-teal bg-teal/5"
-                              : "border-navy-100 hover:border-teal/40"
+                              : "border-border hover:border-teal/40"
                           }`}
                           dir={l.dir}
                         >
-                          <div className="font-bold text-navy-900">{l.label}</div>
-                          <div className="mt-0.5 text-xs text-navy-400">{l.english}</div>
+                          <div className="font-bold text-foreground">{l.label}</div>
+                          <div className="mt-0.5 text-xs text-muted-foreground">{l.english}</div>
                         </button>
                       );
                     })}
@@ -247,7 +247,7 @@ export default function RecordPage() {
             transition={{ duration: 0.25 }}
             className="space-y-4"
           >
-            <div className="flex items-center justify-between text-sm text-navy-400">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>{t("rec.questionOf", { n: currentIndex + 1, total: questions.length })}</span>
               <span>{Math.round(progressPct)}%</span>
             </div>
@@ -264,7 +264,7 @@ export default function RecordPage() {
                 <button
                   type="button"
                   onClick={goBack}
-                  className="inline-flex items-center gap-1.5 text-sm text-navy-400 transition hover:text-teal-700"
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:text-teal-700"
                 >
                   <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
                   {t("rec.previous")}
@@ -281,12 +281,12 @@ export default function RecordPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <Card className="border-navy-100/60">
+            <Card className="border-border/60">
               <CardContent className="space-y-6 p-12 text-center">
                 <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-teal/10">
                   <Loader2 className="h-10 w-10 animate-spin text-teal" />
                 </div>
-                <h2 className="text-2xl font-bold text-navy-900">
+                <h2 className="text-2xl font-bold text-foreground">
                   {t(PROCESSING_STEPS[procStep])}
                 </h2>
                 <div className="mx-auto flex max-w-md flex-col gap-3 text-start">
@@ -294,7 +294,7 @@ export default function RecordPage() {
                     <div
                       key={key}
                       className={`flex items-center gap-3 ${
-                        i <= procStep ? "text-navy-900" : "text-navy-400/60"
+                        i <= procStep ? "text-foreground" : "text-muted-foreground/60"
                       }`}
                     >
                       {i < procStep ? (
@@ -302,7 +302,7 @@ export default function RecordPage() {
                       ) : i === procStep ? (
                         <Loader2 className="h-5 w-5 animate-spin text-teal" />
                       ) : (
-                        <div className="h-5 w-5 rounded-full border-2 border-navy-100" />
+                        <div className="h-5 w-5 rounded-full border-2 border-border" />
                       )}
                       <span>{t(key)}</span>
                     </div>
@@ -319,12 +319,12 @@ export default function RecordPage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
           >
-            <Card className="border-navy-100/60">
+            <Card className="border-border/60">
               <CardContent className="space-y-6 p-12 text-center">
                 <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-teal text-white">
                   <Sparkles className="h-10 w-10" />
                 </div>
-                <h2 className="text-3xl font-bold text-navy-900">
+                <h2 className="text-3xl font-bold text-foreground">
                   {t("rec.processing.done")}
                 </h2>
                 <div className="flex flex-wrap items-center justify-center gap-3">
@@ -347,7 +347,7 @@ export default function RecordPage() {
             <Card className="border-red-200">
               <CardContent className="space-y-4 p-8 text-center">
                 <h2 className="text-xl font-semibold text-red-700">Something went wrong</h2>
-                <p className="text-navy-400">{errorMsg}</p>
+                <p className="text-muted-foreground">{errorMsg}</p>
                 <Button
                   onClick={() => {
                     setAnswers([]);

@@ -110,8 +110,8 @@ export function AdminCompPanel() {
 
   if (loading) {
     return (
-      <div className="grid place-items-center rounded-xl border border-navy-100 bg-white p-10">
-        <Loader2 className="h-5 w-5 animate-spin text-navy-300" />
+      <div className="grid place-items-center rounded-xl border border-border bg-card p-10">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -119,9 +119,9 @@ export function AdminCompPanel() {
   if (denied) {
     return (
       <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-6 text-center">
-        <p className="font-semibold text-navy-900">You don&apos;t have admin access</p>
-        <p className="mx-auto mt-1 max-w-sm text-sm text-navy-500">
-          This account isn&apos;t on the <code className="rounded bg-white px-1 py-0.5 text-xs">ADMIN_EMAILS</code>{" "}
+        <p className="font-semibold text-foreground">You don&apos;t have admin access</p>
+        <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+          This account isn&apos;t on the <code className="rounded bg-card px-1 py-0.5 text-xs">ADMIN_EMAILS</code>{" "}
           list. Add your email to that variable on Railway, redeploy, then reload this page.
         </p>
       </div>
@@ -131,13 +131,13 @@ export function AdminCompPanel() {
   return (
     <div className="space-y-6">
       {/* Master switch */}
-      <div className="flex items-center justify-between gap-4 rounded-xl border border-navy-100 bg-white p-6 shadow-sm">
+      <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-6 shadow-sm">
         <div>
-          <div className="flex items-center gap-2 font-semibold text-navy-900">
-            <ShieldCheck className={`h-5 w-5 ${enabled ? "text-teal" : "text-navy-300"}`} />
+          <div className="flex items-center gap-2 font-semibold text-foreground">
+            <ShieldCheck className={`h-5 w-5 ${enabled ? "text-teal" : "text-muted-foreground"}`} />
             Comp access {enabled ? "ON" : "OFF"}
           </div>
-          <p className="mt-0.5 text-sm text-navy-400">
+          <p className="mt-0.5 text-sm text-muted-foreground">
             {enabled
               ? "Listed emails below get all premium features free."
               : "Everyone is charged normally, even emails on the list."}
@@ -153,7 +153,7 @@ export function AdminCompPanel() {
           }`}
         >
           <span
-            className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${
+            className={`absolute top-1 h-5 w-5 rounded-full bg-card shadow transition-all ${
               enabled ? "left-6" : "left-1"
             }`}
           />
@@ -161,17 +161,17 @@ export function AdminCompPanel() {
       </div>
 
       {/* Allowlist */}
-      <div className="space-y-4 rounded-xl border border-navy-100 bg-white p-6 shadow-sm">
+      <div className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm">
         <div>
-          <h2 className="font-semibold text-navy-900">Reviewer allowlist</h2>
-          <p className="mt-0.5 text-sm text-navy-400">
+          <h2 className="font-semibold text-foreground">Reviewer allowlist</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Add the email a reviewer signs in with. Remove it to charge them again.
           </p>
         </div>
 
         <div className="flex flex-wrap items-end gap-2">
           <div className="min-w-[12rem] flex-1 space-y-1">
-            <label className="text-xs text-navy-500">Email</label>
+            <label className="text-xs text-muted-foreground">Email</label>
             <Input
               type="email"
               placeholder="reviewer@example.com"
@@ -181,7 +181,7 @@ export function AdminCompPanel() {
             />
           </div>
           <div className="min-w-[8rem] flex-1 space-y-1">
-            <label className="text-xs text-navy-500">Note (optional)</label>
+            <label className="text-xs text-muted-foreground">Note (optional)</label>
             <Input
               placeholder="e.g. Italy partner"
               value={newNote}
@@ -195,14 +195,14 @@ export function AdminCompPanel() {
         </div>
 
         {emails.length === 0 ? (
-          <p className="text-sm text-navy-400">No comp emails yet.</p>
+          <p className="text-sm text-muted-foreground">No comp emails yet.</p>
         ) : (
-          <ul className="divide-y divide-navy-100">
+          <ul className="divide-y divide-border">
             {emails.map((e) => (
               <li key={e.email} className="flex items-center justify-between gap-3 py-2.5">
                 <span className="min-w-0">
-                  <span className="block truncate text-navy-800">{e.email}</span>
-                  {e.note && <span className="block truncate text-xs text-navy-400">{e.note}</span>}
+                  <span className="block truncate text-foreground">{e.email}</span>
+                  {e.note && <span className="block truncate text-xs text-muted-foreground">{e.note}</span>}
                 </span>
                 <Button
                   variant="ghost"

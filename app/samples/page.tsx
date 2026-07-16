@@ -39,10 +39,10 @@ export default function SamplesPage() {
 
       <section className="container py-12 md:py-16">
         <div className="mx-auto max-w-2xl text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-navy-900 md:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
             {t("samples.title")}
           </h1>
-          <p className="mt-3 text-navy-400">{t("samples.subtitle")}</p>
+          <p className="mt-3 text-muted-foreground">{t("samples.subtitle")}</p>
         </div>
 
         <div className="mt-12 space-y-14">
@@ -57,10 +57,10 @@ export default function SamplesPage() {
             >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-semibold text-navy-900">
+                  <h2 className="text-lg font-semibold text-foreground">
                     {item.cv.personal.full_name}
                   </h2>
-                  <p className="text-sm text-navy-400">
+                  <p className="text-sm text-muted-foreground">
                     {item.cv.experience[0]?.role} · {item.style}
                   </p>
                 </div>
@@ -75,7 +75,7 @@ export default function SamplesPage() {
                   </Badge>
                 )}
               </div>
-              <div className="overflow-x-auto rounded-2xl border border-navy-100/60 bg-white p-3 shadow-sm md:p-6">
+              <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card p-3 shadow-sm md:p-6">
                 <CVPreview cvData={item.cv} language="en" template={item.template} />
               </div>
             </motion.div>

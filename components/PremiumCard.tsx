@@ -40,16 +40,16 @@ export function PremiumCard({
   }
 
   return (
-    <Card className="overflow-hidden border-amber-200/70 bg-gradient-to-br from-amber-50 to-white">
+    <Card className="overflow-hidden border-amber-200/70 bg-gradient-to-br from-amber-50 to-white dark:border-amber-900/40 dark:from-amber-950/30 dark:to-card">
       <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-400 text-white">
               <Crown className="h-5 w-5" />
             </span>
-            <h2 className="text-lg font-bold text-navy-900">{t("premium.title")}</h2>
+            <h2 className="text-lg font-bold text-foreground">{t("premium.title")}</h2>
           </div>
-          <p className="text-sm text-navy-400">
+          <p className="text-sm text-muted-foreground">
             {t("premium.tagline", { price: price(PREMIUM_PRICE_USD_CENTS) })}
           </p>
           {hasCredits && (

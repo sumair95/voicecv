@@ -333,17 +333,17 @@ export default function ProfilePage() {
       )}
 
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-navy-900">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
           {t("profile.title")}
         </h1>
-        <p className="mt-1 text-navy-400">{t("profile.subtitle")}</p>
+        <p className="mt-1 text-muted-foreground">{t("profile.subtitle")}</p>
       </div>
 
       {/* Photo */}
-      <div className="space-y-4 rounded-xl border border-navy-100 bg-white p-6 shadow-sm">
+      <div className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm">
         <div>
-          <h2 className="font-semibold text-navy-900">{t("photo.title")}</h2>
-          <p className="mt-0.5 text-sm text-navy-400">{t("photo.subtitle")}</p>
+          <h2 className="font-semibold text-foreground">{t("photo.title")}</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">{t("photo.subtitle")}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
@@ -352,7 +352,7 @@ export default function ProfilePage() {
               type="button"
               onClick={() => setZoom(true)}
               aria-label={t("photo.enlarge")}
-              className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-navy-100 bg-navy-50"
+              className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-border bg-muted"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={shown} alt="" className="h-full w-full object-cover" />
@@ -361,7 +361,7 @@ export default function ProfilePage() {
               </span>
             </button>
           ) : (
-            <div className="grid h-24 w-24 shrink-0 place-items-center rounded-full border border-navy-100 bg-navy-50 text-navy-300">
+            <div className="grid h-24 w-24 shrink-0 place-items-center rounded-full border border-border bg-muted text-muted-foreground">
               <Camera className="h-8 w-8" />
             </div>
           )}
@@ -407,8 +407,8 @@ export default function ProfilePage() {
 
         {/* Transient: offer to mirror the just-added photo, until dismissed. */}
         {pendingMirror && photoUrl && (
-          <div className="flex flex-wrap items-center gap-2 rounded-lg bg-navy-50 px-3 py-2 text-sm">
-            <span className="text-navy-500">{t("photo.mirrorPrompt")}</span>
+          <div className="flex flex-wrap items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm">
+            <span className="text-muted-foreground">{t("photo.mirrorPrompt")}</span>
             <Button
               variant="outline"
               size="sm"
@@ -458,7 +458,7 @@ export default function ProfilePage() {
               <button
                 onClick={makeFormal}
                 disabled={converting}
-                className="flex w-full items-center justify-between rounded-lg border border-teal/30 bg-teal-50 px-4 py-3 text-start transition hover:bg-teal-100 disabled:opacity-70"
+                className="flex w-full items-center justify-between rounded-lg border border-teal/30 bg-teal/10 px-4 py-3 text-start transition hover:bg-teal/20 disabled:opacity-70"
               >
                 <span className="flex items-center gap-2 font-medium text-teal-800">
                   {converting ? (
@@ -481,13 +481,13 @@ export default function ProfilePage() {
       </div>
 
       {/* Personal details */}
-      <div className="space-y-4 rounded-xl border border-navy-100 bg-white p-6 shadow-sm">
+      <div className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm">
         {loading ? (
-          <p className="text-navy-400">…</p>
+          <p className="text-muted-foreground">…</p>
         ) : (
           <>
             {isEmpty && (
-              <p className="rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-800">
+              <p className="rounded-lg bg-teal/10 px-3 py-2 text-sm text-teal-800 dark:text-teal-300">
                 {t("profile.hint")}
               </p>
             )}
@@ -514,19 +514,19 @@ export default function ProfilePage() {
 
       {/* Apply to CVs */}
       {!loading && (
-        <div className="space-y-4 rounded-xl border border-navy-100 bg-white p-6 shadow-sm">
+        <div className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm">
           <div>
-            <h2 className="font-semibold text-navy-900">{t("profile.applyCvsTitle")}</h2>
-            <p className="mt-0.5 text-sm text-navy-400">{t("profile.applyCvsHint")}</p>
+            <h2 className="font-semibold text-foreground">{t("profile.applyCvsTitle")}</h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">{t("profile.applyCvsHint")}</p>
           </div>
           {cvs.length === 0 ? (
-            <p className="text-sm text-navy-400">{t("profile.noCvs")}</p>
+            <p className="text-sm text-muted-foreground">{t("profile.noCvs")}</p>
           ) : (
-            <ul className="divide-y divide-navy-100">
+            <ul className="divide-y divide-border">
               {cvs.map((cv) => (
                 <li key={cv.id} className="flex items-center justify-between gap-3 py-2.5">
-                  <span className="flex items-center gap-2 truncate text-navy-800">
-                    <FileText className="h-4 w-4 shrink-0 text-navy-300" />
+                  <span className="flex items-center gap-2 truncate text-foreground">
+                    <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <span className="truncate">{cv.title || "My CV"}</span>
                   </span>
                   <Button

@@ -56,32 +56,32 @@ export function UpsellModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+        className="w-full max-w-md rounded-2xl bg-card p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
-          <h2 className="text-xl font-bold text-navy-900">{title ?? t("upsell.title")}</h2>
+          <h2 className="text-xl font-bold text-foreground">{title ?? t("upsell.title")}</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label={t("common.cancel")}
-            className="text-navy-300 transition hover:text-navy-600"
+            className="text-muted-foreground transition hover:text-foreground"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-        <p className="mt-1 text-sm text-navy-400">{subtitle ?? t("upsell.subtitle")}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{subtitle ?? t("upsell.subtitle")}</p>
 
         <div className="mt-5 space-y-3">
           <button
             type="button"
             onClick={() => buy("cv")}
             disabled={!!loading}
-            className="flex w-full items-center justify-between rounded-xl border border-navy-100 p-4 text-start transition hover:border-teal/50 hover:bg-teal/5 disabled:opacity-60"
+            className="flex w-full items-center justify-between rounded-xl border border-border p-4 text-start transition hover:border-teal/50 hover:bg-teal/5 disabled:opacity-60"
           >
             <div>
-              <div className="font-semibold text-navy-900">{t("upsell.cv.title")}</div>
-              <div className="text-xs text-navy-400">{t("upsell.cv.desc")}</div>
+              <div className="font-semibold text-foreground">{t("upsell.cv.title")}</div>
+              <div className="text-xs text-muted-foreground">{t("upsell.cv.desc")}</div>
             </div>
             <span className="flex items-center gap-1 font-bold text-teal-700">
               {loading === "cv" && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -93,14 +93,14 @@ export function UpsellModal({
             type="button"
             onClick={() => buy("premium")}
             disabled={!!loading}
-            className="flex w-full items-center justify-between rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-start transition hover:border-amber-400 disabled:opacity-60"
+            className="flex w-full items-center justify-between rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-start transition hover:border-amber-400 disabled:opacity-60 dark:border-amber-800/60 dark:bg-amber-950/30"
           >
             <div>
-              <div className="flex items-center gap-1.5 font-semibold text-navy-900">
+              <div className="flex items-center gap-1.5 font-semibold text-foreground">
                 <Crown className="h-4 w-4 text-amber-500" />
                 {t("premium.title")}
               </div>
-              <div className="text-xs text-navy-400">{t("upsell.premium.desc")}</div>
+              <div className="text-xs text-muted-foreground">{t("upsell.premium.desc")}</div>
             </div>
             <span className="flex items-center gap-1 font-bold text-amber-700">
               {loading === "premium" && <Loader2 className="h-4 w-4 animate-spin" />}

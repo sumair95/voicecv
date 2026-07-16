@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useLanguage } from "@/components/LanguageProvider";
 
 export function Navbar({
@@ -15,15 +16,16 @@ export function Navbar({
 }) {
   const { t } = useLanguage();
   return (
-    <header className="sticky top-0 z-40 border-b border-navy-100/60 bg-white/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-card/80 backdrop-blur-lg">
       <div className="container flex h-16 items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2 font-semibold text-navy-900">
+        <Link href="/" className="flex items-center gap-2 font-semibold text-foreground">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-teal text-white">
             <Mic className="h-5 w-5" />
           </span>
           <span className="text-lg">VoiceCV</span>
         </Link>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <LanguageToggle />
           {authed ? (
             <>
