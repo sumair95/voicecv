@@ -1036,6 +1036,18 @@ export const t: Dict = {
     ur: "پیشہ ورانہ تصویر تیار ہے",
     it: "Foto professionale pronta",
   },
+  "photo.redirecting": {
+    en: "Taking you to secure checkout…",
+    ar: "جارٍ تحويلك إلى الدفع الآمن…",
+    ur: "محفوظ چیک آؤٹ پر لے جا رہے ہیں…",
+    it: "Ti portiamo al pagamento sicuro…",
+  },
+  "photo.paidThanks": {
+    en: "Payment received — click 'Make it professional' to convert your photo.",
+    ar: "تم استلام الدفع — اضغط 'اجعلها احترافية' لتحويل صورتك.",
+    ur: "ادائیگی موصول — اپنی تصویر بدلنے کے لیے 'اسے پیشہ ورانہ بنائیں' دبائیں۔",
+    it: "Pagamento ricevuto — tocca 'Rendila professionale' per convertire la foto.",
+  },
   "photo.capture": { en: "Capture", ar: "التقاط", ur: "کیپچر", it: "Scatta" },
   "photo.cancel": { en: "Cancel", ar: "إلغاء", ur: "منسوخ", it: "Annulla" },
   "photo.cameraError": {

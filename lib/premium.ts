@@ -28,4 +28,9 @@ export const PREMIUM_PACK = {
   cvCredits: 3,
 } as const;
 
-export type PackId = "cv" | "premium";
+// $2 "professional photo" add-on. One purchase grants FORMAL_PHOTO_CREDITS
+// conversions (a little headroom so a user can retry/tweak the result).
+export const FORMAL_PHOTO_PRICE_USD_CENTS = 200;
+export const FORMAL_PHOTO_CREDITS = 3;
+
+export type PackId = "cv" | "premium" | "photo";

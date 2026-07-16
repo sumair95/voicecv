@@ -7,6 +7,8 @@ import {
   PREMIUM_PRICE_USD_CENTS,
   CV_PACK_PRICE_USD_CENTS,
   CV_PACK_CREDITS,
+  FORMAL_PHOTO_PRICE_USD_CENTS,
+  FORMAL_PHOTO_CREDITS,
   type PackId,
 } from "@/lib/premium";
 
@@ -24,6 +26,11 @@ const PACKS: Record<PackId, { cents: number; name: string; description: string }
     description:
       "2 premium-template CVs (Classic & Executive) + 1 professional cover letter + 3 more CVs",
   },
+  photo: {
+    cents: FORMAL_PHOTO_PRICE_USD_CENTS,
+    name: "VoiceCV — Professional Photo",
+    description: `AI formal headshot on a clean white background (${FORMAL_PHOTO_CREDITS} conversions)`,
+  },
 };
 
 // Creates a Stripe Checkout Session for the chosen pack and returns its URL.
@@ -33,10 +40,12 @@ export const POST = handle("checkout", async ({ req, log }) => {
   if (!user) return unauthorized();
 
   const body = (await req.json().catch(() => ({}))) as { pack?: PackId };
-  const pack: PackId = body.pack === "cv" ? "cv" : "premium";
+  const pack: PackId = body.pack && PACKS[body.pack] ? body.pack : "premium";
   const info = PACKS[pack];
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://vocv.app";
+  // Photo is bought from the Profile page — send the user back there.
+  const returnPath = pack === "photo" ? "/profile" : "/dashboard";
   const stripe = getStripe();
 
   const session = await stripe.checkout.sessions.create({
@@ -53,8 +62,8 @@ export const POST = handle("checkout", async ({ req, log }) => {
     ],
     client_reference_id: user.id,
     metadata: { user_id: user.id, pack },
-    success_url: `${appUrl}/dashboard?premium=success`,
-    cancel_url: `${appUrl}/dashboard?premium=cancel`,
+    success_url: `${appUrl}${returnPath}?premium=success`,
+    cancel_url: `${appUrl}${returnPath}?premium=cancel`,
   });
 
   await logEvent(supabase, user.id, "checkout_started", { pack });

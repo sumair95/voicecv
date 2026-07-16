@@ -14,8 +14,9 @@ import { useEffect, useState } from "react";
  */
 export type Currency = "USD" | "PKR" | "INR" | "SAR";
 
-/** Indicative price for the AI "formal photo" conversion (paid add-on). */
-export const FORMAL_PHOTO_USD_CENTS = 200;
+// Indicative price for the AI "formal photo" conversion (paid add-on).
+// Single source of truth lives in lib/premium.ts (shared with checkout).
+export { FORMAL_PHOTO_PRICE_USD_CENTS as FORMAL_PHOTO_USD_CENTS } from "@/lib/premium";
 
 interface CurrencyInfo {
   symbol: string;

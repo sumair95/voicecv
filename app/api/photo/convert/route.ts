@@ -10,8 +10,9 @@
 import { getAuthContext } from "@/lib/api/auth";
 import { createAdminClient } from "@/lib/supabase/server";
 import { handle } from "@/lib/api/handle";
-import { badRequest, ok, serverError, unauthorized } from "@/lib/api/respond";
+import { badRequest, ok, paymentRequired, serverError, unauthorized } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
+import { isCompAccount } from "@/lib/premium/access";
 import { isPhotoEnhanceConfigured, toProfessionalPhoto } from "@/lib/photo/enhance";
 import { NextResponse } from "next/server";
 
@@ -19,7 +20,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export const POST = handle("photo-convert", async ({ req, log }) => {
-  const { user } = await getAuthContext(req);
+  const { user, supabase } = await getAuthContext(req);
   if (!user) return unauthorized();
 
   if (!isPhotoEnhanceConfigured()) {
@@ -40,17 +41,23 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
     );
   }
 
-  // TODO (billing): gate behind a paid formal-photo credit here before converting.
-
   // True service-role client for the privileged storage write (bypasses RLS).
   const admin = createAdminClient();
   const { data: prof } = await admin
     .from("profiles")
-    .select("photo_url")
+    .select("photo_url, formal_photo_credits")
     .eq("id", user.id)
     .single();
   const src = (prof?.photo_url as string | undefined) ?? undefined;
   if (!src) return badRequest("Upload a photo first");
+
+  // Paid add-on: require a formal-photo credit (comped accounts skip the charge).
+  // The credit is consumed only AFTER a successful conversion, so a remove.bg
+  // failure never burns it.
+  const comped = await isCompAccount(supabase);
+  if (!comped && ((prof?.formal_photo_credits as number | undefined) ?? 0) < 1) {
+    return paymentRequired("Professional photo is a paid add-on");
+  }
 
   let bytes: Buffer;
   try {
@@ -76,6 +83,9 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
     .update({ photo_formal_url: formalUrl, photo_choice: "formal" })
     .eq("id", user.id);
 
-  log.info("photo converted", { userId: user.id });
+  // Conversion succeeded — spend the credit now (comped users don't pay).
+  if (!comped) await supabase.rpc("consume_formal_photo_credit");
+
+  log.info("photo converted", { userId: user.id, comped });
   return ok({ formalUrl });
 });

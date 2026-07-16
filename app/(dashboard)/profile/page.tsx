@@ -110,6 +110,17 @@ export default function ProfilePage() {
     })();
   }, [supabase]);
 
+  // Returning from Stripe checkout for the photo add-on.
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("premium") === "success"
+    ) {
+      toast.success(t("photo.paidThanks"));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function set(key: keyof Fields, value: string) {
     setFields((f) => ({ ...f, [key]: value }));
   }
@@ -214,11 +225,27 @@ export default function ProfilePage() {
     await supabase.from("profiles").update({ photo_choice: next }).eq("id", user.id);
   }
 
-  // Paid AI conversion (background removal + white bg + crop).
+  // Paid AI conversion (background removal + white bg + crop). No credit → send
+  // the user to Stripe checkout for the $2 photo add-on; they return and retry.
   async function makeFormal() {
     setConverting(true);
     try {
       const res = await fetch("/api/photo/convert", { method: "POST" });
+      if (res.status === 402) {
+        toast(t("photo.redirecting"));
+        const co = await fetch("/api/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pack: "photo" }),
+        });
+        const cj = (await co.json().catch(() => ({}))) as { url?: string; error?: string };
+        if (co.ok && cj.url) {
+          window.location.href = cj.url;
+          return;
+        }
+        toast.error(cj.error || t("premium.checkoutError"));
+        return;
+      }
       const json = (await res.json().catch(() => ({}))) as {
         formalUrl?: string;
         error?: string;
