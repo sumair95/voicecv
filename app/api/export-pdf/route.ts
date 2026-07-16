@@ -12,6 +12,23 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+// Fetch the CV photo and inline it as a data URI. Rendering from bytes (not a
+// live URL) means a slow/broken image can never hang or crash the whole PDF —
+// on any failure we return "" and the templates simply omit the photo.
+async function photoDataUri(url: string): Promise<string> {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return "";
+    const type = res.headers.get("content-type") || "image/jpeg";
+    if (!type.startsWith("image/")) return "";
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.length === 0 || buf.length > 8_000_000) return "";
+    return `data:${type};base64,${buf.toString("base64")}`;
+  } catch {
+    return "";
+  }
+}
+
 export const POST = handle("export-pdf", async ({ req, log }) => {
   const { user, supabase } = await getAuthContext(req);
   if (!user) return unauthorized();
@@ -57,9 +74,15 @@ export const POST = handle("export-pdf", async ({ req, log }) => {
     template = DEFAULT_TEMPLATE;
   }
 
+  const cvData = migrateCvData(cv.cv_data);
+  // Inline the opt-in photo as bytes (safe render); drop it if it can't be fetched.
+  if (cvData.personal.photo_url) {
+    cvData.personal.photo_url = await photoDataUri(cvData.personal.photo_url);
+  }
+
   try {
     const buffer = await renderToBuffer(
-      CVDocument({ cv: migrateCvData(cv.cv_data), language, template }),
+      CVDocument({ cv: cvData, language, template }),
     );
 
     log.info("pdf rendered", { cvId, userId: user.id, template });

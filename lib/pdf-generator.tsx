@@ -3,6 +3,7 @@ import {
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
   Font,
   Svg,
@@ -139,6 +140,14 @@ function styles(fontFamily: string) {
       marginBottom: 10,
     },
     avatarText: { color: "#FFF", fontSize: 22, fontWeight: 700 },
+    avatarPhoto: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      alignSelf: "center",
+      marginBottom: 10,
+      objectFit: "cover",
+    },
     name: { fontSize: 18, fontWeight: 700, textAlign: "center", color: "#FFF" },
     sub: { fontSize: 10, color: "rgba(255,255,255,0.8)", textAlign: "center", marginTop: 3 },
     sectionTitleRowDark: {
@@ -568,9 +577,14 @@ function ModernDocument({
     <Document>
       <Page size="A4" style={s.page}>
         <View style={s.sidebar}>
-          <View style={s.avatar}>
-            <Text style={s.avatarText}>{initials(cv.personal.full_name)}</Text>
-          </View>
+          {cv.personal.photo_url ? (
+            // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt prop
+            <Image src={cv.personal.photo_url} style={s.avatarPhoto} />
+          ) : (
+            <View style={s.avatar}>
+              <Text style={s.avatarText}>{initials(cv.personal.full_name)}</Text>
+            </View>
+          )}
           <Text style={s.name}>{cv.personal.full_name || ""}</Text>
           {cv.personal.job_title ? (
             <Text style={{ fontSize: 10, textAlign: "center", color: TEAL, marginTop: 2 }}>
@@ -827,6 +841,13 @@ function MinimalistDocument({
   return (
     <Document>
       <Page size="A4" style={s.page}>
+        {cv.personal.photo_url ? (
+          // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt prop
+          <Image
+            src={cv.personal.photo_url}
+            style={{ width: 84, height: 84, borderRadius: 42, objectFit: "cover", alignSelf: "center", marginBottom: 10 }}
+          />
+        ) : null}
         <Text style={s.name}>{cv.personal.full_name || ""}</Text>
         {cv.personal.job_title ? (
           <Text style={{ fontSize: 12, textAlign: "center", color: TEAL, marginTop: 2 }}>
@@ -1005,6 +1026,13 @@ function ClassicDocument({ cv, language }: { cv: CVData; language: Language }) {
   return (
     <Document>
       <Page size="A4" style={s.page}>
+        {cv.personal.photo_url ? (
+          // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt prop
+          <Image
+            src={cv.personal.photo_url}
+            style={{ width: 84, height: 84, borderRadius: 42, objectFit: "cover", alignSelf: "center", marginBottom: 12 }}
+          />
+        ) : null}
         <Text style={s.name}>{cv.personal.full_name || ""}</Text>
         {cv.personal.job_title ? (
           <Text style={{ fontSize: 12, textAlign: "center", color: "#64748B", marginTop: 3, letterSpacing: 1 }}>
@@ -1151,12 +1179,23 @@ function ExecutiveDocument({ cv, language }: { cv: CVData; language: Language })
     <Document>
       <Page size="A4" style={s.page}>
         <View style={s.header}>
-          <Text style={s.name}>{cv.personal.full_name || ""}</Text>
-          {cv.personal.job_title ? (
-            <Text style={{ fontSize: 12, color: TEAL, marginTop: 3 }}>{cv.personal.job_title}</Text>
-          ) : null}
-          {contact.length > 0 && <Text style={s.headerContact}>{contact.join("   ·   ")}</Text>}
-          {socials.length > 0 && <Text style={s.headerContact}>{socials.join("   ·   ")}</Text>}
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <View style={{ flex: 1 }}>
+              <Text style={s.name}>{cv.personal.full_name || ""}</Text>
+              {cv.personal.job_title ? (
+                <Text style={{ fontSize: 12, color: TEAL, marginTop: 3 }}>{cv.personal.job_title}</Text>
+              ) : null}
+              {contact.length > 0 && <Text style={s.headerContact}>{contact.join("   ·   ")}</Text>}
+              {socials.length > 0 && <Text style={s.headerContact}>{socials.join("   ·   ")}</Text>}
+            </View>
+            {cv.personal.photo_url ? (
+              // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt prop
+              <Image
+                src={cv.personal.photo_url}
+                style={{ width: 72, height: 72, borderRadius: 36, objectFit: "cover", marginLeft: 16 }}
+              />
+            ) : null}
+          </View>
         </View>
 
         <View style={s.content}>

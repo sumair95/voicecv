@@ -57,6 +57,12 @@ export interface CVPersonal {
   country: string;
   email: string;
   phone: string;
+  /**
+   * Optional photo shown on the CV. Opt-in per CV: a URL means "show this photo",
+   * empty/undefined means no photo. Set from the user's Profile photo via the
+   * editor toggle; never populated by AI generation.
+   */
+  photo_url?: string;
 }
 
 export interface CVSocialLink {

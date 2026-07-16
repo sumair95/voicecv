@@ -26,6 +26,7 @@ import {
 import { tr } from "@/lib/i18n";
 import { ClassicTemplate } from "@/components/cv/ClassicTemplate";
 import { ExecutiveTemplate } from "@/components/cv/ExecutiveTemplate";
+import { CvPhoto } from "@/components/cv/primitives";
 import type {
   CVCertificateItem,
   CVData,
@@ -280,6 +281,14 @@ export function CVPreview({
         style={{ minHeight: "297mm" }}
       >
         <header className="border-b border-navy-200 pb-6 text-center">
+          {data.personal.photo_url && (
+            <div className="mb-4 flex justify-center">
+              <CvPhoto
+                url={data.personal.photo_url}
+                className="h-28 w-28 rounded-full object-cover"
+              />
+            </div>
+          )}
           <h1 className="text-3xl font-light tracking-wide text-navy-900">
             <Editable
               value={data.personal.full_name}
@@ -843,9 +852,16 @@ export function CVPreview({
       {/* Sidebar */}
       <aside className="col-span-12 bg-navy-900 p-8 text-white md:col-span-4">
         <div className="flex flex-col items-center gap-3 text-center">
-          <div className="grid h-20 w-20 place-items-center rounded-full bg-teal text-2xl font-bold text-white">
-            {initialsOf(data.personal.full_name)}
-          </div>
+          {data.personal.photo_url ? (
+            <CvPhoto
+              url={data.personal.photo_url}
+              className="h-24 w-24 rounded-full object-cover ring-2 ring-teal-300"
+            />
+          ) : (
+            <div className="grid h-20 w-20 place-items-center rounded-full bg-teal text-2xl font-bold text-white">
+              {initialsOf(data.personal.full_name)}
+            </div>
+          )}
           <h1 className="text-2xl font-bold leading-tight">
             <Editable
               value={data.personal.full_name}

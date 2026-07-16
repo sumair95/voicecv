@@ -1,7 +1,7 @@
 "use client";
 
 import type { CVData } from "@/types/cv";
-import { Editable } from "@/components/cv/primitives";
+import { Editable, CvPhoto } from "@/components/cv/primitives";
 import {
   ObjectiveContent,
   ExperienceContent,
@@ -48,6 +48,14 @@ export function ClassicTemplate({ data, editable, patch, t, isRtl }: Props) {
       style={{ minHeight: "297mm" }}
     >
       <header className="text-center">
+        {data.personal.photo_url && (
+          <div className="mb-4 flex justify-center">
+            <CvPhoto
+              url={data.personal.photo_url}
+              className="h-28 w-28 rounded-full object-cover ring-1 ring-navy-200"
+            />
+          </div>
+        )}
         <h1 className="text-4xl font-semibold tracking-wide text-navy-900">
           <Editable
             value={data.personal.full_name}

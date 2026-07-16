@@ -22,6 +22,8 @@ export function migrateCvData(raw: unknown): CVData {
     country: src.personal?.country ?? "",
     email: src.personal?.email ?? "",
     phone: src.personal?.phone ?? "",
+    // Carry the opt-in CV photo through migration (empty = no photo).
+    photo_url: src.personal?.photo_url ?? "",
   };
 
   const socials: CVSocialLink[] = Array.isArray(src.socials)

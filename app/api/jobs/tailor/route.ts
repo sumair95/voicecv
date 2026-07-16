@@ -87,6 +87,9 @@ export const POST = handle("jobs-tailor", async ({ req, log }) => {
     return serverError("Couldn't tailor the CV — please try again.");
   }
 
+  // The AI rewrite doesn't carry the opt-in photo — preserve the user's choice.
+  tailored.personal.photo_url = cv.personal.photo_url ?? "";
+
   const { error: upErr } = await supabase
     .from("cvs")
     .update({ cv_data: tailored, updated_at: new Date().toISOString() })

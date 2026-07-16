@@ -1,7 +1,7 @@
 "use client";
 
 import type { CVData } from "@/types/cv";
-import { Editable } from "@/components/cv/primitives";
+import { Editable, CvPhoto } from "@/components/cv/primitives";
 import {
   ObjectiveContent,
   ExperienceContent,
@@ -45,7 +45,8 @@ export function ExecutiveTemplate({ data, editable, patch, t, isRtl }: Props) {
       className="mx-auto w-full max-w-[210mm] overflow-hidden bg-white p-12 text-navy-700 shadow-sm print:shadow-none"
       style={{ minHeight: "297mm" }}
     >
-      <header className="-mx-12 -mt-12 mb-2 border-b-4 border-teal bg-navy-900 px-12 py-10 text-white">
+      <header className="-mx-12 -mt-12 mb-2 flex items-center justify-between gap-6 border-b-4 border-teal bg-navy-900 px-12 py-10 text-white">
+        <div className="min-w-0 flex-1">
         <h1 className="text-4xl font-extrabold tracking-tight text-white">
           <Editable
             value={data.personal.full_name}
@@ -71,6 +72,13 @@ export function ExecutiveTemplate({ data, editable, patch, t, isRtl }: Props) {
           <p className="mt-2 text-sm text-white/70">
             <SocialsInline {...ctx} />
           </p>
+        )}
+        </div>
+        {data.personal.photo_url && (
+          <CvPhoto
+            url={data.personal.photo_url}
+            className="h-24 w-24 shrink-0 rounded-full object-cover ring-2 ring-teal-300"
+          />
         )}
       </header>
 

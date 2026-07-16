@@ -64,6 +64,19 @@ export function initialsOf(name: string): string {
   );
 }
 
+/**
+ * Optional CV photo. Renders nothing unless a URL is present (opt-in per CV).
+ * Sizing/shape comes from the caller via `className` so each template can frame
+ * it to taste.
+ */
+export function CvPhoto({ url, className }: { url?: string; className?: string }) {
+  if (!url) return null;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={url} alt="" className={className} />
+  );
+}
+
 export function descriptionBullets(text: string): string[] {
   return text
     .split(/\r?\n+/)

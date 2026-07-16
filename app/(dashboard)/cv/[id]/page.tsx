@@ -29,6 +29,7 @@ export default function CVDetailPage() {
   const [downloading, setDownloading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [coverLetterCredits, setCoverLetterCredits] = useState(0);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
@@ -37,10 +38,16 @@ export default function CVDetailPage() {
       if (!user) return;
       const { data } = await supabase
         .from("profiles")
-        .select("cover_letter_credits")
+        .select("cover_letter_credits, photo_url, photo_formal_url, photo_choice")
         .eq("id", user.id)
         .single();
       setCoverLetterCredits((data?.cover_letter_credits as number) ?? 0);
+      // Resolve the profile photo the user chose (formal if picked + available).
+      const resolved =
+        data?.photo_choice === "formal" && data?.photo_formal_url
+          ? (data.photo_formal_url as string)
+          : ((data?.photo_url as string | null) ?? null);
+      setProfilePhoto(resolved || null);
     })();
   }, [supabase]);
 
@@ -133,6 +140,28 @@ export default function CVDetailPage() {
       },
     });
     toast.success(t("profile.applied"));
+  }
+
+  // Opt-in photo on this CV. ON copies the profile photo into the CV; OFF clears
+  // it. Per-CV — never affects other CVs. Off by default.
+  const photoOn = !!cv?.cv_data?.personal?.photo_url;
+  function togglePhoto() {
+    if (!cv?.cv_data) return;
+    if (photoOn) {
+      handleChange({
+        ...cv.cv_data,
+        personal: { ...cv.cv_data.personal, photo_url: "" },
+      });
+      return;
+    }
+    if (!profilePhoto) {
+      toast.error(t("cv.photoNeedProfile"));
+      return;
+    }
+    handleChange({
+      ...cv.cv_data,
+      personal: { ...cv.cv_data.personal, photo_url: profilePhoto },
+    });
   }
 
   async function changeTemplate(next: TemplateId) {
@@ -293,6 +322,55 @@ export default function CVDetailPage() {
         onChange={changeTemplate}
         premiumEnabled
       />
+
+      {editing && (
+        <div className="no-print flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy-100 bg-white px-4 py-3">
+          <div className="flex items-center gap-3">
+            {photoOn && profilePhoto ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={profilePhoto}
+                alt=""
+                className="h-10 w-10 rounded-full object-cover ring-1 ring-navy-100"
+              />
+            ) : (
+              <span className="grid h-10 w-10 place-items-center rounded-full bg-navy-50 text-navy-300">
+                <UserRound className="h-5 w-5" />
+              </span>
+            )}
+            <div>
+              <p className="text-sm font-medium text-navy-900">{t("cv.photoToggle")}</p>
+              <p className="text-xs text-navy-400">
+                {profilePhoto ? (
+                  t("cv.photoHint")
+                ) : (
+                  <>
+                    {t("cv.photoNeedProfile")}{" "}
+                    <Link href="/profile" className="text-teal-600 underline">
+                      {t("cv.photoGoProfile")}
+                    </Link>
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+          <button
+            role="switch"
+            aria-checked={photoOn}
+            onClick={togglePhoto}
+            disabled={!profilePhoto && !photoOn}
+            className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-40 ${
+              photoOn ? "bg-teal" : "bg-navy-200"
+            }`}
+          >
+            <span
+              className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${
+                photoOn ? "left-6" : "left-1"
+              }`}
+            />
+          </button>
+        </div>
+      )}
 
       <CVPreview
         cvData={cvData}

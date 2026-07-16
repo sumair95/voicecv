@@ -1081,6 +1081,30 @@ export const t: Dict = {
     ur: "موزوں نوکریاں تلاش کریں",
     it: "Trova lavori adatti",
   },
+  "cv.photoToggle": {
+    en: "Show my photo on this CV",
+    ar: "أظهر صورتي في هذه السيرة",
+    ur: "اس CV پر میری تصویر دکھائیں",
+    it: "Mostra la mia foto in questo CV",
+  },
+  "cv.photoHint": {
+    en: "Optional. Uses the photo from your Profile.",
+    ar: "اختياري. يستخدم الصورة من ملفك الشخصي.",
+    ur: "اختیاری۔ آپ کے پروفائل کی تصویر استعمال ہوتی ہے۔",
+    it: "Facoltativo. Usa la foto del tuo Profilo.",
+  },
+  "cv.photoNeedProfile": {
+    en: "Add a photo on your Profile to use this.",
+    ar: "أضف صورة في ملفك الشخصي لاستخدام هذا.",
+    ur: "اسے استعمال کرنے کے لیے اپنے پروفائل میں تصویر شامل کریں۔",
+    it: "Aggiungi una foto nel Profilo per usarla.",
+  },
+  "cv.photoGoProfile": {
+    en: "Go to Profile",
+    ar: "اذهب إلى الملف الشخصي",
+    ur: "پروفائل پر جائیں",
+    it: "Vai al Profilo",
+  },
   "job.title": {
     en: "AI Job Match",
     ar: "مطابقة الوظائف بالذكاء الاصطناعي",
