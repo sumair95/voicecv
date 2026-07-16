@@ -20,6 +20,7 @@ interface CompEmail {
 
 export function AdminCompPanel() {
   const [loading, setLoading] = useState(true);
+  const [denied, setDenied] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [emails, setEmails] = useState<CompEmail[]>([]);
   const [newEmail, setNewEmail] = useState("");
@@ -28,6 +29,11 @@ export function AdminCompPanel() {
 
   async function load() {
     const res = await fetch("/api/admin/comp");
+    if (res.status === 401 || res.status === 403) {
+      setDenied(true);
+      setLoading(false);
+      return;
+    }
     if (!res.ok) {
       toast.error("Couldn't load comp settings");
       setLoading(false);
@@ -106,6 +112,18 @@ export function AdminCompPanel() {
     return (
       <div className="grid place-items-center rounded-xl border border-navy-100 bg-white p-10">
         <Loader2 className="h-5 w-5 animate-spin text-navy-300" />
+      </div>
+    );
+  }
+
+  if (denied) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-6 text-center">
+        <p className="font-semibold text-navy-900">You don&apos;t have admin access</p>
+        <p className="mx-auto mt-1 max-w-sm text-sm text-navy-500">
+          This account isn&apos;t on the <code className="rounded bg-white px-1 py-0.5 text-xs">ADMIN_EMAILS</code>{" "}
+          list. Add your email to that variable on Railway, redeploy, then reload this page.
+        </p>
       </div>
     );
   }

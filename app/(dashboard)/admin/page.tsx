@@ -1,25 +1,17 @@
+"use client";
+
 /**
- * Admin — comp (complimentary access) control. Server-gated to admin emails
- * (ADMIN_EMAILS); non-admins are bounced to the dashboard. The client panel
- * talks to /api/admin/comp (also admin-gated) for every read/write.
+ * Admin — comp (complimentary access) control. Access is enforced server-side by
+ * /api/admin/comp (ADMIN_EMAILS gated); this page just renders the panel, which
+ * shows an "access denied" state if the API rejects the caller. Client component
+ * on purpose: auth is read via the browser Supabase session (the server-side
+ * getUser() pattern can't refresh tokens in an App Router server component and
+ * would spuriously bounce a signed-in admin to /login).
  */
 
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { isAdminEmail } from "@/lib/admin";
 import { AdminCompPanel } from "@/components/AdminCompPanel";
 
-export const dynamic = "force-dynamic";
-
-export default async function AdminPage() {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login?redirectTo=/admin");
-  if (!isAdminEmail(user.email)) redirect("/dashboard");
-
+export default function AdminPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
