@@ -185,7 +185,7 @@ export function CoverLetterPanel({
               value={letter}
               onChange={(e) => setLetter(e.target.value)}
               rows={18}
-              className="w-full resize-y rounded-b-lg border border-border p-4 text-sm leading-relaxed text-foreground focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/40"
+              className="w-full resize-y rounded-b-lg border border-border bg-transparent p-4 text-sm leading-relaxed text-foreground focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/40"
             />
             <p className="text-xs text-muted-foreground">{t("letter.editHint")}</p>
 
