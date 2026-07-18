@@ -763,7 +763,7 @@ export const t: Dict = {
   "rec.viewCv": { en: "View My CV", ar: "عرض سيرتي", ur: "میرا CV دیکھیں", it: "Vedi il mio CV" },
 
   // CV sections
-  "cv.objective": { en: "Objective", ar: "الهدف المهني", ur: "مقصد", it: "Obiettivo" },
+  "cv.objective": { en: "Summary", ar: "الملخص", ur: "خلاصہ", it: "Sintesi" },
   "cv.experience": {
     en: "Work Experience",
     ar: "الخبرة العملية",

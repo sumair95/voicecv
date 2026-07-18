@@ -57,7 +57,7 @@ const SECTION_LABELS: Record<Language, Record<string, string>> = {
     skills: "Skills",
     languages: "Languages",
     hobbies: "Hobbies",
-    objective: "Objective",
+    objective: "Summary",
     experience: "Work Experience",
     education: "Education",
     certificates: "Certificates & Training",
@@ -69,7 +69,7 @@ const SECTION_LABELS: Record<Language, Record<string, string>> = {
     skills: "Competenze",
     languages: "Lingue",
     hobbies: "Hobby",
-    objective: "Obiettivo",
+    objective: "Sintesi",
     experience: "Esperienza lavorativa",
     education: "Istruzione",
     certificates: "Certificati e formazione",
@@ -81,7 +81,7 @@ const SECTION_LABELS: Record<Language, Record<string, string>> = {
     skills: "المهارات",
     languages: "اللغات",
     hobbies: "الهوايات",
-    objective: "الهدف المهني",
+    objective: "الملخص",
     experience: "الخبرة العملية",
     education: "التعليم",
     certificates: "الشهادات والتدريب",
@@ -93,7 +93,7 @@ const SECTION_LABELS: Record<Language, Record<string, string>> = {
     skills: "مہارتیں",
     languages: "زبانیں",
     hobbies: "مشاغل",
-    objective: "مقصد",
+    objective: "خلاصہ",
     experience: "کام کا تجربہ",
     education: "تعلیم",
     certificates: "سرٹیفکیٹ اور تربیت",
@@ -1142,8 +1142,12 @@ function ClassicDocument({ cv, language }: { cv: CVData; language: Language }) {
 
 function execStyles(fontFamily: string) {
   return StyleSheet.create({
-    page: { fontFamily },
-    header: { backgroundColor: NAVY, paddingVertical: 28, paddingHorizontal: 48, borderBottomWidth: 4, borderBottomColor: TEAL },
+    // Page padding gives every page — including page 2+ — a clean top/bottom
+    // margin so continuation pages don't start flush against the paper edge.
+    page: { fontFamily, paddingTop: 36, paddingBottom: 36 },
+    // Full-bleed header: pull it up out of the page's top padding so it still
+    // sits flush at the very top of page 1 (page-1 layout is unchanged).
+    header: { backgroundColor: NAVY, marginTop: -36, paddingVertical: 28, paddingHorizontal: 48, borderBottomWidth: 4, borderBottomColor: TEAL },
     name: { fontSize: 24, fontWeight: 700, color: "#FFFFFF", letterSpacing: 0.5 },
     headerContact: { fontSize: 9, color: "rgba(255,255,255,0.75)", marginTop: 6 },
     content: { paddingVertical: 26, paddingHorizontal: 48 },
