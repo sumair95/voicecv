@@ -71,7 +71,8 @@ Mapping rules — the user has answered up to 9 questions identified by field_ke
 - achievement        → achievements[] (each a SHORT one-line achievement or award; keep the candidate's own wording, just tidy it. If they skipped or said "no", return [])
 
 Quality rules:
-- Write ALL natural-language content in **${outputLanguage}**, regardless of the candidate's input language. Personal names, city names, and country names should be written in Latin script (e.g. "أحمد" → "Ahmed", "ریاض" → "Riyadh").
+- Write ALL natural-language content in **${outputLanguage}**, regardless of the candidate's input language. The finished CV MUST contain ZERO characters from the candidate's input script — transliterate EVERY name and place and translate ALL content into ${outputLanguage} (e.g. "أحمد"/"احمد" → "Ahmed", "ریاض" → "Riyadh", "کراچی" → "Karachi", "لاہور" → "Lahore"). Do NOT leave a single Arabic or Urdu character anywhere in the output — even one flips the text alignment and breaks the layout.
+- Write in clear, professional, idiomatic ${outputLanguage} of consistent quality — the wording must read as if written natively in ${outputLanguage}, no matter which language the candidate answered in.
 - Do NOT invent facts (companies, dates, qualifications). If information is missing OR the user skipped the question (empty answer), return empty string/array/null for those fields.
 - Make the objective compelling and specific to the role + market the candidate wants.
 - job_title: a short professional headline (2-4 words), not a sentence. If the candidate gave no role at all, leave it "".
@@ -105,7 +106,7 @@ export function buildUserMessage(
       : "";
 
   return `The candidate answered the questions in: ${LANGUAGE_NAME[inputLanguage]}.
-Write the CV in ${outputName} — translate from ${LANGUAGE_NAME[inputLanguage]} where needed.
+Write the CV in ${outputName}, in Latin script only — translate and transliterate everything from ${LANGUAGE_NAME[inputLanguage]}, and leave NO ${LANGUAGE_NAME[inputLanguage]} characters anywhere in the output.
 
 Questions and answers from the job seeker:
 

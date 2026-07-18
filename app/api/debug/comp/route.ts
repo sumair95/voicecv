@@ -10,6 +10,7 @@ import { handle } from "@/lib/api/handle";
 import { ok, unauthorized } from "@/lib/api/respond";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export const GET = handle("debug-comp", async ({ req }) => {
   const { user, supabase } = await getAuthContext(req);
