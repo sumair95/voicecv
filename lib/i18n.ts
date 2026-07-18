@@ -1161,6 +1161,18 @@ export const t: Dict = {
     ur: "کوئی نوکری نہیں ملی۔ وسیع عہدہ یا مختلف مقام آزمائیں۔",
     it: "Nessun lavoro trovato. Prova un ruolo più ampio o un'altra località.",
   },
+  "job.suggestTitle": {
+    en: "Suggested roles from your CV — tap to search:",
+    ar: "أدوار مقترحة من سيرتك — اضغط للبحث:",
+    ur: "آپ کے CV سے تجویز کردہ عہدے — تلاش کے لیے دبائیں:",
+    it: "Ruoli suggeriti dal tuo CV — tocca per cercare:",
+  },
+  "job.relaxed": {
+    en: "No exact matches for “{role}” — showing the closest jobs for your profile instead.",
+    ar: "لا توجد تطابقات دقيقة لـ «{role}» — نعرض أقرب الوظائف لملفك بدلاً من ذلك.",
+    ur: "«{role}» کے لیے کوئی درست میچ نہیں — اس کے بجائے آپ کے پروفائل کے قریب ترین نوکریاں دکھائی جا رہی ہیں۔",
+    it: "Nessuna corrispondenza esatta per «{role}» — mostriamo i lavori più vicini al tuo profilo.",
+  },
   "job.matchScore": { en: "{score}% match", ar: "{score}% تطابق", ur: "{score}% میچ", it: "{score}% match" },
   "job.improve.title": {
     en: "Low match — improve your CV for this job",

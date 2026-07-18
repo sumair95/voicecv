@@ -14,6 +14,7 @@ import {
   Bookmark,
   Trash2,
   Building2,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,6 +57,8 @@ function JobsInner() {
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<JobListing[]>([]);
   const [searched, setSearched] = useState(false);
+  const [suggestedRoles, setSuggestedRoles] = useState<string[]>([]);
+  const [relaxation, setRelaxation] = useState<{ requestedQuery: string } | null>(null);
 
   const [apps, setApps] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,18 +125,48 @@ function JobsInner() {
     }
   }
 
-  async function search() {
+  // Fetch CV-based role suggestions whenever the selected CV changes. Best-
+  // effort — silent on failure, the plain search box still works.
+  useEffect(() => {
+    if (!cvId) {
+      setSuggestedRoles([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/jobs/suggest-roles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cvId }),
+        });
+        const data = (await res.json().catch(() => ({}))) as { roles?: string[] };
+        if (!cancelled) setSuggestedRoles(data.roles ?? []);
+      } catch {
+        if (!cancelled) setSuggestedRoles([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [cvId]);
+
+  // `overrideRole` lets a suggested-role chip run a search immediately.
+  async function search(overrideRole?: string) {
     if (!cvId) {
       toast.error(t("job.needCv"));
       return;
     }
+    const q = overrideRole ?? role;
+    if (overrideRole !== undefined) setRole(overrideRole);
     setSearching(true);
     setSearched(true);
+    setRelaxation(null);
     try {
       const res = await fetch("/api/jobs/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cvId, query: role, location, remoteOnly }),
+        body: JSON.stringify({ cvId, query: q, location, remoteOnly }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -142,6 +175,7 @@ function JobsInner() {
         return;
       }
       setResults((data.jobs as JobListing[]) ?? []);
+      setRelaxation((data.relaxation as { requestedQuery: string } | null) ?? null);
     } catch {
       toast.error(t("job.error"));
       setResults([]);
@@ -307,7 +341,7 @@ function JobsInner() {
               />
             </div>
             <Button
-              onClick={search}
+              onClick={() => search()}
               disabled={searching}
               className="bg-teal hover:bg-teal-600"
             >
@@ -318,6 +352,28 @@ function JobsInner() {
               )}
               {t("job.find")}
             </Button>
+
+            {suggestedRoles.length > 0 && (
+              <div className="pt-1">
+                <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+                  {t("job.suggestTitle")}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {suggestedRoles.map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => search(r)}
+                      disabled={searching}
+                      className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-foreground transition hover:border-teal/50 hover:bg-teal/10 disabled:opacity-60"
+                    >
+                      <Sparkles className="h-3 w-3 text-teal" />
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -332,6 +388,12 @@ function JobsInner() {
 
       {!searching && searched && results.length === 0 && (
         <p className="text-muted-foreground">{t("job.noResults")}</p>
+      )}
+
+      {!searching && relaxation && results.length > 0 && (
+        <div className="rounded-lg border border-teal/30 bg-teal/10 px-4 py-2.5 text-sm text-teal-800 dark:text-teal-200">
+          {t("job.relaxed", { role: relaxation.requestedQuery })}
+        </div>
       )}
 
       {results.length > 0 && (
