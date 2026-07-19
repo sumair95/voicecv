@@ -28,8 +28,8 @@ const PACKS: Record<PackId, { cents: number; name: string; description: string }
   },
   photo: {
     cents: FORMAL_PHOTO_PRICE_USD_CENTS,
-    name: "VoiceCV — Professional Photo",
-    description: `AI formal headshot on a clean white background (${FORMAL_PHOTO_CREDITS} conversions)`,
+    name: "VoiceCV — Professional Photo Enhancement",
+    description: `AI photo enhancement — a suited or naturally-retouched headshot (${FORMAL_PHOTO_CREDITS} photos)`,
   },
 };
 

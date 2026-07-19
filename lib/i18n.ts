@@ -1042,6 +1042,31 @@ export const t: Dict = {
     ur: "پیشہ ورانہ سوٹ والی تصویر تیار ہے",
     it: "Foto professionale con abito pronta",
   },
+  "photo.enhanceDone": {
+    en: "Enhanced professional photo ready",
+    ar: "الصورة الاحترافية المحسّنة جاهزة",
+    ur: "بہتر بنائی گئی پیشہ ورانہ تصویر تیار ہے",
+    it: "Foto professionale migliorata pronta",
+  },
+  "photo.removeBg": {
+    en: "Remove background",
+    ar: "إزالة الخلفية",
+    ur: "پس منظر ہٹائیں",
+    it: "Rimuovi lo sfondo",
+  },
+  "photo.free": { en: "Free", ar: "مجاني", ur: "مفت", it: "Gratis" },
+  "photo.enhance": {
+    en: "Enhance / professional look",
+    ar: "تحسين / مظهر احترافي",
+    ur: "بہتر بنائیں / پیشہ ورانہ انداز",
+    it: "Migliora / look professionale",
+  },
+  "photo.enhancing": {
+    en: "Enhancing…",
+    ar: "جارٍ التحسين…",
+    ur: "بہتر بنایا جا رہا ہے…",
+    it: "Miglioramento…",
+  },
   "photo.redirecting": {
     en: "Taking you to secure checkout…",
     ar: "جارٍ تحويلك إلى الدفع الآمن…",

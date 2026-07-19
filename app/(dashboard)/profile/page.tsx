@@ -59,6 +59,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [converting, setConverting] = useState(false);
+  const [convertingMode, setConvertingMode] = useState<"removebg" | "enhance" | null>(null);
   const [showCamera, setShowCamera] = useState(false);
   const [mirroring, setMirroring] = useState(false);
   // Mirror is offered only right after a fresh upload/capture, until dismissed.
@@ -225,12 +226,18 @@ export default function ProfilePage() {
     await supabase.from("profiles").update({ photo_choice: next }).eq("id", user.id);
   }
 
-  // Paid AI conversion (background removal + white bg + crop). No credit → send
-  // the user to Stripe checkout for the $2 photo add-on; they return and retry.
-  async function makeFormal() {
+  // Process the photo. "removebg" is FREE (clean white background). "enhance" is
+  // the PREMIUM $5 generative AI look — on no credit (402) it opens Stripe
+  // checkout for the photo pack; the user returns and retries.
+  async function processPhoto(mode: "removebg" | "enhance") {
     setConverting(true);
+    setConvertingMode(mode);
     try {
-      const res = await fetch("/api/photo/convert", { method: "POST" });
+      const res = await fetch("/api/photo/convert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode }),
+      });
       if (res.status === 402) {
         toast(t("photo.redirecting"));
         const co = await fetch("/api/checkout", {
@@ -258,10 +265,17 @@ export default function ProfilePage() {
       if (json.formalUrl) {
         setFormalUrl(json.formalUrl);
         setChoice("formal");
-        toast.success(json.style === "suit" ? t("photo.suitDone") : t("photo.formalDone"));
+        toast.success(
+          json.style === "suit"
+            ? t("photo.suitDone")
+            : json.style === "enhance"
+              ? t("photo.enhanceDone")
+              : t("photo.formalDone"),
+        );
       }
     } finally {
       setConverting(false);
+      setConvertingMode(null);
     }
   }
 
@@ -455,28 +469,46 @@ export default function ProfilePage() {
               </Button>
             </div>
 
-            {!formalUrl && (
-              <button
-                onClick={makeFormal}
-                disabled={converting}
-                className="flex w-full items-center justify-between rounded-lg border border-teal/30 bg-teal/10 px-4 py-3 text-start transition hover:bg-teal/20 disabled:opacity-70"
-              >
-                <span className="flex items-center gap-2 font-medium text-teal-800">
-                  {converting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-4 w-4" />
-                  )}
-                  {converting ? t("photo.converting") : t("photo.makeFormal")}
+            {/* Free: background removal */}
+            <button
+              onClick={() => processPhoto("removebg")}
+              disabled={converting}
+              className="flex w-full items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-3 text-start transition hover:bg-muted disabled:opacity-70"
+            >
+              <span className="flex items-center gap-2 font-medium text-foreground">
+                {convertingMode === "removebg" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 text-teal" />
+                )}
+                {convertingMode === "removebg" ? t("photo.converting") : t("photo.removeBg")}
+              </span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-teal-700">
+                {t("photo.free")}
+              </span>
+            </button>
+
+            {/* Premium: AI enhancement / suit */}
+            <button
+              onClick={() => processPhoto("enhance")}
+              disabled={converting}
+              className="flex w-full items-center justify-between rounded-lg border border-teal/30 bg-teal/10 px-4 py-3 text-start transition hover:bg-teal/20 disabled:opacity-70"
+            >
+              <span className="flex items-center gap-2 font-medium text-teal-800">
+                {convertingMode === "enhance" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+                {convertingMode === "enhance" ? t("photo.enhancing") : t("photo.enhance")}
+              </span>
+              <span className="flex items-center gap-2 text-sm">
+                <span className="rounded-full bg-teal px-2 py-0.5 text-xs font-semibold text-white">
+                  {t("photo.premium")}
                 </span>
-                <span className="flex items-center gap-2 text-sm">
-                  <span className="rounded-full bg-teal px-2 py-0.5 text-xs font-semibold text-white">
-                    {t("photo.premium")}
-                  </span>
-                  <span className="text-teal-700">{price(FORMAL_PHOTO_USD_CENTS)}</span>
-                </span>
-              </button>
-            )}
+                <span className="text-teal-700">{price(FORMAL_PHOTO_USD_CENTS)}</span>
+              </span>
+            </button>
           </>
         )}
       </div>

@@ -1,10 +1,10 @@
 /**
- * Convert the user's uploaded photo into a professional (white-background,
- * cropped) headshot via remove.bg, store it, and mark it as the CV's photo.
- *
- * Billing: the "professional photo" is a paid add-on. The paywall (Stripe pack
- * + credit) is the final wiring step — for now the conversion runs for
- * authenticated users (beta) and the UI shows the price as a placeholder.
+ * Process the user's uploaded photo. Two modes:
+ *   - "removebg" (FREE): remove.bg → clean white-background headshot. No credit.
+ *   - "enhance"  (PREMIUM $5): generative Gemini edit — a suited headshot for
+ *     office/professional roles, or a natural retouch for manual/casual roles
+ *     (role read from the user's most recent CV). Gated by a formal-photo credit
+ *     (comped accounts skip the charge); credit consumed only on success.
  */
 
 import { getAuthContext } from "@/lib/api/auth";
@@ -14,7 +14,7 @@ import { badRequest, ok, paymentRequired, serverError, unauthorized } from "@/li
 import { LIMITS, take } from "@/lib/rate-limit";
 import { isCompAccount } from "@/lib/premium/access";
 import { isPhotoEnhanceConfigured, toProfessionalPhoto } from "@/lib/photo/enhance";
-import { isGeminiConfigured, toSuitedPhoto } from "@/lib/photo/gemini";
+import { isGeminiConfigured, toEnhancedPhoto } from "@/lib/photo/gemini";
 import { classifyPhotoStyle } from "@/lib/photo/classify";
 import { migrateCvData } from "@/lib/cv/migrate";
 import { NextResponse } from "next/server";
@@ -26,17 +26,13 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
   const { user, supabase } = await getAuthContext(req);
   if (!user) return unauthorized();
 
-  if (!isPhotoEnhanceConfigured()) {
-    return NextResponse.json(
-      { error: "Professional photo isn't available yet." },
-      { status: 501 },
-    );
-  }
+  const body = (await req.json().catch(() => ({}))) as { mode?: "removebg" | "enhance" };
+  const mode: "removebg" | "enhance" = body.mode === "enhance" ? "enhance" : "removebg";
 
   const rate = take(`photo:${user.id}`, LIMITS.photoConvert);
   if (!rate.ok) {
     return NextResponse.json(
-      { error: "Too many conversions. Try again shortly." },
+      { error: "Too many requests. Try again shortly." },
       {
         status: 429,
         headers: { "Retry-After": String(Math.ceil((rate.resetAt - Date.now()) / 1000)) },
@@ -54,61 +50,71 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
   const src = (prof?.photo_url as string | undefined) ?? undefined;
   if (!src) return badRequest("Upload a photo first");
 
-  // Paid add-on: require a formal-photo credit (comped accounts skip the charge).
-  // The credit is consumed only AFTER a successful conversion, so a remove.bg
-  // failure never burns it.
-  const comped = await isCompAccount(supabase);
-  if (!comped && ((prof?.formal_photo_credits as number | undefined) ?? 0) < 1) {
-    return paymentRequired("Professional photo is a paid add-on");
-  }
-
-  // Choose the treatment from the user's most recent CV role: office/professional
-  // → generative suited headshot (Gemini); manual/casual → clean white background
-  // (remove.bg), so the photo stays authentic to the person's line of work.
-  const { data: cvRow } = await admin
-    .from("cvs")
-    .select("cv_data")
-    .eq("user_id", user.id)
-    .eq("status", "ready")
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  let role = "";
-  if (cvRow?.cv_data) {
-    const cd = migrateCvData(cvRow.cv_data);
-    role = cd.personal.job_title?.trim() || cd.experience.find((e) => e.role?.trim())?.role?.trim() || "";
-  }
-  const useGemini = (await classifyPhotoStyle(role)) === "suit" && isGeminiConfigured();
-
   let bytes: Buffer;
-  let appliedStyle: "suit" | "clean" = useGemini ? "suit" : "clean";
-  try {
-    bytes = useGemini ? await toSuitedPhoto(src) : await toProfessionalPhoto(src);
-  } catch (err) {
-    // If the generative path fails, fall back to the clean conversion so the
-    // user still gets a result (and their credit buys something real).
-    if (useGemini) {
-      log.warn("gemini photo failed; falling back to clean", { err });
-      try {
-        bytes = await toProfessionalPhoto(src);
-        appliedStyle = "clean";
-      } catch (err2) {
-        log.warn("photo conversion failed", { err: err2 });
-        return serverError(err2 instanceof Error ? err2.message : "Photo conversion failed");
-      }
-    } else {
-      log.warn("photo conversion failed", { err });
-      return serverError(err instanceof Error ? err.message : "Photo conversion failed");
+  let appliedStyle: "clean" | "suit" | "enhance" = "clean";
+  let comped = false;
+
+  if (mode === "removebg") {
+    // FREE — background removal only.
+    if (!isPhotoEnhanceConfigured()) {
+      return NextResponse.json({ error: "Background removal isn't available yet." }, { status: 501 });
     }
+    try {
+      bytes = await toProfessionalPhoto(src);
+    } catch (err) {
+      log.warn("background removal failed", { err });
+      return serverError(err instanceof Error ? err.message : "Background removal failed");
+    }
+    appliedStyle = "clean";
+  } else {
+    // PREMIUM — generative enhance / suit via Gemini.
+    if (!isGeminiConfigured()) {
+      return NextResponse.json({ error: "Photo enhancement isn't available yet." }, { status: 501 });
+    }
+    // Require a formal-photo credit (comped accounts skip the charge). Consumed
+    // only AFTER success below, so a Gemini failure never burns it.
+    comped = await isCompAccount(supabase);
+    if (!comped && ((prof?.formal_photo_credits as number | undefined) ?? 0) < 1) {
+      return paymentRequired("Photo enhancement is a Premium feature");
+    }
+
+    // Role (from the most recent CV) decides the generative style: office/pro →
+    // suit; manual/casual → natural retouch without a suit (stays authentic).
+    const { data: cvRow } = await admin
+      .from("cvs")
+      .select("cv_data")
+      .eq("user_id", user.id)
+      .eq("status", "ready")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    let role = "";
+    if (cvRow?.cv_data) {
+      const cd = migrateCvData(cvRow.cv_data);
+      role = cd.personal.job_title?.trim() || cd.experience.find((e) => e.role?.trim())?.role?.trim() || "";
+    }
+    const variant = (await classifyPhotoStyle(role)) === "suit" ? "suit" : "enhance";
+    try {
+      bytes = await toEnhancedPhoto(src, variant);
+    } catch (err) {
+      // Don't charge on failure (credit is consumed only on success below).
+      log.warn("gemini enhance failed", { err });
+      return serverError(err instanceof Error ? err.message : "Photo enhancement failed");
+    }
+    appliedStyle = variant;
   }
 
-  const path = `${user.id}/formal-${Date.now()}.jpg`;
+  // Store under the right extension/content-type (Gemini may return PNG).
+  const isPng = bytes.length > 4 && bytes[0] === 0x89 && bytes[1] === 0x50;
+  const ext = isPng ? "png" : "jpg";
+  const contentType = isPng ? "image/png" : "image/jpeg";
+  const path = `${user.id}/formal-${Date.now()}.${ext}`;
   const { error: upErr } = await admin.storage
     .from("avatars")
-    .upload(path, bytes, { contentType: "image/jpeg", upsert: true });
+    .upload(path, bytes, { contentType, upsert: true });
   if (upErr) {
-    log.warn("converted photo upload failed", { err: upErr });
-    return serverError("Couldn't save the converted photo");
+    log.warn("processed photo upload failed", { err: upErr });
+    return serverError("Couldn't save the photo");
   }
   const { data: pub } = admin.storage.from("avatars").getPublicUrl(path);
   const formalUrl = pub.publicUrl;
@@ -118,9 +124,9 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
     .update({ photo_formal_url: formalUrl, photo_choice: "formal" })
     .eq("id", user.id);
 
-  // Conversion succeeded — spend the credit now (comped users don't pay).
-  if (!comped) await supabase.rpc("consume_formal_photo_credit");
+  // Spend a credit only for the premium enhance path (comped users don't pay).
+  if (mode === "enhance" && !comped) await supabase.rpc("consume_formal_photo_credit");
 
-  log.info("photo converted", { userId: user.id, comped, style: appliedStyle });
-  return ok({ formalUrl, style: appliedStyle });
+  log.info("photo processed", { userId: user.id, mode, style: appliedStyle, comped });
+  return ok({ formalUrl, style: appliedStyle, mode });
 });
