@@ -1056,10 +1056,10 @@ export const t: Dict = {
   },
   "photo.free": { en: "Free", ar: "مجاني", ur: "مفت", it: "Gratis" },
   "photo.enhance": {
-    en: "Enhance / professional look",
-    ar: "تحسين / مظهر احترافي",
-    ur: "بہتر بنائیں / پیشہ ورانہ انداز",
-    it: "Migliora / look professionale",
+    en: "Professional look",
+    ar: "مظهر احترافي",
+    ur: "پیشہ ورانہ انداز",
+    it: "Look professionale",
   },
   "photo.enhancing": {
     en: "Enhancing…",
