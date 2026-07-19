@@ -29,7 +29,11 @@ export async function toProfessionalPhoto(imageUrl: string): Promise<Buffer> {
     type: "person",
     bg_color: "ffffff", // clean white background
     crop: "true", // crop to the subject → head-and-shoulders headshot
-    crop_margin: "15%",
+    // Margins per side (top right bottom left). A little headroom + side space,
+    // but ZERO bottom so the subject reaches the frame's bottom edge — that way
+    // the photo fills the circular avatar and the body's cut sits under the
+    // circle's curve instead of leaving a white strip + hard line at the bottom.
+    crop_margin: "8% 5% 0% 5%",
     format: "jpg",
   });
 

@@ -355,7 +355,7 @@ export default function ProfilePage() {
               className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-border bg-muted"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={shown} alt="" className="h-full w-full object-cover" />
+              <img src={shown} alt="" className="h-full w-full object-cover object-top" />
               <span className="absolute inset-0 grid place-items-center bg-navy-900/0 text-white opacity-0 transition group-hover:bg-navy-900/40 group-hover:opacity-100">
                 <ZoomIn className="h-6 w-6" />
               </span>

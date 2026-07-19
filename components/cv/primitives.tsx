@@ -72,8 +72,10 @@ export function initialsOf(name: string): string {
 export function CvPhoto({ url, className }: { url?: string; className?: string }) {
   if (!url) return null;
   return (
+    // Anchor to the top so the head is never clipped when the photo fills a
+    // round frame — the body's bottom edge is what the frame crops instead.
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={url} alt="" className={className} />
+    <img src={url} alt="" className={`${className ?? ""} object-top`} />
   );
 }
 
