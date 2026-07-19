@@ -281,36 +281,44 @@ export function CVPreview({
         style={{ minHeight: "297mm" }}
       >
         <header className="border-b border-navy-200 pb-6 text-center">
-          {data.personal.photo_url && (
-            <div className="mb-4 flex justify-center">
+          <div
+            className={
+              data.personal.photo_url
+                ? "mb-3 flex items-center justify-center gap-4 text-start"
+                : ""
+            }
+          >
+            {data.personal.photo_url && (
               <CvPhoto
                 url={data.personal.photo_url}
-                className="h-28 w-28 rounded-full object-cover"
+                className="h-20 w-20 shrink-0 rounded-full object-cover"
               />
+            )}
+            <div>
+              <h1 className="text-3xl font-light tracking-wide text-navy-900">
+                <Editable
+                  value={data.personal.full_name}
+                  editable={editable}
+                  onChange={(v) =>
+                    patch({ personal: { ...data.personal, full_name: v } })
+                  }
+                  placeholder={t("auth.fullName")}
+                />
+              </h1>
+              {(editable || data.personal.job_title) && (
+                <p className="mt-1 text-lg font-medium text-teal-600">
+                  <Editable
+                    value={data.personal.job_title}
+                    editable={editable}
+                    onChange={(v) =>
+                      patch({ personal: { ...data.personal, job_title: v } })
+                    }
+                    placeholder={t("cv.jobTitle")}
+                  />
+                </p>
+              )}
             </div>
-          )}
-          <h1 className="text-3xl font-light tracking-wide text-navy-900">
-            <Editable
-              value={data.personal.full_name}
-              editable={editable}
-              onChange={(v) =>
-                patch({ personal: { ...data.personal, full_name: v } })
-              }
-              placeholder={t("auth.fullName")}
-            />
-          </h1>
-          {(editable || data.personal.job_title) && (
-            <p className="mt-1 text-lg font-medium text-teal-600">
-              <Editable
-                value={data.personal.job_title}
-                editable={editable}
-                onChange={(v) =>
-                  patch({ personal: { ...data.personal, job_title: v } })
-                }
-                placeholder={t("cv.jobTitle")}
-              />
-            </p>
-          )}
+          </div>
           {editable ? (
             <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-sm text-navy-400">
               <Editable

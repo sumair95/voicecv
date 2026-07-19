@@ -842,18 +842,31 @@ function MinimalistDocument({
     <Document>
       <Page size="A4" style={s.page}>
         {cv.personal.photo_url ? (
-          // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt prop
-          <Image
-            src={cv.personal.photo_url}
-            style={{ width: 84, height: 84, borderRadius: 42, objectFit: "cover", alignSelf: "center", marginBottom: 10 }}
-          />
-        ) : null}
-        <Text style={s.name}>{cv.personal.full_name || ""}</Text>
-        {cv.personal.job_title ? (
-          <Text style={{ fontSize: 12, textAlign: "center", color: TEAL, marginTop: 2 }}>
-            {cv.personal.job_title}
-          </Text>
-        ) : null}
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt prop */}
+            <Image
+              src={cv.personal.photo_url}
+              style={{ width: 60, height: 60, borderRadius: 30, objectFit: "cover", marginRight: 12 }}
+            />
+            <View>
+              <Text style={s.name}>{cv.personal.full_name || ""}</Text>
+              {cv.personal.job_title ? (
+                <Text style={{ fontSize: 12, textAlign: "center", color: TEAL, marginTop: 2 }}>
+                  {cv.personal.job_title}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        ) : (
+          <>
+            <Text style={s.name}>{cv.personal.full_name || ""}</Text>
+            {cv.personal.job_title ? (
+              <Text style={{ fontSize: 12, textAlign: "center", color: TEAL, marginTop: 2 }}>
+                {cv.personal.job_title}
+              </Text>
+            ) : null}
+          </>
+        )}
         {contactBits.length > 0 ? (
           <Text style={s.headerContact}>{contactBits.join("   •   ")}</Text>
         ) : null}
@@ -1009,6 +1022,17 @@ function classicStyles(fontFamily: string) {
     bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
     listRow: { marginBottom: 4, flexDirection: "row", justifyContent: "space-between" },
     line: { fontSize: 10, color: "#334155", lineHeight: 1.5 },
+    skillWrap: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
+    skillPill: {
+      backgroundColor: "#F1F5F9",
+      borderRadius: 4,
+      paddingVertical: 2,
+      paddingHorizontal: 6,
+      fontSize: 9.5,
+      color: "#334155",
+      marginRight: 5,
+      marginBottom: 5,
+    },
   });
 }
 
@@ -1027,18 +1051,31 @@ function ClassicDocument({ cv, language }: { cv: CVData; language: Language }) {
     <Document>
       <Page size="A4" style={s.page}>
         {cv.personal.photo_url ? (
-          // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt prop
-          <Image
-            src={cv.personal.photo_url}
-            style={{ width: 84, height: 84, borderRadius: 42, objectFit: "cover", alignSelf: "center", marginBottom: 12 }}
-          />
-        ) : null}
-        <Text style={s.name}>{cv.personal.full_name || ""}</Text>
-        {cv.personal.job_title ? (
-          <Text style={{ fontSize: 12, textAlign: "center", color: "#64748B", marginTop: 3, letterSpacing: 1 }}>
-            {cv.personal.job_title}
-          </Text>
-        ) : null}
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt prop */}
+            <Image
+              src={cv.personal.photo_url}
+              style={{ width: 62, height: 62, borderRadius: 31, objectFit: "cover", marginRight: 12 }}
+            />
+            <View>
+              <Text style={s.name}>{cv.personal.full_name || ""}</Text>
+              {cv.personal.job_title ? (
+                <Text style={{ fontSize: 12, textAlign: "center", color: "#64748B", marginTop: 3, letterSpacing: 1 }}>
+                  {cv.personal.job_title}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        ) : (
+          <>
+            <Text style={s.name}>{cv.personal.full_name || ""}</Text>
+            {cv.personal.job_title ? (
+              <Text style={{ fontSize: 12, textAlign: "center", color: "#64748B", marginTop: 3, letterSpacing: 1 }}>
+                {cv.personal.job_title}
+              </Text>
+            ) : null}
+          </>
+        )}
         <View style={s.headerRule} />
         {contact.length > 0 && <Text style={s.contact}>{contact.join("   ·   ")}</Text>}
         {socials.length > 0 && <Text style={s.contact}>{socials.join("   ·   ")}</Text>}
@@ -1101,7 +1138,11 @@ function ClassicDocument({ cv, language }: { cv: CVData; language: Language }) {
         {cv.skills.length > 0 && (
           <>
             <Sec title={L.skills} />
-            <Text style={s.line}>{cv.skills.filter((sk) => sk.trim()).join("  ·  ")}</Text>
+            <View style={s.skillWrap}>
+              {cv.skills.filter((sk) => sk.trim()).map((sk, i) => (
+                <Text key={i} style={s.skillPill}>{sk}</Text>
+              ))}
+            </View>
           </>
         )}
 
@@ -1165,6 +1206,17 @@ function execStyles(fontFamily: string) {
     bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
     listRow: { marginBottom: 4, paddingLeft: 9, flexDirection: "row", justifyContent: "space-between" },
     line: { fontSize: 10, color: "#334155", lineHeight: 1.5, paddingLeft: 9 },
+    skillWrap: { flexDirection: "row", flexWrap: "wrap", paddingLeft: 9 },
+    skillPill: {
+      backgroundColor: "#F1F5F9",
+      borderRadius: 4,
+      paddingVertical: 2,
+      paddingHorizontal: 6,
+      fontSize: 9.5,
+      color: "#334155",
+      marginRight: 5,
+      marginBottom: 5,
+    },
   });
 }
 
@@ -1261,7 +1313,11 @@ function ExecutiveDocument({ cv, language }: { cv: CVData; language: Language })
           {cv.skills.length > 0 && (
             <>
               <Sec title={L.skills} />
-              <Text style={s.line}>{cv.skills.filter((sk) => sk.trim()).join("  ·  ")}</Text>
+              <View style={s.skillWrap}>
+                {cv.skills.filter((sk) => sk.trim()).map((sk, i) => (
+                  <Text key={i} style={s.skillPill}>{sk}</Text>
+                ))}
+              </View>
             </>
           )}
 

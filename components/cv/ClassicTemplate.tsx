@@ -41,6 +41,28 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 /** Classic — traditional, centered, serif. */
 export function ClassicTemplate({ data, editable, patch, t, isRtl }: Props) {
   const ctx = { data, editable, patch, t };
+  const nameBlock = (
+    <>
+      <h1 className="text-4xl font-semibold tracking-wide text-navy-900">
+        <Editable
+          value={data.personal.full_name}
+          editable={editable}
+          onChange={(v) => patch({ personal: { ...data.personal, full_name: v } })}
+          placeholder={t("auth.fullName")}
+        />
+      </h1>
+      {(editable || data.personal.job_title) && (
+        <p className="mt-1 text-lg font-medium text-navy-500">
+          <Editable
+            value={data.personal.job_title}
+            editable={editable}
+            onChange={(v) => patch({ personal: { ...data.personal, job_title: v } })}
+            placeholder={t("cv.jobTitle")}
+          />
+        </p>
+      )}
+    </>
+  );
   return (
     <article
       dir={isRtl ? "rtl" : "ltr"}
@@ -48,31 +70,16 @@ export function ClassicTemplate({ data, editable, patch, t, isRtl }: Props) {
       style={{ minHeight: "297mm" }}
     >
       <header className="text-center">
-        {data.personal.photo_url && (
-          <div className="mb-4 flex justify-center">
+        {data.personal.photo_url ? (
+          <div className="mb-3 flex items-center justify-center gap-4 text-start">
             <CvPhoto
               url={data.personal.photo_url}
-              className="h-28 w-28 rounded-full object-cover ring-1 ring-navy-200"
+              className="h-20 w-20 shrink-0 rounded-full object-cover ring-1 ring-navy-200"
             />
+            <div>{nameBlock}</div>
           </div>
-        )}
-        <h1 className="text-4xl font-semibold tracking-wide text-navy-900">
-          <Editable
-            value={data.personal.full_name}
-            editable={editable}
-            onChange={(v) => patch({ personal: { ...data.personal, full_name: v } })}
-            placeholder={t("auth.fullName")}
-          />
-        </h1>
-        {(editable || data.personal.job_title) && (
-          <p className="mt-1 text-lg font-medium text-navy-500">
-            <Editable
-              value={data.personal.job_title}
-              editable={editable}
-              onChange={(v) => patch({ personal: { ...data.personal, job_title: v } })}
-              placeholder={t("cv.jobTitle")}
-            />
-          </p>
+        ) : (
+          nameBlock
         )}
         <div className="mx-auto mt-3 h-px w-24 bg-navy-300" />
         <p className="mt-3 text-sm text-navy-400">
