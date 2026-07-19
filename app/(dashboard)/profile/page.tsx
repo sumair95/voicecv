@@ -248,6 +248,7 @@ export default function ProfilePage() {
       }
       const json = (await res.json().catch(() => ({}))) as {
         formalUrl?: string;
+        style?: string;
         error?: string;
       };
       if (!res.ok) {
@@ -257,7 +258,7 @@ export default function ProfilePage() {
       if (json.formalUrl) {
         setFormalUrl(json.formalUrl);
         setChoice("formal");
-        toast.success(t("photo.formalDone"));
+        toast.success(json.style === "suit" ? t("photo.suitDone") : t("photo.formalDone"));
       }
     } finally {
       setConverting(false);

@@ -1036,6 +1036,12 @@ export const t: Dict = {
     ur: "پیشہ ورانہ تصویر تیار ہے",
     it: "Foto professionale pronta",
   },
+  "photo.suitDone": {
+    en: "Professional suited photo ready",
+    ar: "الصورة الاحترافية بالبدلة جاهزة",
+    ur: "پیشہ ورانہ سوٹ والی تصویر تیار ہے",
+    it: "Foto professionale con abito pronta",
+  },
   "photo.redirecting": {
     en: "Taking you to secure checkout…",
     ar: "جارٍ تحويلك إلى الدفع الآمن…",

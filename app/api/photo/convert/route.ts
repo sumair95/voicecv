@@ -14,6 +14,9 @@ import { badRequest, ok, paymentRequired, serverError, unauthorized } from "@/li
 import { LIMITS, take } from "@/lib/rate-limit";
 import { isCompAccount } from "@/lib/premium/access";
 import { isPhotoEnhanceConfigured, toProfessionalPhoto } from "@/lib/photo/enhance";
+import { isGeminiConfigured, toSuitedPhoto } from "@/lib/photo/gemini";
+import { classifyPhotoStyle } from "@/lib/photo/classify";
+import { migrateCvData } from "@/lib/cv/migrate";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -59,12 +62,44 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
     return paymentRequired("Professional photo is a paid add-on");
   }
 
+  // Choose the treatment from the user's most recent CV role: office/professional
+  // → generative suited headshot (Gemini); manual/casual → clean white background
+  // (remove.bg), so the photo stays authentic to the person's line of work.
+  const { data: cvRow } = await admin
+    .from("cvs")
+    .select("cv_data")
+    .eq("user_id", user.id)
+    .eq("status", "ready")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  let role = "";
+  if (cvRow?.cv_data) {
+    const cd = migrateCvData(cvRow.cv_data);
+    role = cd.personal.job_title?.trim() || cd.experience.find((e) => e.role?.trim())?.role?.trim() || "";
+  }
+  const useGemini = (await classifyPhotoStyle(role)) === "suit" && isGeminiConfigured();
+
   let bytes: Buffer;
+  let appliedStyle: "suit" | "clean" = useGemini ? "suit" : "clean";
   try {
-    bytes = await toProfessionalPhoto(src);
+    bytes = useGemini ? await toSuitedPhoto(src) : await toProfessionalPhoto(src);
   } catch (err) {
-    log.warn("photo conversion failed", { err });
-    return serverError(err instanceof Error ? err.message : "Photo conversion failed");
+    // If the generative path fails, fall back to the clean conversion so the
+    // user still gets a result (and their credit buys something real).
+    if (useGemini) {
+      log.warn("gemini photo failed; falling back to clean", { err });
+      try {
+        bytes = await toProfessionalPhoto(src);
+        appliedStyle = "clean";
+      } catch (err2) {
+        log.warn("photo conversion failed", { err: err2 });
+        return serverError(err2 instanceof Error ? err2.message : "Photo conversion failed");
+      }
+    } else {
+      log.warn("photo conversion failed", { err });
+      return serverError(err instanceof Error ? err.message : "Photo conversion failed");
+    }
   }
 
   const path = `${user.id}/formal-${Date.now()}.jpg`;
@@ -86,6 +121,6 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
   // Conversion succeeded — spend the credit now (comped users don't pay).
   if (!comped) await supabase.rpc("consume_formal_photo_credit");
 
-  log.info("photo converted", { userId: user.id, comped });
-  return ok({ formalUrl });
+  log.info("photo converted", { userId: user.id, comped, style: appliedStyle });
+  return ok({ formalUrl, style: appliedStyle });
 });

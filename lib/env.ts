@@ -30,6 +30,10 @@ const serverSchema = sharedSchema.extend({
   // Optional: remove.bg key for the paid "professional photo" conversion. Absent
   // = the feature returns "not available yet".
   REMOVEBG_API_KEY: z.string().min(1).optional(),
+  // Optional: Google Gemini key for the generative "suited headshot" path (used
+  // for office/professional roles). Absent = those roles fall back to the
+  // remove.bg clean-background conversion.
+  GEMINI_API_KEY: z.string().min(1).optional(),
   // Optional: comma-separated admin emails allowed to open /admin and manage the
   // comp allowlist. Absent = no one is admin (the /admin API 403s for everyone).
   ADMIN_EMAILS: z.string().optional(),
@@ -62,6 +66,7 @@ function readServer() {
     ADZUNA_APP_ID: process.env.ADZUNA_APP_ID,
     ADZUNA_APP_KEY: process.env.ADZUNA_APP_KEY,
     REMOVEBG_API_KEY: process.env.REMOVEBG_API_KEY,
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     ADMIN_EMAILS: process.env.ADMIN_EMAILS,
   });
   if (!parsed.success) {
