@@ -22,8 +22,15 @@ const config: Config = {
           100: "#E2E8F0",
           200: "#CBD5E1",
           300: "#94A3B8",
+          // 500/700/800 fill gaps the CV templates rely on. They're always used
+          // on the white CV, so they stay dark (readable) in both light + dark
+          // mode — previously undefined, so this body text inherited the page
+          // foreground and went invisible in dark mode.
           400: "#475569",
+          500: "#475569",
           600: "#1E293B",
+          700: "#1E293B",
+          800: "#172033",
           900: "#0F172A",
         },
         teal: {
