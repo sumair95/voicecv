@@ -85,8 +85,10 @@ const CITY_KEYS = Object.keys(CITY_TO_ISO).sort((a, b) => b.length - a.length);
  * Best-effort ISO2 country code from a free-text location and/or CV country.
  * Country names take priority over cities; returns undefined if unknown.
  */
-export function countryCodeFrom(location?: string, cvCountry?: string): string | undefined {
-  const hay = `${location ?? ""} , ${cvCountry ?? ""}`.toLowerCase();
+/** Match a single free-text string to an ISO2 (country name first, then city). */
+function matchOne(text?: string): string | undefined {
+  const hay = (text ?? "").toLowerCase();
+  if (!hay.trim()) return undefined;
   for (const name of COUNTRY_KEYS) {
     if (contains(hay, name)) return COUNTRY_TO_ISO[name];
   }
@@ -94,6 +96,13 @@ export function countryCodeFrom(location?: string, cvCountry?: string): string |
     if (contains(hay, city)) return CITY_TO_ISO[city];
   }
   return undefined;
+}
+
+export function countryCodeFrom(location?: string, cvCountry?: string): string | undefined {
+  // The TYPED location wins — only fall back to the CV's country when the typed
+  // location doesn't name a place. (Otherwise a CV country like "Australia"
+  // would override every location the user types.)
+  return matchOne(location) ?? matchOne(cvCountry);
 }
 
 /**

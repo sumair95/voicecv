@@ -156,12 +156,12 @@ export function AdminCompPanel() {
         <div>
           <div className="flex items-center gap-2 font-semibold text-foreground">
             <ShieldCheck className={`h-5 w-5 ${freeMode ? "text-amber-500" : "text-muted-foreground"}`} />
-            Free mode {freeMode ? "ON" : "OFF"}
+            Free mode — {freeMode ? "payments OFF (everything free)" : "payments LIVE"}
           </div>
           <p className="mt-0.5 max-w-md text-sm text-muted-foreground">
             {freeMode
-              ? "All premium features are FREE for everyone and pricing is hidden — for testing/submission."
-              : "Paid features are live. Turn on to let any tester use premium free (no email needed) and hide pricing."}
+              ? "The one switch for all payments is OFF: every premium feature — CVs, cover letters, tailoring, photos — is FREE for everyone and all pricing is hidden. Overrides the allowlist below."
+              : "This is THE single payment switch. Turn it ON to make every premium feature free for any tester (no email needed) and hide all pricing. (The comp allowlist below only matters while this is OFF.)"}
           </p>
         </div>
         <button
