@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Sparkles, Lock, Loader2, Crown } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { useFreeMode } from "@/hooks/useFreeMode";
 import { useCurrency } from "@/lib/pricing";
 import { PREMIUM_PRICE_USD_CENTS } from "@/lib/premium";
 import type { JobListing } from "@/types/jobs";
@@ -26,6 +27,7 @@ export function JobImprovePanel({
 }) {
   const { t } = useLanguage();
   const { price } = useCurrency();
+  const freeMode = useFreeMode();
   const [loading, setLoading] = useState(false);
   const [tailoring, setTailoring] = useState(false);
   const [data, setData] = useState<{ keywords: string[]; tips: string[] } | null>(null);
@@ -153,7 +155,7 @@ export function JobImprovePanel({
             </span>
             <span className="flex shrink-0 items-center gap-1 font-bold text-amber-700">
               <Crown className="h-4 w-4 text-amber-500" />
-              {price(PREMIUM_PRICE_USD_CENTS)}
+              {freeMode ? "" : price(PREMIUM_PRICE_USD_CENTS)}
             </span>
           </button>
         </div>

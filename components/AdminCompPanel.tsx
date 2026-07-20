@@ -21,6 +21,7 @@ interface CompEmail {
 export function AdminCompPanel() {
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
+  const [freeMode, setFreeMode] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [emails, setEmails] = useState<CompEmail[]>([]);
   const [newEmail, setNewEmail] = useState("");
@@ -39,10 +40,30 @@ export function AdminCompPanel() {
       setLoading(false);
       return;
     }
-    const json = (await res.json()) as { comp_enabled: boolean; emails: CompEmail[] };
+    const json = (await res.json()) as {
+      comp_enabled: boolean;
+      free_mode: boolean;
+      emails: CompEmail[];
+    };
     setEnabled(json.comp_enabled);
+    setFreeMode(json.free_mode);
     setEmails(json.emails ?? []);
     setLoading(false);
+  }
+
+  async function toggleFree() {
+    const next = !freeMode;
+    setBusy(true);
+    setFreeMode(next); // optimistic
+    try {
+      await post({ action: "freemode", enabled: next });
+      toast.success(next ? "Free mode ON — all premium is free for everyone" : "Free mode OFF");
+    } catch (e) {
+      setFreeMode(!next);
+      toast.error(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(false);
+    }
   }
 
   useEffect(() => {
@@ -130,6 +151,36 @@ export function AdminCompPanel() {
 
   return (
     <div className="space-y-6">
+      {/* Free / testing mode — all premium free for everyone, pricing hidden */}
+      <div className="flex items-center justify-between gap-4 rounded-xl border-2 border-amber-300 bg-amber-50/60 p-6 shadow-sm dark:border-amber-800/50 dark:bg-amber-950/20">
+        <div>
+          <div className="flex items-center gap-2 font-semibold text-foreground">
+            <ShieldCheck className={`h-5 w-5 ${freeMode ? "text-amber-500" : "text-muted-foreground"}`} />
+            Free mode {freeMode ? "ON" : "OFF"}
+          </div>
+          <p className="mt-0.5 max-w-md text-sm text-muted-foreground">
+            {freeMode
+              ? "All premium features are FREE for everyone and pricing is hidden — for testing/submission."
+              : "Paid features are live. Turn on to let any tester use premium free (no email needed) and hide pricing."}
+          </p>
+        </div>
+        <button
+          role="switch"
+          aria-checked={freeMode}
+          disabled={busy}
+          onClick={toggleFree}
+          className={`relative h-7 w-12 shrink-0 rounded-full ring-1 ring-inset ring-black/10 transition disabled:opacity-60 ${
+            freeMode ? "bg-amber-500" : "bg-navy-300"
+          }`}
+        >
+          <span
+            className={`absolute top-1 h-5 w-5 rounded-full bg-card shadow transition-all ${
+              freeMode ? "left-6" : "left-1"
+            }`}
+          />
+        </button>
+      </div>
+
       {/* Master switch */}
       <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-6 shadow-sm">
         <div>

@@ -35,14 +35,18 @@ export const GET = handle("admin-comp-get", async ({ req }) => {
 
   const admin = createAdminClient();
   const [{ data: settings }, { data: emails }] = await Promise.all([
-    admin.from("app_settings").select("comp_enabled").eq("id", 1).single(),
+    admin.from("app_settings").select("comp_enabled, free_mode").eq("id", 1).single(),
     admin.from("comp_accounts").select("email, note, created_at").order("created_at", { ascending: false }),
   ]);
-  return ok({ comp_enabled: settings?.comp_enabled ?? false, emails: emails ?? [] });
+  return ok({
+    comp_enabled: settings?.comp_enabled ?? false,
+    free_mode: settings?.free_mode ?? false,
+    emails: emails ?? [],
+  });
 });
 
 interface PostBody {
-  action?: "toggle" | "add" | "remove";
+  action?: "toggle" | "freemode" | "add" | "remove";
   enabled?: boolean;
   email?: string;
   note?: string;
@@ -64,6 +68,17 @@ export const POST = handle("admin-comp-post", async ({ req, log }) => {
     if (error) throw error;
     log.info("comp toggle", { enabled, by: gate.user.email });
     return ok({ comp_enabled: enabled });
+  }
+
+  if (body.action === "freemode") {
+    const enabled = body.enabled === true;
+    const { error } = await admin
+      .from("app_settings")
+      .update({ free_mode: enabled, updated_at: new Date().toISOString() })
+      .eq("id", 1);
+    if (error) throw error;
+    log.info("free mode toggle", { enabled, by: gate.user.email });
+    return ok({ free_mode: enabled });
   }
 
   if (body.action === "add") {

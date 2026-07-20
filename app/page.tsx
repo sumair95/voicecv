@@ -13,15 +13,15 @@ import {
   GraduationCap,
   Trophy,
   Languages,
-  Crown,
+  Search,
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { VideoDemo } from "@/components/VideoDemo";
+import { ImpactCounters } from "@/components/ImpactCounters";
 import { useLanguage } from "@/components/LanguageProvider";
-import { useCurrency } from "@/lib/pricing";
-import { PREMIUM_PRICE_USD_CENTS } from "@/lib/premium";
 import {
   SAMPLE_CONSTRUCTION,
   SAMPLE_DRIVER,
@@ -40,9 +40,8 @@ function initialsOf(name: string) {
   );
 }
 
-// A realistic mini-CV card, sized like the old testimonial cards. Shows a real
-// snippet of generated output (header, objective, skills, latest job) and links
-// to the full WYSIWYG previews on /samples. Lightweight — no CVPreview render.
+// A realistic mini-CV card showing a real snippet of generated output; links to
+// the full WYSIWYG previews on /samples.
 function SampleCVCard({ cv }: { cv: CVData }) {
   const topJob = cv.experience[0];
   return (
@@ -77,10 +76,7 @@ function SampleCVCard({ cv }: { cv: CVData }) {
             <div className="flex items-center gap-1.5">
               <Briefcase className="h-3 w-3 shrink-0 text-teal" />
               <span className="truncate">
-                <span className="font-semibold text-foreground">
-                  {topJob.role}
-                </span>{" "}
-                · {topJob.company}
+                <span className="font-semibold text-foreground">{topJob.role}</span> · {topJob.company}
               </span>
             </div>
           )}
@@ -99,9 +95,7 @@ function SampleCVCard({ cv }: { cv: CVData }) {
           {cv.languages.length > 0 && (
             <div className="flex items-center gap-1.5">
               <Languages className="h-3 w-3 shrink-0 text-teal" />
-              <span className="truncate">
-                {cv.languages.map((l) => l.name).join(", ")}
-              </span>
+              <span className="truncate">{cv.languages.map((l) => l.name).join(", ")}</span>
             </div>
           )}
         </div>
@@ -111,9 +105,6 @@ function SampleCVCard({ cv }: { cv: CVData }) {
 }
 
 function SampleCVs({ caption }: { caption: string }) {
-  // Three tiny decorative "CV" cards fanned out — fills the empty space
-  // above the hero tagline and hints at the variety of CVs the app can
-  // produce. Pure CSS, no real data.
   const cards = [
     { rotate: "-rotate-[8deg]", header: "bg-navy-900", accent: "bg-teal" },
     { rotate: "rotate-[1deg]", header: "bg-teal", accent: "bg-navy-900" },
@@ -148,7 +139,12 @@ function SampleCVs({ caption }: { caption: string }) {
 
 export default function LandingPage() {
   const { t, lang } = useLanguage();
-  const { price } = useCurrency();
+
+  const features = [
+    { icon: Mic, titleKey: "landing.feature1.title", descKey: "landing.feature1.desc" },
+    { icon: Search, titleKey: "landing.feature2.title", descKey: "landing.feature2.desc" },
+    { icon: Target, titleKey: "landing.feature3.title", descKey: "landing.feature3.desc" },
+  ];
 
   const steps = [
     { icon: Mic, titleKey: "landing.step1.title", descKey: "landing.step1.desc" },
@@ -158,17 +154,11 @@ export default function LandingPage() {
 
   const exampleCvs = [SAMPLE_CONSTRUCTION, SAMPLE_HOSPITALITY, SAMPLE_DRIVER];
 
-  const stats = [
-    { value: "5", labelKey: "landing.stats.minutes" },
-    { value: "4", labelKey: "landing.stats.languages" },
-    { value: "0", labelKey: "landing.stats.notyping" },
-    { value: "100%", labelKey: "landing.stats.free" },
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
+      {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="gradient-mesh absolute inset-0 -z-10 opacity-70" />
         <div
@@ -246,10 +236,7 @@ export default function LandingPage() {
                       <span
                         key={i}
                         className="w-1.5 rounded-full bg-teal-400 animate-wave"
-                        style={{
-                          height: `${30 + ((i * 7) % 70)}%`,
-                          animationDelay: `${i * 80}ms`,
-                        }}
+                        style={{ height: `${30 + ((i * 7) % 70)}%`, animationDelay: `${i * 80}ms` }}
                       />
                     ))}
                   </div>
@@ -260,126 +247,113 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="border-y border-border/60 bg-card">
-        <div className="container grid grid-cols-2 gap-8 py-12 md:grid-cols-4">
-          {stats.map((s, i) => (
+      {/* Real, authentic impact counters */}
+      <ImpactCounters />
+
+      {/* The three pillars — CV, Job Match, Tailoring */}
+      <section id="features" className="container py-20 md:py-24">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+            {t("landing.features.title")}
+          </h2>
+          <p className="mt-3 text-lg text-muted-foreground">{t("landing.features.subtitle")}</p>
+        </div>
+        <div className="mt-14 grid gap-6 md:grid-cols-3">
+          {features.map((f, i) => (
             <motion.div
-              key={s.value}
-              initial={{ opacity: 0, y: 20 }}
+              key={f.titleKey}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.08 }}
-              className="text-center"
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: i * 0.12 }}
+              className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-sm transition hover:-translate-y-1 hover:border-teal/40 hover:shadow-lg"
             >
-              <div className="text-3xl font-bold text-foreground md:text-4xl">{s.value}</div>
-              <div className="mt-1 text-sm text-muted-foreground">{t(s.labelKey)}</div>
+              <span
+                className="absolute -end-8 -top-8 h-28 w-28 rounded-full bg-teal/5 blur-2xl transition group-hover:bg-teal/15"
+                aria-hidden
+              />
+              <div className="relative flex items-center gap-3">
+                <span className="grid h-14 w-14 place-items-center rounded-2xl bg-navy-900 text-teal shadow-sm">
+                  <f.icon className="h-7 w-7" />
+                </span>
+                <span className="text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
+                  {`0${i + 1}`}
+                </span>
+              </div>
+              <h3 className="relative mt-5 text-xl font-bold text-foreground">{t(f.titleKey)}</h3>
+              <p className="relative mt-2 leading-relaxed text-muted-foreground">{t(f.descKey)}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
-      <section id="how" className="container py-20">
-        <h2 className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-          {t("landing.steps.title")}
-        </h2>
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {steps.map((step, i) => (
-            <motion.div
-              key={step.titleKey}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: i * 0.12 }}
-            >
-              <Card className="h-full border-border/60 transition hover:-translate-y-1 hover:shadow-lg">
-                <CardContent className="p-8">
-                  <div className="mb-5 inline-flex items-center gap-3">
-                    <span className="grid h-10 w-10 place-items-center rounded-full bg-teal/10 text-sm font-bold text-teal-700">
-                      {i + 1}
-                    </span>
-                    <step.icon className="h-6 w-6 text-teal" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground">{t(step.titleKey)}</h3>
-                  <p className="mt-2 text-muted-foreground">{t(step.descKey)}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+      {/* How it works */}
+      <section id="how" className="bg-card py-20">
+        <div className="container">
+          <h2 className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+            {t("landing.steps.title")}
+          </h2>
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {steps.map((step, i) => (
+              <motion.div
+                key={step.titleKey}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: i * 0.12 }}
+              >
+                <Card className="h-full border-border/60 transition hover:-translate-y-1 hover:shadow-lg">
+                  <CardContent className="p-8">
+                    <div className="mb-5 inline-flex items-center gap-3">
+                      <span className="grid h-10 w-10 place-items-center rounded-full bg-teal/10 text-sm font-bold text-teal-700">
+                        {i + 1}
+                      </span>
+                      <step.icon className="h-6 w-6 text-teal" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground">{t(step.titleKey)}</h3>
+                    <p className="mt-2 text-muted-foreground">{t(step.descKey)}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
       <VideoDemo />
 
-      <section className="bg-card py-20">
-        <div className="container">
-          <h2 className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-            {t("samples.title")}
-          </h2>
-          <p className="mt-2 text-center text-sm text-muted-foreground">
-            {t("samples.subtitle")}
-          </p>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {exampleCvs.map((cv, i) => (
-              <motion.div
-                key={cv.personal.full_name}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-              >
-                <Link href="/samples" className="block h-full">
-                  <SampleCVCard cv={cv} />
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-          <div className="mt-10 text-center">
-            <Button asChild variant="outline" size="lg" className="border-border">
-              <Link href="/samples">
-                {t("samples.link")}
-                <ArrowRight className="ms-2 h-5 w-5 rtl:-scale-x-100" />
+      {/* Sample output */}
+      <section className="container py-20">
+        <h2 className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+          {t("samples.title")}
+        </h2>
+        <p className="mt-2 text-center text-sm text-muted-foreground">{t("samples.subtitle")}</p>
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {exampleCvs.map((cv, i) => (
+            <motion.div
+              key={cv.personal.full_name}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+            >
+              <Link href="/samples" className="block h-full">
+                <SampleCVCard cv={cv} />
               </Link>
-            </Button>
-          </div>
+            </motion.div>
+          ))}
+        </div>
+        <div className="mt-10 text-center">
+          <Button asChild variant="outline" size="lg" className="border-border">
+            <Link href="/samples">
+              {t("samples.link")}
+              <ArrowRight className="ms-2 h-5 w-5 rtl:-scale-x-100" />
+            </Link>
+          </Button>
         </div>
       </section>
 
-      <section className="container py-16">
-        <div className="relative overflow-hidden rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white px-8 py-12 dark:border-amber-900/40 dark:from-amber-950/30 dark:to-card">
-          <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-            <div className="max-w-xl">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
-                <Crown className="h-3.5 w-3.5" />
-                {t("landing.premium.badge")}
-              </span>
-              <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
-                {t("landing.premium.title", { price: price(PREMIUM_PRICE_USD_CENTS) })}
-              </h2>
-              <p className="mt-2 text-muted-foreground">{t("landing.premium.desc")}</p>
-              <ul className="mt-4 space-y-1.5 text-sm text-foreground">
-                {["landing.premium.f1", "landing.premium.f2", "landing.premium.f3"].map((k) => (
-                  <li key={k} className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-amber-500" />
-                    {t(k)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="shrink-0 text-center">
-              <div className="whitespace-nowrap text-4xl font-extrabold text-foreground">
-                {price(PREMIUM_PRICE_USD_CENTS)}
-              </div>
-              <Button asChild size="lg" className="mt-4 bg-amber-500 text-white hover:bg-amber-600">
-                <Link href="/signup">
-                  {t("landing.cta.primary")}
-                  <ArrowRight className="ms-2 h-5 w-5 rtl:-scale-x-100" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      {/* Final CTA */}
       <section className="container py-20">
         <div className="relative overflow-hidden rounded-3xl bg-navy-900 px-8 py-16 text-center text-white">
           <div className="absolute -end-20 -top-20 h-64 w-64 rounded-full bg-teal/20 blur-3xl" />

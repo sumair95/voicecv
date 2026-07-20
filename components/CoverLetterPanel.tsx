@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/components/LanguageProvider";
+import { useFreeMode } from "@/hooks/useFreeMode";
 import { createClient } from "@/lib/supabase/client";
 import { track } from "@/lib/analytics";
 import { useCurrency } from "@/lib/pricing";
@@ -39,9 +40,10 @@ export function CoverLetterPanel({
   const [saving, setSaving] = useState(false);
   const [unlocked, setUnlocked] = useState(coverLetterUnlocked);
 
-  // Entitled to download + edit: this CV's letter is unlocked, or the user
-  // holds a cover-letter credit to spend on download.
-  const entitled = unlocked || coverLetterCredits > 0;
+  // Entitled to download + edit: free mode (testing) makes it free for everyone;
+  // otherwise this CV's letter is unlocked, or the user holds a cover-letter credit.
+  const freeMode = useFreeMode();
+  const entitled = freeMode || unlocked || coverLetterCredits > 0;
 
   async function buyPremium() {
     try {

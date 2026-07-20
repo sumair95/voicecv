@@ -6,6 +6,7 @@ import { Crown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/components/LanguageProvider";
+import { useFreeMode } from "@/hooks/useFreeMode";
 import { useCurrency } from "@/lib/pricing";
 import { PREMIUM_PRICE_USD_CENTS } from "@/lib/premium";
 
@@ -21,7 +22,11 @@ export function PremiumCard({
   const { t } = useLanguage();
   const { price } = useCurrency();
   const [loading, setLoading] = useState(false);
+  const freeMode = useFreeMode();
   const hasCredits = cvCredits > 0 || letterCredits > 0;
+
+  // While pricing is parked (testing/submission), hide the upsell entirely.
+  if (freeMode) return null;
 
   async function buy() {
     setLoading(true);

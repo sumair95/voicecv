@@ -11,6 +11,7 @@ import { handle } from "@/lib/api/handle";
 import { badRequest, ok, paymentRequired, unauthorized } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
 import { FREE_CV_LIMIT } from "@/lib/premium";
+import { isCompAccount } from "@/lib/premium/access";
 import { logEvent } from "@/lib/analytics-server";
 import { logger } from "@/lib/log";
 import { NextResponse } from "next/server";
@@ -152,7 +153,8 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
   // free). Lifetime: cvs_created counts every CV ever made (deleting one does
   // NOT free a slot). allowance = FREE_CV_LIMIT + purchased cv_credits. Checked
   // before the (paid) model call so we don't waste tokens when over the limit.
-  if (!body.cvId) {
+  // Free mode / comped testers bypass the limit entirely.
+  if (!body.cvId && !(await isCompAccount(supabase))) {
     const { data: prof } = await supabase
       .from("profiles")
       .select("cvs_created, cv_credits")

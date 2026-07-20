@@ -13,6 +13,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Camera, Upload, Trash2, Sparkles, Loader2, FileText, FlipHorizontal, ZoomIn } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { useFreeMode } from "@/hooks/useFreeMode";
 import { createClient } from "@/lib/supabase/client";
 import { CameraCapture } from "@/components/CameraCapture";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,7 @@ interface CvRow {
 export default function ProfilePage() {
   const { t } = useLanguage();
   const { price } = useCurrency();
+  const freeMode = useFreeMode();
   const supabase = useMemo(() => createClient(), []);
   const [fields, setFields] = useState<Fields>(EMPTY);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -498,7 +500,13 @@ export default function ProfilePage() {
                   <Sparkles className="h-3.5 w-3.5" />
                 )}
                 {convertingMode === "enhance" ? t("photo.enhancing") : t("photo.enhance")}
-                <span className="text-xs font-bold text-teal-700">{price(FORMAL_PHOTO_USD_CENTS)}</span>
+                {freeMode ? (
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-teal-700">
+                    {t("photo.free")}
+                  </span>
+                ) : (
+                  <span className="text-xs font-bold text-teal-700">{price(FORMAL_PHOTO_USD_CENTS)}</span>
+                )}
               </button>
             </div>
           </>
