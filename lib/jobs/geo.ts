@@ -95,3 +95,15 @@ export function countryCodeFrom(location?: string, cvCountry?: string): string |
   }
   return undefined;
 }
+
+/**
+ * Fallback market for the platform's core audience. When no country can be
+ * derived we target the Gulf / Middle East instead of JSearch's silent US
+ * default (VoiceCV serves Gulf + South-Asian workers, not the US market).
+ * UAE has the deepest online job listings in the region; change to "sa" to
+ * bias toward Saudi Arabia.
+ */
+export const DEFAULT_COUNTRY = "ae";
+
+/** Gulf / core-Middle-East ISO2 codes. JSearch covers these; Adzuna does not. */
+export const GULF_COUNTRIES = new Set(["ae", "sa", "qa", "kw", "bh", "om"]);

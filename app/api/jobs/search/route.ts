@@ -5,14 +5,14 @@ import { badRequest, conflict, notFound, ok, unauthorized } from "@/lib/api/resp
 import { LIMITS, take } from "@/lib/rate-limit";
 import { logEvent } from "@/lib/analytics-server";
 import { searchJobs } from "@/lib/jobs/search";
-import { countryCodeFrom } from "@/lib/jobs/geo";
+import { countryCodeFrom, DEFAULT_COUNTRY, GULF_COUNTRIES } from "@/lib/jobs/geo";
 import { queryFromCv, rankJobs } from "@/lib/jobs/match";
 import { NextResponse } from "next/server";
 import type { CVRecord } from "@/types/cv";
 import type { JobListing } from "@/types/jobs";
 
 /** How the results were found, when we had to broaden the original search. */
-type Scope = "exact" | "country" | "anywhere";
+type Scope = "exact" | "country" | "anywhere" | "gulf";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -65,17 +65,25 @@ export const POST = handle("jobs-search", async ({ req, log }) => {
 
   // Relaxation ladder: a specific "role in city" that returns nothing should
   // never dead-end. We broaden the LOCATION step by step — city → country →
-  // anywhere — and take the first attempt that returns results, then rank them
-  // against the CV so the best fits float up. Capped at 3 attempts so latency
-  // stays bounded (only the empty case ever loops).
-  const ladder: { query: string; location: string; scope: Scope }[] = [
-    { query: reqQuery, location: reqLocation, scope: "exact" },
-  ];
+  // anywhere — then, as a final fallback, the Gulf / Middle East (VoiceCV's core
+  // market) so a search never lands on JSearch's silent US default. First
+  // non-empty attempt wins; results are always ranked against the CV.
+  const ladder: {
+    query: string;
+    location: string;
+    scope: Scope;
+    forceCountry?: string;
+  }[] = [{ query: reqQuery, location: reqLocation, scope: "exact" }];
   if (reqLocation && cvCountry && reqLocation.toLowerCase() !== cvCountry.toLowerCase()) {
     ladder.push({ query: reqQuery, location: cvCountry, scope: "country" });
   }
   if (reqLocation) {
     ladder.push({ query: reqQuery, location: "", scope: "anywhere" });
+  }
+  // Final fallback to the Gulf, unless the user is already searching there.
+  const primaryCountry = countryCodeFrom(reqLocation, cvCountry) ?? DEFAULT_COUNTRY;
+  if (!GULF_COUNTRIES.has(primaryCountry)) {
+    ladder.push({ query: reqQuery, location: "", scope: "gulf", forceCountry: DEFAULT_COUNTRY });
   }
 
   let listings: JobListing[] = [];
@@ -83,9 +91,13 @@ export const POST = handle("jobs-search", async ({ req, log }) => {
   for (let i = 0; i < ladder.length; i++) {
     const attempt = ladder[i];
     used = attempt;
-    // Target the right job market — without a country code JSearch defaults to
-    // the US and returns nothing for e.g. German/Pakistani/Gulf searches.
-    const country = countryCodeFrom(attempt.location, cvData.personal.country);
+    // Target the right job market. Without a country code JSearch silently
+    // defaults to the US — so an unknown location falls back to the Gulf
+    // (DEFAULT_COUNTRY), never the US.
+    const country =
+      attempt.forceCountry ??
+      countryCodeFrom(attempt.location, cvData.personal.country) ??
+      DEFAULT_COUNTRY;
     try {
       listings = await searchJobs({
         query: attempt.query,
