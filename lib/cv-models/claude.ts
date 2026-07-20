@@ -36,7 +36,15 @@ export const claudeCVProvider: CVModelProvider = {
         anthropic.messages.create({
           model: CLAUDE_CV_MODEL,
           max_tokens: 2500,
-          system: buildSystemPrompt(outputName),
+          // Cache the (constant, guideline-heavy) system prompt so repeated
+          // generations only pay ~10% for it after the first call in the window.
+          system: [
+            {
+              type: "text",
+              text: buildSystemPrompt(outputName),
+              cache_control: { type: "ephemeral" },
+            },
+          ],
           messages: [
             {
               role: "user",

@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { CVData, Language } from "@/types/cv";
 import { withRetry } from "@/lib/ai/retry";
+import { styleGuidelines } from "@/lib/prompts/guidelines";
 import { logger } from "@/lib/log";
 
 const MODEL = "claude-sonnet-4-6";
@@ -46,7 +47,11 @@ export async function generateCoverLetter(
   const today = todayIn(opts.language);
   const top = cv.experience[0];
 
-  const system = `You are an expert career writer. Write a polished cover letter in ${langName} using a FORMAL BUSINESS-LETTER format.
+  const g = styleGuidelines();
+  const guide = g
+    ? `# STYLE GUIDELINES — apply the wording rules (banned words/phrases, never open with "I am writing", strong action verbs, quantify where possible, vary sentence structure, market-specific rules). The FORMAT rules that follow are AUTHORITATIVE for structure.\n\n${g}\n\n# END STYLE GUIDELINES\n\n`
+    : "";
+  const system = `${guide}You are an expert career writer. Write a polished cover letter in ${langName} using a FORMAL BUSINESS-LETTER format.
 
 Output the letter as PLAIN TEXT (no markdown, no bold markers, no bullet points, no placeholders in square brackets), with the parts in EXACTLY this order and separated by blank lines:
 
@@ -90,7 +95,8 @@ Write the cover letter now, following the format exactly.`;
       anthropic.messages.create({
         model: MODEL,
         max_tokens: 900,
-        system,
+        // Cache the guideline-heavy system prompt (paid ~10% after the first call).
+        system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
         messages: [{ role: "user", content: user }],
       }),
     { onRetry: (err, attempt) => logger.warn("cover letter retry", { attempt, err }) },

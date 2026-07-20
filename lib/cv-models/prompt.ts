@@ -7,6 +7,7 @@
  */
 
 import type { Language, QAPair } from "@/types/cv";
+import { styleGuidelines } from "@/lib/prompts/guidelines";
 
 export const LANGUAGE_NAME: Record<Language, string> = {
   en: "English",
@@ -15,8 +16,12 @@ export const LANGUAGE_NAME: Record<Language, string> = {
   ur: "Urdu",
 };
 
-export const buildSystemPrompt = (outputLanguage: string) =>
-  `You are a professional CV writer who knows how to position blue-collar, technical, and skilled workers for employment in both the Gulf and European job markets.
+export const buildSystemPrompt = (outputLanguage: string) => {
+  const g = styleGuidelines();
+  const guide = g
+    ? `# STYLE GUIDELINES — apply to ALL wording (banned words to avoid, strong action verbs, quantify achievements, "show don't tell", market-specific rules). These shape the CONTENT. The JSON schema and rules AFTER them are AUTHORITATIVE for structure and output format.\n\n${g}\n\n# END STYLE GUIDELINES\n\n`
+    : "";
+  return `${guide}You are a professional CV writer who knows how to position blue-collar, technical, and skilled workers for employment in both the Gulf and European job markets.
 
 The candidate may have answered the voice questions in any language. You MUST write the final CV in **${outputLanguage}** so the target recruiters can read it. Translate any other-language content into clear, professional ${outputLanguage}.
 
@@ -80,6 +85,7 @@ Quality rules:
 - For skills, prefer specific items ("Toyota forklift licence", "MIG welding", "fluent in English + Italian") over vague ones ("hardworking", "team player").
 - Experience descriptions MUST be newline-separated bullets, one achievement per line, no markers.
 - Languages section: if the candidate natively speaks a language other than the CV language, list it — that's a real CV asset, not a translation problem.`;
+};
 
 export function buildUserMessage(
   qaPairs: QAPair[],
