@@ -5,7 +5,7 @@ import { badRequest, conflict, notFound, ok, unauthorized } from "@/lib/api/resp
 import { LIMITS, take } from "@/lib/rate-limit";
 import { logEvent } from "@/lib/analytics-server";
 import { searchJobs } from "@/lib/jobs/search";
-import { countryCodeFrom, DEFAULT_COUNTRY, GULF_COUNTRIES } from "@/lib/jobs/geo";
+import { countryCodeFrom, DEFAULT_COUNTRY, GULF_FALLBACK_ORDER } from "@/lib/jobs/geo";
 import { queryFromCv, rankJobs } from "@/lib/jobs/match";
 import { NextResponse } from "next/server";
 import type { CVRecord } from "@/types/cv";
@@ -80,10 +80,14 @@ export const POST = handle("jobs-search", async ({ req, log }) => {
   if (reqLocation) {
     ladder.push({ query: reqQuery, location: "", scope: "anywhere" });
   }
-  // Final fallback to the Gulf, unless the user is already searching there.
+  // Final fallbacks to the Gulf — Saudi first, then UAE — so a search never
+  // dead-ends (the core migrant-worker path). Skip whichever the user is
+  // already searching.
   const primaryCountry = countryCodeFrom(reqLocation, cvCountry) ?? DEFAULT_COUNTRY;
-  if (!GULF_COUNTRIES.has(primaryCountry)) {
-    ladder.push({ query: reqQuery, location: "", scope: "gulf", forceCountry: DEFAULT_COUNTRY });
+  for (const gc of GULF_FALLBACK_ORDER) {
+    if (gc !== primaryCountry) {
+      ladder.push({ query: reqQuery, location: "", scope: "gulf", forceCountry: gc });
+    }
   }
 
   let listings: JobListing[] = [];
