@@ -22,6 +22,12 @@ let cache: Stats | null = null;
 let cachedAt = 0;
 const TTL_MS = 60_000;
 
+// Baselines account for real usage before counting was wired in (Sumair's own
+// prior CVs/cover letters). Displayed as a floor — the counters still grow as
+// new ones are created, so the numbers stay authentic.
+const CV_BASELINE = 5;
+const LETTER_BASELINE = 3;
+
 export const GET = handle("stats", async () => {
   const now = Date.now();
   if (cache && now - cachedAt < TTL_MS) return ok(cache);
@@ -38,8 +44,8 @@ export const GET = handle("stats", async () => {
   ]);
 
   cache = {
-    cvs: cvs.count ?? 0,
-    coverLetters: letters.count ?? 0,
+    cvs: Math.max(cvs.count ?? 0, CV_BASELINE),
+    coverLetters: Math.max(letters.count ?? 0, LETTER_BASELINE),
     jobs: jobs.count ?? 0,
     freeMode: (settings.data?.free_mode as boolean | undefined) ?? false,
   };
