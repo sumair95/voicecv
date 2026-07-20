@@ -73,12 +73,14 @@ export function CoverLetterDocument({
       fontSize: 22,
       fontWeight: 700,
       color: "#0F766E", // teal
+      lineHeight: 1.1,
+      marginBottom: 4,
       textAlign: rtl ? "right" : "left",
     },
     contact: {
       fontSize: 9.5,
       color: "#64748B",
-      marginTop: 4,
+      marginTop: 8,
       textAlign: rtl ? "right" : "left",
     },
     rule: {
