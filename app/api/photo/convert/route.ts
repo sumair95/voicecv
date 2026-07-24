@@ -16,6 +16,8 @@ import { isCompAccount } from "@/lib/premium/access";
 import { isPhotoEnhanceConfigured, toProfessionalPhoto } from "@/lib/photo/enhance";
 import { isGeminiConfigured, toEnhancedPhoto } from "@/lib/photo/gemini";
 import { classifyPhotoStyle } from "@/lib/photo/classify";
+import { isAllowedImageUrl } from "@/lib/net/safe-image";
+import { sniffImageType, extFor } from "@/lib/net/image-bytes";
 import { migrateCvData } from "@/lib/cv/migrate";
 import { NextResponse } from "next/server";
 
@@ -49,6 +51,13 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
     .single();
   const src = (prof?.photo_url as string | undefined) ?? undefined;
   if (!src) return badRequest("Upload a photo first");
+  // photo_url is written only by /api/photo/upload (service-role) and is no
+  // longer client-writable (migration 023), but both downstream paths fetch it
+  // by URL — so validate here too rather than relying on that invariant holding.
+  if (!isAllowedImageUrl(src)) {
+    log.warn("stored photo_url is not on our storage host", { userId: user.id });
+    return badRequest("Please re-upload your photo.");
+  }
 
   let bytes: Buffer;
   let appliedStyle: "clean" | "suit" | "enhance" = "clean";
@@ -104,11 +113,16 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
     appliedStyle = variant;
   }
 
-  // Store under the right extension/content-type (Gemini may return PNG).
-  const isPng = bytes.length > 4 && bytes[0] === 0x89 && bytes[1] === 0x50;
-  const ext = isPng ? "png" : "jpg";
-  const contentType = isPng ? "image/png" : "image/jpeg";
-  const path = `${user.id}/formal-${Date.now()}.${ext}`;
+  // The processed bytes come from a third party (remove.bg / Gemini), so sniff
+  // them rather than assuming a format — and reject anything that isn't a real
+  // raster image before it lands in the public bucket.
+  const kind = sniffImageType(bytes);
+  if (!kind) {
+    log.warn("processed photo is not a valid image", { userId: user.id, mode });
+    return serverError("The processed photo was invalid — please try again.");
+  }
+  const path = `${user.id}/formal-${Date.now()}.${extFor(kind)}`;
+  const contentType = kind;
   const { error: upErr } = await admin.storage
     .from("avatars")
     .upload(path, bytes, { contentType, upsert: true });

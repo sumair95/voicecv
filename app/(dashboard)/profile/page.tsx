@@ -205,14 +205,13 @@ export default function ProfilePage() {
   }
 
   async function removePhoto() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase
-      .from("profiles")
-      .update({ photo_url: null, photo_formal_url: null, photo_choice: "original" })
-      .eq("id", user.id);
+    // Server route: photo_url / photo_formal_url are server-only columns
+    // (migration 023), and the route also deletes the storage objects.
+    const res = await fetch("/api/photo/remove", { method: "POST" });
+    if (!res.ok) {
+      toast.error(t("profile.saveError"));
+      return;
+    }
     setPhotoUrl(null);
     setFormalUrl(null);
     setChoice("original");

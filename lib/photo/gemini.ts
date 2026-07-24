@@ -9,6 +9,8 @@
  * Docs: https://ai.google.dev/gemini-api/docs/image-generation
  */
 
+import { isAllowedImageUrl } from "@/lib/net/safe-image";
+
 const MODEL = "gemini-2.5-flash-image";
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 const FETCH_TIMEOUT_MS = 45_000;
@@ -32,8 +34,16 @@ export async function toEnhancedPhoto(
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("Suited photo is not configured (missing GEMINI_API_KEY).");
 
-  // Load the source image and inline it as base64.
-  const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(15_000) });
+  // Load the source image and inline it as base64. `imageUrl` comes from
+  // profiles.photo_url, so it is checked against our own storage host first —
+  // otherwise this fetch is an SSRF sink (see lib/net/safe-image.ts).
+  if (!isAllowedImageUrl(imageUrl)) {
+    throw new Error("Source photo must be an uploaded VoiceCV photo.");
+  }
+  const imgRes = await fetch(imageUrl, {
+    signal: AbortSignal.timeout(15_000),
+    redirect: "error",
+  });
   if (!imgRes.ok) throw new Error("Couldn't load the source photo.");
   const mimeType = imgRes.headers.get("content-type") || "image/jpeg";
   const b64 = Buffer.from(await imgRes.arrayBuffer()).toString("base64");

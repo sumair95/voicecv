@@ -2,6 +2,7 @@ import { getAuthContext } from "@/lib/api/auth";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, paymentRequired, unauthorized } from "@/lib/api/respond";
 import { isCompAccount } from "@/lib/premium/access";
+import { createAdminClient } from "@/lib/supabase/server";
 import { logEvent } from "@/lib/analytics-server";
 
 export const runtime = "nodejs";
@@ -17,8 +18,14 @@ export const POST = handle("unlock-cv-premium", async ({ req, log }) => {
   if (!cvId) return badRequest("cvId required");
 
   // Comped reviewers unlock for free (no credit spent); everyone else spends one.
+  //
+  // The write goes through the service-role client because `premium_unlocked` is
+  // no longer UPDATE-grantable to `authenticated` (migration 023) — the whole
+  // point being that only the server can flip an entitlement flag. The
+  // `.eq("user_id", user.id)` filter is what scopes it now that RLS is bypassed,
+  // so it must never be dropped.
   if (await isCompAccount(supabase)) {
-    const { error: upErr } = await supabase
+    const { error: upErr } = await createAdminClient()
       .from("cvs")
       .update({ premium_unlocked: true })
       .eq("id", cvId)

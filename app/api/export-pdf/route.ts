@@ -6,6 +6,8 @@ import { getTemplate, DEFAULT_TEMPLATE } from "@/lib/cv/templates";
 import { handle } from "@/lib/api/handle";
 import { badRequest, notFound, unauthorized, conflict, serverError } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
+import { isAllowedImageUrl } from "@/lib/net/safe-image";
+import { logger } from "@/lib/log";
 import type { CVRecord, Language, TemplateId } from "@/types/cv";
 import { NextResponse } from "next/server";
 
@@ -15,9 +17,23 @@ export const maxDuration = 60;
 // Fetch the CV photo and inline it as a data URI. Rendering from bytes (not a
 // live URL) means a slow/broken image can never hang or crash the whole PDF —
 // on any failure we return "" and the templates simply omit the photo.
+//
+// The URL comes from cv_data, which the browser writes directly, so it is
+// untrusted input: it is checked against our own Supabase storage host before
+// any request is made (see lib/net/safe-image.ts). Without that, this fetch is
+// an SSRF sink that copies the response bytes into a PDF the caller downloads.
 async function photoDataUri(url: string): Promise<string> {
+  if (!isAllowedImageUrl(url)) {
+    logger.warn("photo_url rejected — not our storage host", {
+      url: url.slice(0, 120),
+    });
+    return "";
+  }
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(8000),
+      redirect: "error", // a 302 to an internal address would re-open the hole
+    });
     if (!res.ok) return "";
     const type = res.headers.get("content-type") || "image/jpeg";
     if (!type.startsWith("image/")) return "";

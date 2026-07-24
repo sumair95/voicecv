@@ -4,6 +4,7 @@ import { CoverLetterDocument } from "@/lib/cover-letter-pdf";
 import { handle } from "@/lib/api/handle";
 import { badRequest, conflict, notFound, unauthorized, serverError, paymentRequired } from "@/lib/api/respond";
 import { isCompAccount } from "@/lib/premium/access";
+import { createAdminClient } from "@/lib/supabase/server";
 import { logEvent } from "@/lib/analytics-server";
 import { NextResponse } from "next/server";
 import type { CVRecord, Language } from "@/types/cv";
@@ -33,12 +34,19 @@ export const POST = handle("export-cover-letter-pdf", async ({ req, log }) => {
   // and unlocks the CV permanently; after that, re-downloads are free. Comped
   // reviewers unlock for free (no credit spent).
   if (!cv.cover_letter_unlocked) {
-    if (await isCompAccount(supabase)) {
-      await supabase
+    // `cover_letter_unlocked` is server-only since migration 023, so the flag is
+    // set with the service-role client. `.eq("user_id", user.id)` is the scoping
+    // guard now that RLS is bypassed — it must never be dropped.
+    const admin = createAdminClient();
+    const markUnlocked = () =>
+      admin
         .from("cvs")
         .update({ cover_letter_unlocked: true })
         .eq("id", cvId)
         .eq("user_id", user.id);
+
+    if (await isCompAccount(supabase)) {
+      await markUnlocked();
       await logEvent(supabase, user.id, "cover_letter_unlocked", { cvId, comp: true });
     } else {
       const { data: spent, error: rpcErr } = await supabase.rpc(
@@ -46,11 +54,7 @@ export const POST = handle("export-cover-letter-pdf", async ({ req, log }) => {
       );
       if (rpcErr) throw rpcErr;
       if (!spent) return paymentRequired("Cover letter download is a Premium feature");
-      await supabase
-        .from("cvs")
-        .update({ cover_letter_unlocked: true })
-        .eq("id", cvId)
-        .eq("user_id", user.id);
+      await markUnlocked();
       await logEvent(supabase, user.id, "cover_letter_unlocked", { cvId });
     }
   }

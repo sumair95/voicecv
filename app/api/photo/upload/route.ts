@@ -8,6 +8,7 @@ import { getAuthContext } from "@/lib/api/auth";
 import { createAdminClient } from "@/lib/supabase/server";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, serverError, unauthorized } from "@/lib/api/respond";
+import { sniffImageType, extFor } from "@/lib/net/image-bytes";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -21,19 +22,28 @@ export const POST = handle("photo-upload", async ({ req, log }) => {
   const form = await req.formData();
   const file = form.get("file");
   if (!(file instanceof File)) return badRequest("No file provided");
-  if (!file.type.startsWith("image/")) return badRequest("File must be an image");
   if (file.size > MAX_BYTES) return badRequest("Image too large (max 8MB)");
 
-  const ext =
-    (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") ||
-    "jpg";
-  const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+  // Trust the BYTES, not file.type/file.name (both client-controlled). This
+  // rejects an SVG-with-<script> mislabelled as image/jpeg — which, in a public
+  // bucket, would otherwise be a stored XSS page served from our storage origin.
   const bytes = Buffer.from(await file.arrayBuffer());
+  const kind = sniffImageType(bytes);
+  if (!kind) {
+    log.warn("photo upload rejected — not a JPEG/PNG/WEBP", {
+      userId: user.id,
+      claimedType: file.type,
+    });
+    return badRequest("File must be a JPEG, PNG, or WEBP image");
+  }
+
+  // Extension + stored Content-Type come from the sniff, never the upload.
+  const path = `${user.id}/avatar-${Date.now()}.${extFor(kind)}`;
 
   const admin = createAdminClient();
   const { error: upErr } = await admin.storage
     .from("avatars")
-    .upload(path, bytes, { contentType: file.type || "image/jpeg", upsert: true });
+    .upload(path, bytes, { contentType: kind, upsert: true });
   if (upErr) {
     log.warn("avatar upload failed", { err: upErr });
     return serverError(upErr.message);

@@ -18,6 +18,7 @@ import {
 import { LIMITS, take } from "@/lib/rate-limit";
 import { migrateCvData } from "@/lib/cv/migrate";
 import { isCompAccount } from "@/lib/premium/access";
+import { createAdminClient } from "@/lib/supabase/server";
 import { tailorCV } from "@/lib/jobs/tailor";
 import { logEvent } from "@/lib/analytics-server";
 import { NextResponse } from "next/server";
@@ -63,7 +64,9 @@ export const POST = handle("jobs-tailor", async ({ req, log }) => {
   // and also enables premium templates). Comped reviewers skip the charge but
   // still get the CV genuinely unlocked. Returns false → no credit → upsell.
   if (await isCompAccount(supabase)) {
-    await supabase
+    // Service-role write: `premium_unlocked` is server-only since migration 023.
+    // `.eq("user_id", user.id)` is the scoping guard now that RLS is bypassed.
+    await createAdminClient()
       .from("cvs")
       .update({ premium_unlocked: true })
       .eq("id", body.cvId)
