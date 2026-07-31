@@ -5,6 +5,24 @@ Running record of fixes applied after the 22 Jul 2026 audit
 
 ---
 
+## 2026-07-31 — M3: atomic webhook credit grant — FIXED (code; migration pending)
+
+**Risk:** the Stripe webhook did read-modify-write on credit columns; concurrent
+completed-events for one user could lose a grant.
+
+**Files:** `supabase/migrations/025_grant_credits.sql` (new),
+`app/api/stripe/webhook/route.ts`
+
+- New `grant_credits(user, cv, premium_cv, cover_letter, formal_photo)` RPC does
+  the increments in one atomic UPDATE.
+- Webhook calls it after the idempotency insert. **If the RPC is unavailable
+  (migration not yet run) it falls back to the old read-modify-write**, so a
+  paying customer is never left without credits.
+
+**Action:** run `025_grant_credits.sql` in Supabase to activate the atomic path.
+
+---
+
 ## 2026-07-31 — H2: durable rate limiter — FIXED (code; migration pending)
 
 **Risk:** the limiter was an in-memory `Map`, so counters were per-instance —
