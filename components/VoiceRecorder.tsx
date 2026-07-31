@@ -6,6 +6,7 @@ import { Mic, Square, RotateCcw, Check, AlertCircle, Loader2, SkipForward, Volum
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/components/LanguageProvider";
+import { setInactivityPaused } from "@/hooks/useInactivityLogout";
 
 // BCP-47 voice tags for the browser's speech synthesizer. The engine falls
 // back to its best-available voice when an exact match isn't installed.
@@ -208,6 +209,14 @@ export function VoiceRecorder({
     if (state !== "recording") return;
     if (seconds >= MAX_SECONDS) stopRecording();
   }, [seconds, state]);
+
+  // Pause the inactivity logout while recording — a user speaking for a couple
+  // of minutes generates no pointer/keyboard activity and shouldn't be signed
+  // out mid-answer (L1). Always resume on cleanup.
+  useEffect(() => {
+    setInactivityPaused(state === "recording");
+    return () => setInactivityPaused(false);
+  }, [state]);
 
   async function submit() {
     if (!audioBlob) return;

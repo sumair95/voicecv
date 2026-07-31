@@ -10,8 +10,9 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { CVData } from "@/types/cv";
 import { logger } from "@/lib/log";
+import { CLAUDE_TEXT_MODEL } from "@/lib/ai/models";
 
-const MODEL = "claude-sonnet-4-6";
+const MODEL = CLAUDE_TEXT_MODEL;
 
 /** Titles straight off the CV — the zero-cost fallback. */
 function fallbackRoles(cv: CVData): string[] {

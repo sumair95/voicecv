@@ -3,8 +3,9 @@ import type { CVData, Language } from "@/types/cv";
 import { withRetry } from "@/lib/ai/retry";
 import { styleGuidelines } from "@/lib/prompts/guidelines";
 import { logger } from "@/lib/log";
+import { CLAUDE_TEXT_MODEL } from "@/lib/ai/models";
 
-const MODEL = "claude-sonnet-4-6";
+const MODEL = CLAUDE_TEXT_MODEL;
 
 const LANGUAGE_NAME: Record<Language, string> = {
   en: "English",

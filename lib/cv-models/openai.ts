@@ -11,8 +11,9 @@ import type { CVData, Language, QAPair } from "@/types/cv";
 import type { CVModelProvider } from "./provider";
 import { buildSystemPrompt, buildUserMessage, LANGUAGE_NAME } from "./prompt";
 import { parseCVJson } from "./parse";
+import { OPENAI_TEXT_MODEL } from "@/lib/ai/models";
 
-const MODEL = "gpt-4o";
+const MODEL = OPENAI_TEXT_MODEL;
 const TIMEOUT_MS = 45_000;
 
 interface ChatCompletion {

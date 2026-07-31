@@ -115,9 +115,12 @@ export const POST = handle("jobs-search", async ({ req, log }) => {
       // A throw on the FIRST (exact) attempt is a real provider error → surface
       // it. On broadening attempts we treat a throw as empty and keep going.
       if (i === 0) {
-        const message = err instanceof Error ? err.message : "Job search failed";
+        // Log the provider's real error; return a generic one (L4).
         log.warn("job provider failed", { err, query: attempt.query });
-        return NextResponse.json({ error: message }, { status: 502 });
+        return NextResponse.json(
+          { error: "Job search is temporarily unavailable. Please try again." },
+          { status: 502 },
+        );
       }
       listings = [];
     }

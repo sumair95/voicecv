@@ -72,7 +72,7 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
       bytes = await toProfessionalPhoto(src);
     } catch (err) {
       log.warn("background removal failed", { err });
-      return serverError(err instanceof Error ? err.message : "Background removal failed");
+      return serverError("Background removal failed. Please try again.");
     }
     appliedStyle = "clean";
   } else {
@@ -108,7 +108,7 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
     } catch (err) {
       // Don't charge on failure (credit is consumed only on success below).
       log.warn("gemini enhance failed", { err });
-      return serverError(err instanceof Error ? err.message : "Photo enhancement failed");
+      return serverError("Photo enhancement failed. Please try again.");
     }
     appliedStyle = variant;
   }

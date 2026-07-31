@@ -5,6 +5,36 @@ Running record of fixes applied after the 22 Jul 2026 audit
 
 ---
 
+## 2026-07-31 — Batch 2: M7, M6, M5, L4, L2, L1 — FIXED (code)
+
+Self-contained, no DB changes. One commit.
+
+- **M7 — hardcoded model ids centralised.** New `lib/ai/models.ts` exports
+  `CLAUDE_TEXT_MODEL` / `OPENAI_TEXT_MODEL` / `WHISPER_MODEL` /
+  `GEMINI_IMAGE_MODEL` (env-overridable). Replaced all 8 hardcoded strings
+  (`lib/claude.ts` via `cv-models/claude.ts`, `cv-models/openai.ts`,
+  `cv-models/judge.ts`, `cover-letter.ts`, `jobs/match.ts`, `jobs/suggest.ts`,
+  `jobs/tailor.ts`, `jobs/improve` route, `whisper.ts`, `photo/classify.ts`,
+  `photo/gemini.ts`).
+- **M6 — transcribe upload cap.** `/api/transcribe` now rejects empty, >24 MB,
+  and clearly non-audio blobs before hitting Whisper.
+- **M5 — /api/stats amplification.** `free_mode` now cached 10s instead of a
+  service-role round-trip on every landing-page hit.
+- **L4 — error-message leakage.** The `handle()` catch-all now returns a generic
+  message + `reqId` (detail logged server-side only). The explicit
+  `serverError(err.message)` sites in export-pdf, export-cover-letter-pdf,
+  photo/convert and the jobs/search 502 were genericised too.
+- **L2 — /api/debug/comp** now admin-gated (`isAdminEmail`).
+- **L1 — inactivity logout** raised 3 min → 15 min, with a 60s warning toast and
+  a `setInactivityPaused()` hook the recorder calls so a user speaking a long
+  answer is never signed out mid-recording.
+
+Verified: all 23 changed files pass a syntax check and every `@/` import
+resolves. (Full `tsc`/`next build` couldn't run in the review sandbox — build
+locally before relying on the deploy.)
+
+---
+
 ## 2026-07-24 — H1: prompt injection in CV tailor — FIXED (code)
 
 **Risk:** `jobDescription` is third-party text from job boards (attacker-

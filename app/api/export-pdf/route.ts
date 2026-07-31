@@ -112,7 +112,7 @@ export const POST = handle("export-pdf", async ({ req, log }) => {
   } catch (err) {
     log.error("pdf render failed", { cvId, err });
     return serverError(
-      err instanceof Error ? err.message : "PDF generation failed",
+      "Couldn't generate the PDF. Please try again.",
     );
   }
 });

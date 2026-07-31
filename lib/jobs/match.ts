@@ -11,8 +11,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { CVData } from "@/types/cv";
 import type { JobListing } from "@/types/jobs";
 import { logger } from "@/lib/log";
+import { CLAUDE_TEXT_MODEL } from "@/lib/ai/models";
 
-const MODEL = "claude-sonnet-4-6";
+const MODEL = CLAUDE_TEXT_MODEL;
 /** Cap how many listings we send to the ranker to bound token cost. */
 const MAX_RANK = 15;
 

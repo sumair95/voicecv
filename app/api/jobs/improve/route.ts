@@ -14,11 +14,12 @@ import { LIMITS, take } from "@/lib/rate-limit";
 import { migrateCvData } from "@/lib/cv/migrate";
 import { logger } from "@/lib/log";
 import { NextResponse } from "next/server";
+import { CLAUDE_TEXT_MODEL } from "@/lib/ai/models";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
-const MODEL = "claude-sonnet-4-6";
+const MODEL = CLAUDE_TEXT_MODEL;
 
 interface Body {
   cvId?: string;

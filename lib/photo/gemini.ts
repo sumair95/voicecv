@@ -10,8 +10,9 @@
  */
 
 import { isAllowedImageUrl } from "@/lib/net/safe-image";
+import { GEMINI_IMAGE_MODEL } from "@/lib/ai/models";
 
-const MODEL = "gemini-2.5-flash-image";
+const MODEL = GEMINI_IMAGE_MODEL;
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 const FETCH_TIMEOUT_MS = 45_000;
 

@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import type { Language } from "@/types/cv";
 import { withRetry } from "@/lib/ai/retry";
 import { logger } from "@/lib/log";
+import { WHISPER_MODEL } from "@/lib/ai/models";
 
 function client() {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -23,7 +24,7 @@ export async function transcribe(
     () =>
       openai.audio.transcriptions.create({
         file,
-        model: "whisper-1",
+        model: WHISPER_MODEL,
         language,
       }),
     {

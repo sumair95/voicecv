@@ -83,6 +83,6 @@ export const POST = handle("export-cover-letter-pdf", async ({ req, log }) => {
     });
   } catch (err) {
     log.error("cover letter pdf failed", { cvId, err });
-    return serverError(err instanceof Error ? err.message : "PDF generation failed");
+    return serverError("Couldn't generate the PDF. Please try again.");
   }
 });

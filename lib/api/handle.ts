@@ -40,9 +40,15 @@ export function handle(route: string, fn: Handler) {
     try {
       return await fn({ req, log, reqId });
     } catch (err) {
+      // Log the full detail server-side, but NEVER return raw err.message to the
+      // client (L4): upstream provider bodies and Postgres errors leak schema +
+      // internals. The client gets a generic message + the reqId to quote in a
+      // support request, which we can correlate to the logged stack.
       log.error("handler threw", { err });
-      const message = err instanceof Error ? err.message : "Internal error";
-      return NextResponse.json({ error: message, reqId }, { status: 500 });
+      return NextResponse.json(
+        { error: "Something went wrong. Please try again.", reqId },
+        { status: 500 },
+      );
     }
   };
 }

@@ -10,8 +10,9 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { CVData, QAPair } from "@/types/cv";
 import { logger } from "@/lib/log";
+import { CLAUDE_TEXT_MODEL } from "@/lib/ai/models";
 
-const JUDGE_MODEL = "claude-sonnet-4-6";
+const JUDGE_MODEL = CLAUDE_TEXT_MODEL;
 const LABELS = "ABCDEFGH";
 
 function candidateSummary(cv: CVData): string {

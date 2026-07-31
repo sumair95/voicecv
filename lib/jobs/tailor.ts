@@ -19,8 +19,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { CVData, Language } from "@/types/cv";
 import { LANGUAGE_NAME } from "@/lib/cv-models/prompt";
 import { parseCVJson } from "@/lib/cv-models/parse";
+import { CLAUDE_TEXT_MODEL } from "@/lib/ai/models";
 
-const MODEL = "claude-sonnet-4-6";
+const MODEL = CLAUDE_TEXT_MODEL;
 
 /**
  * Force the model's output back to the candidate's real facts. The tailor is

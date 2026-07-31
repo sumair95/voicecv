@@ -10,8 +10,9 @@ import { buildSystemPrompt, buildUserMessage, LANGUAGE_NAME } from "./prompt";
 import { parseCVJson } from "./parse";
 import { withRetry } from "@/lib/ai/retry";
 import { logger } from "@/lib/log";
+import { CLAUDE_TEXT_MODEL } from "@/lib/ai/models";
 
-export const CLAUDE_CV_MODEL = "claude-sonnet-4-6";
+export const CLAUDE_CV_MODEL = CLAUDE_TEXT_MODEL;
 
 export const claudeCVProvider: CVModelProvider = {
   name: CLAUDE_CV_MODEL,
