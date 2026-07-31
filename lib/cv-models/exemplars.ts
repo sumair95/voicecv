@@ -5,11 +5,20 @@
  * cv_edit_events and returns them as REDACTED examples the model can imitate
  * for structure/quality — never for facts.
  *
- * Privacy: exemplars are other users' CVs, so we strip direct identifiers
- * (name, email, phone) and employer names before they ever enter a prompt. The
- * prompt also forbids copying any fact from them. This is a pragmatic MVP guard;
- * before scaling, add an explicit "use my CV to help others" consent flag and
- * only retrieve from opted-in rows.
+ * IMPORTANT (M1): `cv_edit_events` has RLS `using (auth.uid() = user_id)`, and
+ * this query runs on the caller's RLS-bound client — so it can ONLY ever return
+ * the CALLER'S OWN past CVs, never other users'. That is intentional and
+ * privacy-safe: it's effectively "use my own earlier CVs to guide my new one."
+ *
+ * Do NOT "fix" this by switching to the service-role/admin client to pull other
+ * users' rows: `cv_edit_events` is client-INSERTable under the same policy, so
+ * cross-user retrieval would both leak other users' CV content into prompts AND
+ * let an attacker seed poisoned "exemplars" that reach other users' generations.
+ * Cross-user exemplars would require an explicit opt-in consent column and a
+ * separate, server-only curated table with no client write path.
+ *
+ * The redact() below (strips name/email/phone/employers) is kept as defence in
+ * depth even though rows are already self-scoped.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
