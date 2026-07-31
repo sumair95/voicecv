@@ -18,6 +18,7 @@ import { isGeminiConfigured, toEnhancedPhoto } from "@/lib/photo/gemini";
 import { classifyPhotoStyle } from "@/lib/photo/classify";
 import { isAllowedImageUrl } from "@/lib/net/safe-image";
 import { sniffImageType, extFor } from "@/lib/net/image-bytes";
+import { pruneAvatars } from "@/lib/photo/storage";
 import { migrateCvData } from "@/lib/cv/migrate";
 import { NextResponse } from "next/server";
 
@@ -137,6 +138,13 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
     .from("profiles")
     .update({ photo_formal_url: formalUrl, photo_choice: "formal" })
     .eq("id", user.id);
+
+  // Prune old objects, keeping the current original + the new formal (H4).
+  const marker = "/object/public/avatars/";
+  const origPath = src.includes(marker)
+    ? decodeURIComponent(src.slice(src.indexOf(marker) + marker.length).split("?")[0])
+    : "";
+  await pruneAvatars(admin, user.id, [path, origPath].filter(Boolean));
 
   // Spend a credit only for the premium enhance path (comped users don't pay).
   if (mode === "enhance" && !comped) await supabase.rpc("consume_formal_photo_credit");

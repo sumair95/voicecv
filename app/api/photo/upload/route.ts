@@ -9,6 +9,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, serverError, unauthorized } from "@/lib/api/respond";
 import { sniffImageType, extFor } from "@/lib/net/image-bytes";
+import { pruneAvatars } from "@/lib/photo/storage";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -46,7 +47,7 @@ export const POST = handle("photo-upload", async ({ req, log }) => {
     .upload(path, bytes, { contentType: kind, upsert: true });
   if (upErr) {
     log.warn("avatar upload failed", { err: upErr });
-    return serverError(upErr.message);
+    return serverError("Couldn't save the photo. Please try again.");
   }
 
   const { data: pub } = admin.storage.from("avatars").getPublicUrl(path);
@@ -57,6 +58,10 @@ export const POST = handle("photo-upload", async ({ req, log }) => {
     .from("profiles")
     .update({ photo_url: photoUrl, photo_formal_url: null, photo_choice: "original" })
     .eq("id", user.id);
+
+  // Delete the previous avatar/formal objects so photos don't pile up forever
+  // (H4 retention). Keep only the file we just wrote.
+  await pruneAvatars(admin, user.id, [path]);
 
   log.info("avatar uploaded", { userId: user.id });
   return ok({ photoUrl });

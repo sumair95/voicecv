@@ -5,6 +5,37 @@ Running record of fixes applied after the 22 Jul 2026 audit
 
 ---
 
+## 2026-07-31 — H4: avatar retention — PARTIAL (bucket privatization deferred)
+
+**Files:** `lib/photo/storage.ts` (new), `app/api/photo/upload/route.ts`,
+`app/api/photo/convert/route.ts` (+ `app/api/photo/remove/route.ts` from C1).
+
+**Done — retention:** photos no longer accumulate forever. `pruneAvatars()`
+deletes old objects on every re-upload and conversion (keeping only the current
+original + formal); removal already deletes objects (C1). Also genericised a
+leaked `upErr.message` in the upload route.
+
+**Deferred — bucket privatization (needs staging verification):** making the
+`avatars` bucket private is NOT safe to ship blind. The photo URL is stored
+inside `cv_data.personal.photo_url` and rendered in four client components
+(`CVPreview`, `ClassicTemplate`, `ExecutiveTemplate`, profile/cv pages) plus
+fetched server-side for the PDF. Flipping to private invalidates every stored
+public URL at once and requires signed-URL plumbing through all of them; a
+mistake breaks every user's photo and CV PDF. Plan for when it can be tested on
+a preview deploy:
+
+1. Add `GET /api/photo/url` (service-role `createSignedUrl`, short TTL) returning
+   a fresh signed URL for the caller's original/formal photo.
+2. Stop storing a durable public URL in `cv_data`; store the storage PATH and
+   resolve to a signed URL at render/export time (server download via
+   `admin.storage.download(path)` for the PDF).
+3. Migrate existing `photo_url`/`photo_formal_url` public URLs → paths.
+4. Flip the bucket to private (`update storage.buckets set public=false ...`).
+5. Account-deletion cleanup: delete the user's `avatars/<uid>/` objects via the
+   storage API on account deletion (a DB trigger alone orphans the S3 blob).
+
+---
+
 ## 2026-07-31 — M4 + M8: CSP header + AI health signal — FIXED (code)
 
 **Files:** `next.config.mjs`, `app/api/health/route.ts`
