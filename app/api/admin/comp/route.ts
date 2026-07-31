@@ -59,6 +59,18 @@ export const POST = handle("admin-comp-post", async ({ req, log }) => {
   const body = (await req.json()) as PostBody;
   const admin = createAdminClient();
 
+  // Durable audit record for every mutating admin action (L6). Best-effort —
+  // never blocks the action itself. Table has no client RLS, so only this
+  // service-role path can read/write it.
+  const audit = (action: string, detail: Record<string, unknown>) =>
+    admin
+      .from("admin_audit")
+      .insert({ actor: gate.user.email ?? "unknown", action, detail })
+      .then(
+        () => {},
+        (err) => log.warn("admin_audit write failed", { err, action }),
+      );
+
   if (body.action === "toggle") {
     const enabled = body.enabled === true;
     const { error } = await admin
@@ -67,6 +79,7 @@ export const POST = handle("admin-comp-post", async ({ req, log }) => {
       .eq("id", 1);
     if (error) throw error;
     log.info("comp toggle", { enabled, by: gate.user.email });
+    await audit("comp_toggle", { enabled });
     return ok({ comp_enabled: enabled });
   }
 
@@ -78,6 +91,7 @@ export const POST = handle("admin-comp-post", async ({ req, log }) => {
       .eq("id", 1);
     if (error) throw error;
     log.info("free mode toggle", { enabled, by: gate.user.email });
+    await audit("freemode", { enabled });
     return ok({ free_mode: enabled });
   }
 
@@ -89,6 +103,7 @@ export const POST = handle("admin-comp-post", async ({ req, log }) => {
       .upsert({ email, note: body.note?.trim() || null }, { onConflict: "email" });
     if (error) throw error;
     log.info("comp add", { email, by: gate.user.email });
+    await audit("comp_add", { email });
     return ok({ added: email });
   }
 
@@ -98,6 +113,7 @@ export const POST = handle("admin-comp-post", async ({ req, log }) => {
     const { error } = await admin.from("comp_accounts").delete().eq("email", email);
     if (error) throw error;
     log.info("comp remove", { email, by: gate.user.email });
+    await audit("comp_remove", { email });
     return ok({ removed: email });
   }
 

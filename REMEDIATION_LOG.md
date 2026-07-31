@@ -5,6 +5,30 @@ Running record of fixes applied after the 22 Jul 2026 audit
 
 ---
 
+## 2026-07-31 — L6: admin audit trail — FIXED (code; migration pending)
+
+**Files:** `supabase/migrations/026_admin_audit.sql` (new),
+`app/api/admin/comp/route.ts`
+
+New `admin_audit` table (no client RLS); the comp/free-mode admin route now
+writes a durable row for every mutating action (`comp_toggle`, `freemode`,
+`comp_add`, `comp_remove`) with the actor email. Best-effort — never blocks the
+action. **Action:** run `026_admin_audit.sql` (until then the audit insert
+no-ops via its catch and the action still succeeds).
+
+---
+
+## Not implemented (deliberate)
+
+- **M2 — fire-and-forget background work.** Correct on Railway (long-lived Node
+  process), which is the deploy target; only breaks on serverless. Left as-is,
+  documented.
+- **L3 — accessibility** and **L5 — `next/image`.** Broad UI refactors with no
+  security impact; better done with visual/QA verification than blind-pushed to
+  prod. Left for a dedicated pass.
+
+---
+
 ## 2026-07-31 — H4: avatar retention — PARTIAL (bucket privatization deferred)
 
 **Files:** `lib/photo/storage.ts` (new), `app/api/photo/upload/route.ts`,
