@@ -31,7 +31,7 @@ export const POST = handle("jobs-improve", async ({ req, log }) => {
   const { user, supabase } = await getAuthContext(req);
   if (!user) return unauthorized();
 
-  const rate = take(`jobimprove:${user.id}`, LIMITS.jobImprove);
+  const rate = await take(`jobimprove:${user.id}`, LIMITS.jobImprove);
   if (!rate.ok) {
     return NextResponse.json(
       { error: "Too many requests. Try again shortly." },

@@ -49,7 +49,7 @@ export const POST = handle("export-pdf", async ({ req, log }) => {
   const { user, supabase } = await getAuthContext(req);
   if (!user) return unauthorized();
 
-  const rate = take(`pdf:${user.id}`, LIMITS.exportPdf);
+  const rate = await take(`pdf:${user.id}`, LIMITS.exportPdf);
   if (!rate.ok) {
     return NextResponse.json(
       { error: "Too many downloads. Try again in a minute." },

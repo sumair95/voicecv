@@ -5,6 +5,28 @@ Running record of fixes applied after the 22 Jul 2026 audit
 
 ---
 
+## 2026-07-31 — H2: durable rate limiter — FIXED (code; migration pending)
+
+**Risk:** the limiter was an in-memory `Map`, so counters were per-instance —
+ineffective at scale, leaving paid AI calls effectively uncapped.
+
+**Files:** `supabase/migrations/024_rate_limits.sql` (new), `lib/rate-limit.ts`,
++ 9 route call sites (`export-pdf`, `generate-cover-letter`, `generate-cv`,
+`jobs/improve`, `jobs/search`, `jobs/suggest-roles`, `jobs/tailor`,
+`photo/convert`, `transcribe`).
+
+- New `rate_limits` table + atomic `rate_limit_take(key, max, window_ms)` RPC
+  (row-locked upsert, cluster-safe).
+- `take()` is now async: calls the RPC via the service-role client, and **falls
+  back to the old in-memory counter if the RPC is unavailable** — so deploying
+  the code before running migration 024 degrades gracefully instead of breaking.
+- All 9 call sites updated to `await take(...)`.
+
+**Action:** run `024_rate_limits.sql` in Supabase to activate the durable path.
+Until then it silently uses the in-memory fallback (today's behaviour).
+
+---
+
 ## 2026-07-31 — Batch 2: M7, M6, M5, L4, L2, L1 — FIXED (code)
 
 Self-contained, no DB changes. One commit.

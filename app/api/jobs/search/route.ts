@@ -28,7 +28,7 @@ export const POST = handle("jobs-search", async ({ req, log }) => {
   const { user, supabase } = await getAuthContext(req);
   if (!user) return unauthorized();
 
-  const rate = take(`jobsearch:${user.id}`, LIMITS.jobSearch);
+  const rate = await take(`jobsearch:${user.id}`, LIMITS.jobSearch);
   if (!rate.ok) {
     return NextResponse.json(
       { error: "Too many searches. Try again in a minute." },

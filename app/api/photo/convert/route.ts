@@ -31,7 +31,7 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
   const body = (await req.json().catch(() => ({}))) as { mode?: "removebg" | "enhance" };
   const mode: "removebg" | "enhance" = body.mode === "enhance" ? "enhance" : "removebg";
 
-  const rate = take(`photo:${user.id}`, LIMITS.photoConvert);
+  const rate = await take(`photo:${user.id}`, LIMITS.photoConvert);
   if (!rate.ok) {
     return NextResponse.json(
       { error: "Too many requests. Try again shortly." },

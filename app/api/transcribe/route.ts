@@ -16,7 +16,7 @@ export const POST = handle("transcribe", async ({ req, log }) => {
   const { user } = await getAuthContext(req);
   if (!user) return unauthorized();
 
-  const rate = take(`stt:${user.id}`, LIMITS.transcribe);
+  const rate = await take(`stt:${user.id}`, LIMITS.transcribe);
   if (!rate.ok) {
     return NextResponse.json(
       { error: "Too many transcriptions. Try again in a minute." },

@@ -20,7 +20,7 @@ export const POST = handle("jobs-suggest-roles", async ({ req }) => {
   const { user, supabase } = await getAuthContext(req);
   if (!user) return unauthorized();
 
-  const rate = take(`jobsuggest:${user.id}`, LIMITS.jobImprove);
+  const rate = await take(`jobsuggest:${user.id}`, LIMITS.jobImprove);
   if (!rate.ok) return NextResponse.json({ roles: [] }); // silent degrade
 
   const body = (await req.json()) as { cvId?: string };

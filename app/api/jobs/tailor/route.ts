@@ -37,7 +37,7 @@ export const POST = handle("jobs-tailor", async ({ req, log }) => {
   const { user, supabase } = await getAuthContext(req);
   if (!user) return unauthorized();
 
-  const rate = take(`jobtailor:${user.id}`, LIMITS.jobTailor);
+  const rate = await take(`jobtailor:${user.id}`, LIMITS.jobTailor);
   if (!rate.ok) {
     return NextResponse.json(
       { error: "Too many requests. Try again shortly." },

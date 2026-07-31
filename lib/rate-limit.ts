@@ -1,16 +1,19 @@
 /**
- * Minimal in-memory rate limiter.
+ * Rate limiter (H2).
  *
- * Per-user, per-route, time-windowed counter. Keeps Whisper + Claude
- * costs bounded for a single misbehaving (or compromised) account.
+ * Per-user, per-route, time-windowed counter that bounds paid AI spend
+ * (Whisper, Claude, GPT-4o, Gemini, remove.bg) for a single misbehaving or
+ * compromised account.
  *
- * NOT cluster-safe — when we deploy multiple Railway/Vercel instances
- * we should swap the in-memory Map for Upstash Redis or a Postgres
- * counter. The API is intentionally identical (`take(key)`) so the swap
- * is one file.
+ * Primary path: an atomic Postgres counter (`rate_limit_take` RPC, migration
+ * 024) shared across every server instance — cluster-safe. If that RPC is
+ * unavailable (e.g. the migration hasn't been run yet), it FALLS BACK to the
+ * per-process in-memory counter below, so the app never breaks; it just
+ * temporarily loses cross-instance accuracy.
  */
 
 import { logger } from "@/lib/log";
+import { createAdminClient } from "@/lib/supabase/server";
 
 interface Window {
   count: number;
@@ -32,7 +35,8 @@ export interface RateResult {
   resetAt: number;
 }
 
-export function take(key: string, opts: LimitOpts): RateResult {
+/** In-memory fallback — per-process, used only when the DB RPC is unavailable. */
+function takeInMemory(key: string, opts: LimitOpts): RateResult {
   const now = Date.now();
   const existing = buckets.get(key);
   if (!existing || existing.resetAt <= now) {
@@ -42,18 +46,44 @@ export function take(key: string, opts: LimitOpts): RateResult {
   }
   if (existing.count >= opts.max) {
     logger.warn("rate limit hit", { key, count: existing.count });
-    return {
-      ok: false,
-      remaining: 0,
-      resetAt: existing.resetAt,
-    };
+    return { ok: false, remaining: 0, resetAt: existing.resetAt };
   }
   existing.count += 1;
-  return {
-    ok: true,
-    remaining: opts.max - existing.count,
-    resetAt: existing.resetAt,
-  };
+  return { ok: true, remaining: opts.max - existing.count, resetAt: existing.resetAt };
+}
+
+interface RateRow {
+  allowed: boolean;
+  remaining: number;
+  reset_at: string;
+}
+
+/**
+ * Take one token for `key`. Cluster-safe via Postgres; falls back to the
+ * in-memory counter if the DB RPC errors, so rate limiting can never take the
+ * API down. Async — callers must `await`.
+ */
+export async function take(key: string, opts: LimitOpts): Promise<RateResult> {
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin.rpc("rate_limit_take", {
+      p_key: key,
+      p_max: opts.max,
+      p_window_ms: opts.windowMs,
+    });
+    if (error) throw error;
+    const row = (Array.isArray(data) ? data[0] : data) as RateRow | undefined;
+    if (!row) throw new Error("rate_limit_take returned no row");
+    if (!row.allowed) logger.warn("rate limit hit", { key });
+    return {
+      ok: row.allowed,
+      remaining: row.remaining,
+      resetAt: new Date(row.reset_at).getTime(),
+    };
+  } catch (err) {
+    logger.warn("rate limiter fell back to in-memory", { err, key });
+    return takeInMemory(key, opts);
+  }
 }
 
 // Sensible defaults for our routes — tune later if needed.

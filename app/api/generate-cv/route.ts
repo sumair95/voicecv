@@ -133,7 +133,7 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
   const { user, supabase } = await getAuthContext(req);
   if (!user) return unauthorized();
 
-  const rate = take(`gen:${user.id}`, LIMITS.generateCv);
+  const rate = await take(`gen:${user.id}`, LIMITS.generateCv);
   if (!rate.ok) {
     return NextResponse.json(
       { error: "Too many CV generations. Try again in a minute." },

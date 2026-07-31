@@ -27,7 +27,7 @@ export const POST = handle("generate-cover-letter", async ({ req, log }) => {
   const { user, supabase } = await getAuthContext(req);
   if (!user) return unauthorized();
 
-  const rate = take(`cover:${user.id}`, LIMITS.generateCv);
+  const rate = await take(`cover:${user.id}`, LIMITS.generateCv);
   if (!rate.ok) {
     return NextResponse.json(
       { error: "Too many requests. Try again in a minute." },
