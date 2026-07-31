@@ -27,9 +27,25 @@ export const GET = handle("health", async () => {
     dbOk = false;
   }
 
+  // AI config signal (M8). The whole agentic layer fails SILENTLY on a wrong
+  // model id or a revoked key (the judge returns zeros, the photo classifier
+  // defaults to "clean"), so surface whether the core keys are even present.
+  // Cheap: no external call. A missing primary key flips overall status so an
+  // uptime monitor notices. (Presence ≠ validity — a deep ping would cost
+  // tokens; add one behind a query flag if needed.)
+  const ai = {
+    anthropic: Boolean(process.env.ANTHROPIC_API_KEY),
+    openai: Boolean(process.env.OPENAI_API_KEY),
+    gemini: Boolean(process.env.GEMINI_API_KEY),
+    removebg: Boolean(process.env.REMOVEBG_API_KEY),
+  };
+  const aiDegraded = !ai.anthropic || !ai.openai;
+
   return ok({
-    status: dbOk ? "ok" : "degraded",
+    status: dbOk && !aiDegraded ? "ok" : "degraded",
     db: { ok: dbOk, latencyMs: dbLatencyMs },
+    ai,
+    aiDegraded,
     uptimeMs: process.uptime() * 1000,
     totalMs: Date.now() - startedAt,
   });

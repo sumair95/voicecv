@@ -5,6 +5,23 @@ Running record of fixes applied after the 22 Jul 2026 audit
 
 ---
 
+## 2026-07-31 — M4 + M8: CSP header + AI health signal — FIXED (code)
+
+**Files:** `next.config.mjs`, `app/api/health/route.ts`
+
+- **M4 — CSP.** Added a `Content-Security-Policy-Report-Only` header (locks
+  `frame-ancestors`, `base-uri`, `object-src`, `form-action`, and scopes
+  connect/img to self + Supabase). Shipped **report-only** so it can't break the
+  live site — the inline theme script + Next's framework scripts mean an
+  *enforcing* CSP needs per-request nonces via middleware first. Follow-up noted.
+- **M8 — AI health signal.** `/api/health` now returns an `ai` block (key
+  presence for anthropic/openai/gemini/removebg) and an `aiDegraded` flag that
+  flips overall `status` to `degraded` when a primary key is missing, so an
+  uptime monitor catches a silently-broken AI layer. (Presence ≠ validity; a
+  token-spending deep ping can be added behind a flag later.)
+
+---
+
 ## 2026-07-31 — M3: atomic webhook credit grant — FIXED (code; migration pending)
 
 **Risk:** the Stripe webhook did read-modify-write on credit columns; concurrent
