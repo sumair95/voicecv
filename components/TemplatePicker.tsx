@@ -18,7 +18,7 @@ export function TemplatePicker({ value, onChange, className, premiumEnabled }: P
       <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Template
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" role="group" aria-label="CV template">
         {TEMPLATES.map((tpl) => {
           const active = tpl.id === value;
           // Premium templates are locked only when premium isn't enabled.
@@ -29,6 +29,16 @@ export function TemplatePicker({ value, onChange, className, premiumEnabled }: P
               type="button"
               disabled={locked}
               onClick={() => !locked && onChange(tpl.id)}
+              // The selected state is conveyed only by colour otherwise, and
+              // "Premium"/"locked" only by a small icon (L3).
+              aria-pressed={active}
+              aria-label={
+                locked
+                  ? `${tpl.name} — Premium, locked`
+                  : tpl.premium
+                    ? `${tpl.name} — Premium`
+                    : tpl.name
+              }
               title={
                 locked
                   ? `${tpl.name} — Premium (coming soon)`

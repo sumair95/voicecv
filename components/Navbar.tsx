@@ -17,9 +17,17 @@ export function Navbar({
   const { t } = useLanguage();
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-card/80 backdrop-blur-lg">
-      <div className="container flex h-16 items-center justify-between gap-4">
+      {/* Landmark so "skip to navigation" and rotor navigation can find this;
+          a bare <div> of links is not reachable that way (L3). */}
+      <nav
+        aria-label="Main"
+        className="container flex h-16 items-center justify-between gap-4"
+      >
         <Link href="/" className="flex items-center gap-2 font-semibold text-foreground">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-teal text-white">
+          <span
+            aria-hidden="true"
+            className="grid h-9 w-9 place-items-center rounded-xl bg-teal text-white"
+          >
             <Mic className="h-5 w-5" />
           </span>
           <span className="text-lg">VoiceCV</span>
@@ -55,7 +63,7 @@ export function Navbar({
             </>
           )}
         </div>
-      </div>
+      </nav>
     </header>
   );
 }

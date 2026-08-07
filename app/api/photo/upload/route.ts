@@ -9,7 +9,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { handle } from "@/lib/api/handle";
 import { badRequest, ok, serverError, unauthorized } from "@/lib/api/respond";
 import { sniffImageType, extFor } from "@/lib/net/image-bytes";
-import { pruneAvatars } from "@/lib/photo/storage";
+import { pruneAvatars, signAvatarUrl } from "@/lib/photo/storage";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -50,18 +50,22 @@ export const POST = handle("photo-upload", async ({ req, log }) => {
     return serverError("Couldn't save the photo. Please try again.");
   }
 
-  const { data: pub } = admin.storage.from("avatars").getPublicUrl(path);
-  const photoUrl = pub.publicUrl;
-
+  // Persist the storage PATH, not a URL. The bucket is private (migration 027),
+  // so the only readable form is a short-lived signed URL — which must never be
+  // what we store, or the column would go stale an hour later.
+  //
   // New upload invalidates the old professional version (made from the old photo).
   await admin
     .from("profiles")
-    .update({ photo_url: photoUrl, photo_formal_url: null, photo_choice: "original" })
+    .update({ photo_url: path, photo_formal_url: null, photo_choice: "original" })
     .eq("id", user.id);
 
   // Delete the previous avatar/formal objects so photos don't pile up forever
   // (H4 retention). Keep only the file we just wrote.
   await pruneAvatars(admin, user.id, [path]);
+
+  // The caller needs something renderable right now, so hand back a signed URL.
+  const photoUrl = await signAvatarUrl(admin, path, user.id);
 
   log.info("avatar uploaded", { userId: user.id });
   return ok({ photoUrl });

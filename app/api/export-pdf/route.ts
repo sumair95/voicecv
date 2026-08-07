@@ -6,7 +6,8 @@ import { getTemplate, DEFAULT_TEMPLATE } from "@/lib/cv/templates";
 import { handle } from "@/lib/api/handle";
 import { badRequest, notFound, unauthorized, conflict, serverError } from "@/lib/api/respond";
 import { LIMITS, take } from "@/lib/rate-limit";
-import { isAllowedImageUrl } from "@/lib/net/safe-image";
+import { downloadAvatar } from "@/lib/photo/storage";
+import { createAdminClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/log";
 import type { CVRecord, Language, TemplateId } from "@/types/cv";
 import { NextResponse } from "next/server";
@@ -14,35 +15,31 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-// Fetch the CV photo and inline it as a data URI. Rendering from bytes (not a
-// live URL) means a slow/broken image can never hang or crash the whole PDF —
-// on any failure we return "" and the templates simply omit the photo.
+// Inline the CV photo as a data URI. Rendering from bytes (not a live URL)
+// means a slow/broken image can never hang or crash the whole PDF — on any
+// failure we return "" and the templates simply omit the photo.
 //
-// The URL comes from cv_data, which the browser writes directly, so it is
-// untrusted input: it is checked against our own Supabase storage host before
-// any request is made (see lib/net/safe-image.ts). Without that, this fetch is
-// an SSRF sink that copies the response bytes into a PDF the caller downloads.
-async function photoDataUri(url: string): Promise<string> {
-  if (!isAllowedImageUrl(url)) {
-    logger.warn("photo_url rejected — not our storage host", {
-      url: url.slice(0, 120),
+// The value comes from cv_data, which the browser writes directly, so it is
+// untrusted input. Since the bucket went private (H4) the normal path no longer
+// makes an outbound request at all: the reference is resolved to a storage path
+// scoped to this user and the bytes are read with the service-role client. That
+// removes the SSRF sink rather than guarding it.
+//
+// A data URI is passed through (already inline bytes). Anything else — a URL
+// pointing somewhere that isn't this user's own avatar folder — is dropped.
+async function photoDataUri(value: string, userId: string): Promise<string> {
+  if (value.startsWith("data:image/")) return value;
+
+  const admin = createAdminClient();
+  const file = await downloadAvatar(admin, value, userId);
+  if (!file) {
+    logger.warn("photo_url rejected — not this user's avatar object", {
+      value: value.slice(0, 120),
+      userId,
     });
     return "";
   }
-  try {
-    const res = await fetch(url, {
-      signal: AbortSignal.timeout(8000),
-      redirect: "error", // a 302 to an internal address would re-open the hole
-    });
-    if (!res.ok) return "";
-    const type = res.headers.get("content-type") || "image/jpeg";
-    if (!type.startsWith("image/")) return "";
-    const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.length === 0 || buf.length > 8_000_000) return "";
-    return `data:${type};base64,${buf.toString("base64")}`;
-  } catch {
-    return "";
-  }
+  return `data:${file.contentType};base64,${file.bytes.toString("base64")}`;
 }
 
 export const POST = handle("export-pdf", async ({ req, log }) => {
@@ -93,7 +90,10 @@ export const POST = handle("export-pdf", async ({ req, log }) => {
   const cvData = migrateCvData(cv.cv_data);
   // Inline the opt-in photo as bytes (safe render); drop it if it can't be fetched.
   if (cvData.personal.photo_url) {
-    cvData.personal.photo_url = await photoDataUri(cvData.personal.photo_url);
+    cvData.personal.photo_url = await photoDataUri(
+      cvData.personal.photo_url,
+      user.id,
+    );
   }
 
   try {

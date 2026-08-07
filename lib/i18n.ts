@@ -777,6 +777,39 @@ export const t: Dict = {
     it: "Parla in qualsiasi lingua — scegli la lingua del CV finale.",
   },
   "rec.stop": { en: "Stop", ar: "إيقاف", ur: "روکیں", it: "Ferma" },
+  // Spoken-only status announcements (L3). Voice recording is the core
+  // interaction, so a screen-reader user needs the state changes in words —
+  // the waveform animation conveys them to nobody else.
+  "rec.status.requesting": {
+    en: "Requesting microphone access",
+    ar: "جارٍ طلب إذن الميكروفون",
+    ur: "مائیکروفون کی اجازت طلب کی جا رہی ہے",
+    it: "Richiesta di accesso al microfono",
+  },
+  "rec.status.recording": {
+    en: "Recording. Speak your answer, then press Stop.",
+    ar: "جارٍ التسجيل. تحدث بإجابتك ثم اضغط إيقاف.",
+    ur: "ریکارڈنگ جاری ہے۔ اپنا جواب بولیں، پھر روکیں دبائیں۔",
+    it: "Registrazione in corso. Pronuncia la risposta, poi premi Ferma.",
+  },
+  "rec.status.recorded": {
+    en: "Recording finished. Play it back, re-record, or continue.",
+    ar: "انتهى التسجيل. استمع إليه أو أعد التسجيل أو تابع.",
+    ur: "ریکارڈنگ مکمل۔ سنیں، دوبارہ ریکارڈ کریں، یا آگے بڑھیں۔",
+    it: "Registrazione terminata. Riascolta, registra di nuovo o continua.",
+  },
+  "rec.status.transcribing": {
+    en: "Transcribing your answer",
+    ar: "جارٍ تفريغ إجابتك",
+    ur: "آپ کا جواب تحریر کیا جا رہا ہے",
+    it: "Trascrizione della risposta in corso",
+  },
+  "rec.status.error": {
+    en: "Something went wrong. Please try recording again.",
+    ar: "حدث خطأ ما. يرجى إعادة التسجيل.",
+    ur: "کچھ غلط ہو گیا۔ براہ کرم دوبارہ ریکارڈ کریں۔",
+    it: "Qualcosa è andato storto. Prova a registrare di nuovo.",
+  },
   "rec.rerecord": {
     en: "Re-record",
     ar: "إعادة التسجيل",

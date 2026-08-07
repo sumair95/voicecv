@@ -104,9 +104,21 @@ export default function ProfilePage() {
           country: data.country ?? "",
           nationality: data.nationality ?? "",
         });
-        setPhotoUrl(data.photo_url ?? null);
-        setFormalUrl(data.photo_formal_url ?? null);
         setChoice(data.photo_choice === "formal" ? "formal" : "original");
+      }
+
+      // photo_url / photo_formal_url are storage paths since the avatars bucket
+      // went private (H4), so they can't be rendered directly — swap them for
+      // short-lived signed URLs.
+      try {
+        const res = await fetch("/api/photo/signed");
+        const json: { photoUrl?: string | null; formalUrl?: string | null } =
+          await res.json();
+        setPhotoUrl(json.photoUrl ?? null);
+        setFormalUrl(json.formalUrl ?? null);
+      } catch {
+        setPhotoUrl(null);
+        setFormalUrl(null);
       }
       setCvs((cvRows as CvRow[]) ?? []);
       setLoading(false);
@@ -342,7 +354,7 @@ export default function ProfilePage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={shown}
-            alt=""
+            alt="Your profile photo, enlarged"
             className="max-h-[85vh] max-w-full rounded-lg object-contain shadow-2xl"
           />
         </div>
@@ -371,7 +383,11 @@ export default function ProfilePage() {
               className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-border bg-muted"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={shown} alt="" className="h-full w-full object-cover object-top" />
+              <img
+                src={shown}
+                alt="Your profile photo"
+                className="h-full w-full object-cover object-top"
+              />
               <span className="absolute inset-0 grid place-items-center bg-navy-900/0 text-white opacity-0 transition group-hover:bg-navy-900/40 group-hover:opacity-100">
                 <ZoomIn className="h-6 w-6" />
               </span>

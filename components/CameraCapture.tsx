@@ -84,17 +84,25 @@ export function CameraCapture({
       className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
       onClick={close}
     >
+      {/* Announced as a modal so assistive tech reports it as a layer over the
+          page rather than as inert content appended to it (L3). */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("photo.capture")}
         className="w-full max-w-md space-y-3 rounded-xl bg-card p-4 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {error ? (
-          <p className="py-8 text-center text-sm text-red-600">{error}</p>
+          <p role="alert" className="py-8 text-center text-sm text-red-600">
+            {error}
+          </p>
         ) : (
           <video
             ref={videoRef}
             playsInline
             muted
+            aria-label={t("photo.capture")}
             className="aspect-[3/4] w-full rounded-lg bg-black object-cover"
           />
         )}

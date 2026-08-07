@@ -74,6 +74,7 @@ export function ClassicTemplate({ data, editable, patch, t, isRtl }: Props) {
           <div className="mb-3 flex items-center justify-center gap-4 text-start">
             <CvPhoto
               url={data.personal.photo_url}
+              name={data.personal.full_name}
               className="h-20 w-20 shrink-0 rounded-full object-cover ring-1 ring-navy-200"
             />
             <div>{nameBlock}</div>

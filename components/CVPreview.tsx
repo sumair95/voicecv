@@ -291,6 +291,7 @@ export function CVPreview({
             {data.personal.photo_url && (
               <CvPhoto
                 url={data.personal.photo_url}
+              name={data.personal.full_name}
                 className="h-20 w-20 shrink-0 rounded-full object-cover"
               />
             )}
@@ -863,6 +864,7 @@ export function CVPreview({
           {data.personal.photo_url ? (
             <CvPhoto
               url={data.personal.photo_url}
+              name={data.personal.full_name}
               className="h-24 w-24 rounded-full object-cover ring-2 ring-teal-300"
             />
           ) : (

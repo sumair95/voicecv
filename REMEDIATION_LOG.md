@@ -18,18 +18,82 @@ no-ops via its catch and the action still succeeds).
 
 ---
 
-## Not implemented (deliberate)
+## 2026-08-07 — H4 (bucket privatization), M2, L3, L5 — FIXED (code; migration pending)
 
-- **M2 — fire-and-forget background work.** Correct on Railway (long-lived Node
-  process), which is the deploy target; only breaks on serverless. Left as-is,
-  documented.
-- **L3 — accessibility** and **L5 — `next/image`.** Broad UI refactors with no
-  security impact; better done with visual/QA verification than blind-pushed to
-  prod. Left for a dedicated pass.
+Closes the last open audit items. **Nothing here is deployed yet** and H4 needs
+migration `027_private_avatars.sql` run *together with* the code — see the
+deploy checklist at the bottom.
+
+### H4 — avatars bucket is now private
+
+**Files:** `supabase/migrations/027_private_avatars.sql` (new),
+`lib/photo/storage.ts`, `app/api/photo/signed/route.ts` (new),
+`app/api/photo/{upload,convert,remove}/route.ts`, `app/api/export-pdf/route.ts`,
+`app/(dashboard)/profile/page.tsx`, `app/(dashboard)/cv/[id]/page.tsx`,
+`components/cv/primitives.tsx`
+
+- Migration flips `avatars` to `public = false` and adds an owner-only SELECT
+  policy as a backstop.
+- `profiles.photo_url` / `photo_formal_url` now store the **storage path**, not
+  a URL. Signed URLs expire, so storing one would rot the column within an hour.
+- New `avatarPath()` normalizes all three shapes a reference arrives in — bare
+  path, legacy public URL, stale signed URL — and refuses anything outside
+  `<uid>/`. That makes the change **self-healing and backfill-free**: old rows
+  keep resolving, and a stale signed URL auto-saved into `cv_data` by the CV
+  editor still resolves and is simply re-signed on the next read.
+- Reads go through `GET /api/photo/signed`, which mints 1-hour URLs for the
+  caller's own objects. It takes **no parameters**, so there is nothing to tamper
+  with.
+- `export-pdf` no longer makes an outbound request at all: it reads the bytes via
+  the service-role client (`downloadAvatar`). That removes the SSRF sink rather
+  than guarding it — the C2 allowlist stays for other callers.
+- `photo/convert` still hands a URL to remove.bg/Gemini (their APIs require one),
+  but now a short-lived signed one.
+
+### M2 — fire-and-forget background work
+
+**Files:** `lib/runtime/background.ts` (new), `app/api/generate-cv/route.ts`,
+`README.md`
+
+Next 14.2 has no `after()`, so this takes the audit's other branch — pin the
+target and document it — plus the piece that makes pinning safe. `runInBackground()`
+detects Vercel/Lambda/Azure/Cloud Run from their own env vars and logs an **error
+naming the job about to be dropped**, converting a silent failure into a visible
+one. It also routes rejections to the logger, so detached work can no longer
+surface as an unhandled rejection. README gains a "Deployment target is not
+interchangeable" section.
+
+### L3 — accessibility
+
+**Files:** `components/VoiceRecorder.tsx`, `lib/i18n.ts`, `components/Navbar.tsx`,
+`components/CameraCapture.tsx`, `components/TemplatePicker.tsx`,
+`components/cv/primitives.tsx` (+ CV pages)
+
+- The recorder's `aria-live` was on a layout div wrapping an **animated waveform
+  with no text**, so a screen reader had nothing to announce. Replaced with a
+  dedicated `role="status"` region carrying real state text, localized across all
+  four languages (`rec.status.*`); the waveform is now `aria-hidden`.
+- `CameraCapture` announced as `role="dialog"` + `aria-modal`; its error is a
+  `role="alert"`.
+- `TemplatePicker` buttons carry `aria-pressed` + a label naming Premium/locked
+  state (previously conveyed by colour and a 4px icon only).
+- `Navbar` links wrapped in a real `<nav aria-label="Main">` landmark.
+- Meaningful `alt` on every photo — these were `alt=""` on an image that *is* the
+  person.
+
+### L5 — layout shift, and a deliberate non-migration
+
+`next/image` was **not** adopted for avatars, on purpose. Routing a private,
+signed-URL headshot through `/_next/image` would copy it into Next's on-disk
+optimisation cache and serve it from a CDN-cacheable URL that outlives the
+signature — re-opening the exact exposure H4 just closed. Instead the images
+carry explicit `width`/`height` to reserve their box, which is the layout-shift
+win L5 was actually after. Rationale is recorded in `components/cv/primitives.tsx`
+so this isn't "rediscovered" later.
 
 ---
 
-## 2026-07-31 — H4: avatar retention — PARTIAL (bucket privatization deferred)
+## 2026-07-31 — H4: avatar retention — PARTIAL (privatization completed 2026-08-07, above)
 
 **Files:** `lib/photo/storage.ts` (new), `app/api/photo/upload/route.ts`,
 `app/api/photo/convert/route.ts` (+ `app/api/photo/remove/route.ts` from C1).
@@ -236,17 +300,43 @@ change or "remove photo" + comp unlocks break.
 
 ---
 
-## Outstanding (from the audit, not yet started)
+## Outstanding
 
-- **H2** — rate limiter is per-process/in-memory; move to Postgres/Upstash.
-- **H4** — avatars bucket is public + never expires; make private + signed URLs
-  + delete on account deletion. (Partly helped by `/api/photo/remove` cleanup.)
-- **M1–M8, L1–L7** — see the audit.
+**None.** Every finding in `SECURITY_AUDIT_2026-07-22.md` (C1–C2, H1–H4, M1–M8,
+L1–L7) now has a remediation entry above. L5 is closed as a documented decision
+not to adopt `next/image` for private avatars, not as a code change.
 
-## Deploy checklist for the current batch (C1, C2, H3, H1)
+One item is carried forward as ordinary work rather than an audit finding: H4
+mentions **deleting avatars on account deletion**. Re-upload/convert/remove all
+prune correctly, but there is no account-deletion flow in the product yet — when
+one is added it must call `pruneAvatars(admin, userId, [])`.
 
-1. `git push` the edited + new files to `main`.
-2. Deploy the app (must go out together with migration 023, already run).
-3. Smoke-test: unlock premium template, cover-letter PDF, tailor a CV, remove
-   photo, export CV PDF with photo, upload a new photo (try renaming a `.svg`
-   to `.jpg` — must be rejected).
+Also noted while fixing M2 and not chased: the competition path passes a
+user-scoped Supabase client into detached work whose token can expire mid-run.
+It writes with explicit `.eq("user_id", …)` scoping, so moving it to the
+service-role client is safe, but that changes an auth boundary and deserves its
+own change rather than being folded in silently.
+
+## Deploy checklist — 2026-08-07 batch (H4 privatization, M2, L3, L5)
+
+**Order matters. The migration and the code must go out together**: privatizing
+the bucket breaks every stored public URL, and the new code is what mints signed
+URLs to replace them.
+
+1. Run `supabase/migrations/027_private_avatars.sql` in the SQL editor.
+2. Verify: `select id, public from storage.buckets where id = 'avatars';`
+   → `public = false`.
+3. Push to `main` and let Railway deploy (or deploy immediately after step 1 —
+   between the two, existing photos will not render).
+4. Smoke-test, signed in:
+   - Profile page shows the existing photo (proves legacy public-URL rows still
+     resolve via `avatarPath`).
+   - Upload a new photo → renders immediately.
+   - "Make professional" (remove.bg) → renders.
+   - Open a CV with the photo on → photo renders in the preview.
+   - Export that CV to PDF → photo is embedded.
+   - Remove photo → disappears, and the storage object is gone.
+   - Paste an old `/object/public/avatars/...` URL in a logged-out tab →
+     **must now fail** (400/404). This is the actual proof H4 is closed.
+5. Accessibility spot-check: with a screen reader (or VoiceOver rotor), start a
+   recording and confirm "Recording. Speak your answer…" is announced.

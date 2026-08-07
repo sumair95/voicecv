@@ -2,6 +2,39 @@
 
 Chronological build log for the Kanz AI Hackathon (July 13–20, 2026).
 
+## 2026-08-07 — Closed the last four audit items (H4 privatization, M2, L3, L5)
+
+Finishes the remediation of `SECURITY_AUDIT_2026-07-22.md`. Full detail in
+`REMEDIATION_LOG.md`; summary here.
+
+- **H4 — avatars bucket made private.** Migration `027_private_avatars.sql` flips
+  `public = false` + owner-only SELECT. `profiles.photo_url` /
+  `photo_formal_url` now hold storage **paths**; reads mint 1-hour signed URLs
+  via the new `GET /api/photo/signed` (parameterless, so nothing to tamper with).
+  New `avatarPath()` in `lib/photo/storage.ts` accepts bare paths, legacy public
+  URLs *and* stale signed URLs, all scoped to `<uid>/` — so no backfill is
+  needed and a signed URL auto-saved into `cv_data` by the editor self-heals.
+  `export-pdf` now reads bytes through the service-role client instead of
+  fetching a URL, deleting the SSRF sink rather than guarding it.
+- **M2 — fire-and-forget.** Next 14.2 has no `after()`, so: pin the target and
+  make the assumption loud. `lib/runtime/background.ts` detects serverless
+  platforms and logs an error naming the job about to be dropped, and catches
+  rejections from detached work. README gained a deployment-target section.
+- **L3 — accessibility.** The recorder's `aria-live` was on a div wrapping an
+  animated waveform with no text — it announced nothing. Replaced with a real
+  `role="status"` region with localized state text (EN/AR/UR/IT). Plus dialog
+  semantics on `CameraCapture`, `aria-pressed` + labels on `TemplatePicker`, a
+  `<nav>` landmark in `Navbar`, and meaningful `alt` on every photo.
+- **L5 — deliberately NOT `next/image`.** Sending a private signed-URL headshot
+  through `/_next/image` would cache it to disk and serve it from a
+  CDN-cacheable URL outliving the signature — undoing H4. Used explicit
+  `width`/`height` instead, which is the layout-shift win that was wanted.
+
+**State:** `npm run build` clean (33/33 pages). **Committed but NOT pushed, and
+migration 027 NOT run** — privatizing the bucket breaks stored public URLs, so
+the SQL and the deploy must land together. Deploy checklist + smoke tests are at
+the bottom of `REMEDIATION_LOG.md`.
+
 ## 2026-07-04 — AI Job Match (JSearch + Claude ranking + in-app tracking)
 - **Feature decision (Sumair):** data source = **JSearch (RapidAPI)**; apply model = **in-app apply + tracking**.
 - **DB:** migration `015_job_match.sql` — `job_applications` table (job snapshot: title/company/location/apply_url/logo/salary; `match_score`/`match_reason`; `status` check-constrained to saved/applied/interview/offer/rejected; `notes`, `applied_at`). Owner-only RLS (mirrors `cvs`), unique `(user_id, external_job_id)` so re-saving upserts. **Applied by Sumair.**

@@ -38,16 +38,29 @@ export default function CVDetailPage() {
       if (!user) return;
       const { data } = await supabase
         .from("profiles")
-        .select("cover_letter_credits, photo_url, photo_formal_url, photo_choice")
+        .select("cover_letter_credits")
         .eq("id", user.id)
         .single();
       setCoverLetterCredits((data?.cover_letter_credits as number) ?? 0);
-      // Resolve the profile photo the user chose (formal if picked + available).
-      const resolved =
-        data?.photo_choice === "formal" && data?.photo_formal_url
-          ? (data.photo_formal_url as string)
-          : ((data?.photo_url as string | null) ?? null);
-      setProfilePhoto(resolved || null);
+
+      // The photo columns now hold storage paths, not renderable URLs — the
+      // avatars bucket is private (H4). Ask the server for short-lived signed
+      // URLs and let it resolve which of original/formal the user picked.
+      try {
+        const res = await fetch("/api/photo/signed");
+        const json: {
+          photoUrl?: string | null;
+          formalUrl?: string | null;
+          choice?: string;
+        } = await res.json();
+        const resolved =
+          json.choice === "formal" && json.formalUrl
+            ? json.formalUrl
+            : (json.photoUrl ?? null);
+        setProfilePhoto(resolved || null);
+      } catch {
+        setProfilePhoto(null); // photo is optional — render the CV without it
+      }
     })();
   }, [supabase]);
 
@@ -330,7 +343,9 @@ export default function CVDetailPage() {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={profilePhoto}
-                alt=""
+                alt="Your profile photo, shown on this CV"
+                width={40}
+                height={40}
                 className="h-10 w-10 rounded-full object-cover ring-1 ring-border"
               />
             ) : (

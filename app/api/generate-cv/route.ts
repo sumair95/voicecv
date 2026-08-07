@@ -14,6 +14,7 @@ import { FREE_CV_LIMIT } from "@/lib/premium";
 import { isCompAccount } from "@/lib/premium/access";
 import { logEvent } from "@/lib/analytics-server";
 import { logger } from "@/lib/log";
+import { runInBackground } from "@/lib/runtime/background";
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CVData, Language, QAPair } from "@/types/cv";
@@ -249,23 +250,36 @@ export const POST = handle("generate-cv", async ({ req, log }) => {
     if (error) throw error;
   }
 
-  // Seed the reusable profile from this CV (fills empty fields only). Best-
-  // effort, not awaited.
-  if (cvId) void seedProfile(supabase, user.id, cvData);
+  // Both jobs below are detached so the user isn't kept waiting. That relies on
+  // the process outliving the response — true on Railway, false on serverless.
+  // `runInBackground` makes that assumption loud rather than silent (M2), and
+  // keeps a rejection in detached work from becoming an unhandled rejection.
 
-  // Fire the multi-model competition in the BACKGROUND (Railway keeps the Node
-  // process alive) — challengers + judge run after we respond; the winner is
-  // swapped in only if the user hasn't started editing. Not awaited.
-  if (hasChallengers() && cvId) {
-    void runCompetitionInBackground(
-      supabase,
-      user.id,
+  // Seed the reusable profile from this CV (fills empty fields only).
+  if (cvId) {
+    runInBackground("seed-profile", () => seedProfile(supabase, user.id, cvData), {
+      userId: user.id,
       cvId,
-      body.qaPairs,
-      body.language,
-      cvLanguage,
-      exemplars,
-      primary,
+    });
+  }
+
+  // Multi-model competition: challengers + judge run after we respond; the
+  // winner is swapped in only if the user hasn't started editing.
+  if (hasChallengers() && cvId) {
+    runInBackground(
+      "cv-competition",
+      () =>
+        runCompetitionInBackground(
+          supabase,
+          user.id,
+          cvId,
+          body.qaPairs,
+          body.language,
+          cvLanguage,
+          exemplars,
+          primary,
+        ),
+      { userId: user.id, cvId },
     );
   }
 

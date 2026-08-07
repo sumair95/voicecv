@@ -68,14 +68,37 @@ export function initialsOf(name: string): string {
  * Optional CV photo. Renders nothing unless a URL is present (opt-in per CV).
  * Sizing/shape comes from the caller via `className` so each template can frame
  * it to taste.
+ *
+ * Deliberately a raw `<img>` rather than `next/image` (L5). The src is a
+ * short-lived signed URL for a private storage object (H4); routing it through
+ * `/_next/image` would copy each headshot into Next's on-disk optimisation
+ * cache and serve it from a CDN-cacheable URL that outlives the signature —
+ * re-opening exactly the exposure migration 027 closed. `width`/`height` below
+ * reserve the box, which is the layout-shift benefit we actually wanted here.
  */
-export function CvPhoto({ url, className }: { url?: string; className?: string }) {
+export function CvPhoto({
+  url,
+  name,
+  className,
+}: {
+  url?: string;
+  name?: string;
+  className?: string;
+}) {
   if (!url) return null;
   return (
     // Anchor to the top so the head is never clipped when the photo fills a
     // round frame — the body's bottom edge is what the frame crops instead.
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={url} alt="" className={`${className ?? ""} object-top`} />
+    <img
+      src={url}
+      // The photo carries identity — it is not decoration, so it needs a real
+      // name rather than the empty alt this used to have (L3).
+      alt={name?.trim() ? `${name.trim()} — photo` : "Profile photo"}
+      width={320}
+      height={400}
+      className={`${className ?? ""} object-top`}
+    />
   );
 }
 

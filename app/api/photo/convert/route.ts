@@ -16,9 +16,8 @@ import { isCompAccount } from "@/lib/premium/access";
 import { isPhotoEnhanceConfigured, toProfessionalPhoto } from "@/lib/photo/enhance";
 import { isGeminiConfigured, toEnhancedPhoto } from "@/lib/photo/gemini";
 import { classifyPhotoStyle } from "@/lib/photo/classify";
-import { isAllowedImageUrl } from "@/lib/net/safe-image";
 import { sniffImageType, extFor } from "@/lib/net/image-bytes";
-import { pruneAvatars } from "@/lib/photo/storage";
+import { avatarPath, pruneAvatars, signAvatarUrl } from "@/lib/photo/storage";
 import { migrateCvData } from "@/lib/cv/migrate";
 import { NextResponse } from "next/server";
 
@@ -50,13 +49,18 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
     .select("photo_url, formal_photo_credits")
     .eq("id", user.id)
     .single();
-  const src = (prof?.photo_url as string | undefined) ?? undefined;
-  if (!src) return badRequest("Upload a photo first");
-  // photo_url is written only by /api/photo/upload (service-role) and is no
-  // longer client-writable (migration 023), but both downstream paths fetch it
-  // by URL — so validate here too rather than relying on that invariant holding.
-  if (!isAllowedImageUrl(src)) {
-    log.warn("stored photo_url is not on our storage host", { userId: user.id });
+  const stored = (prof?.photo_url as string | undefined) ?? undefined;
+  if (!stored) return badRequest("Upload a photo first");
+
+  // Both downstream processors (remove.bg, Gemini) take the photo by URL, but
+  // the bucket is private as of migration 027 — so mint a short-lived signed URL
+  // for this user's own object. `signAvatarUrl` returns null for anything that
+  // doesn't resolve inside `<uid>/`, which also subsumes the old host check.
+  const src = await signAvatarUrl(admin, stored, user.id);
+  if (!src) {
+    log.warn("stored photo_url did not resolve to this user's avatar", {
+      userId: user.id,
+    });
     return badRequest("Please re-upload your photo.");
   }
 
@@ -116,7 +120,7 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
 
   // The processed bytes come from a third party (remove.bg / Gemini), so sniff
   // them rather than assuming a format — and reject anything that isn't a real
-  // raster image before it lands in the public bucket.
+  // raster image before it lands in the avatars bucket.
   const kind = sniffImageType(bytes);
   if (!kind) {
     log.warn("processed photo is not a valid image", { userId: user.id, mode });
@@ -131,20 +135,18 @@ export const POST = handle("photo-convert", async ({ req, log }) => {
     log.warn("processed photo upload failed", { err: upErr });
     return serverError("Couldn't save the photo");
   }
-  const { data: pub } = admin.storage.from("avatars").getPublicUrl(path);
-  const formalUrl = pub.publicUrl;
-
+  // Store the path, not a URL — signed URLs expire, public ones no longer exist.
   await admin
     .from("profiles")
-    .update({ photo_formal_url: formalUrl, photo_choice: "formal" })
+    .update({ photo_formal_url: path, photo_choice: "formal" })
     .eq("id", user.id);
 
   // Prune old objects, keeping the current original + the new formal (H4).
-  const marker = "/object/public/avatars/";
-  const origPath = src.includes(marker)
-    ? decodeURIComponent(src.slice(src.indexOf(marker) + marker.length).split("?")[0])
-    : "";
-  await pruneAvatars(admin, user.id, [path, origPath].filter(Boolean));
+  const origPath = avatarPath(stored, user.id);
+  await pruneAvatars(admin, user.id, [path, origPath].filter(Boolean) as string[]);
+
+  // Hand back something the client can render immediately.
+  const formalUrl = await signAvatarUrl(admin, path, user.id);
 
   // Spend a credit only for the premium enhance path (comped users don't pay).
   if (mode === "enhance" && !comped) await supabase.rpc("consume_formal_photo_credit");

@@ -14,18 +14,9 @@ import { getAuthContext } from "@/lib/api/auth";
 import { createAdminClient } from "@/lib/supabase/server";
 import { handle } from "@/lib/api/handle";
 import { ok, unauthorized } from "@/lib/api/respond";
-import { isAllowedImageUrl } from "@/lib/net/safe-image";
+import { avatarPath } from "@/lib/photo/storage";
 
 export const runtime = "nodejs";
-
-/** "https://<host>/storage/v1/object/public/avatars/<uid>/x.jpg" → "<uid>/x.jpg" */
-function storagePath(url: string | null): string | null {
-  if (!url || !isAllowedImageUrl(url)) return null;
-  const marker = "/object/public/avatars/";
-  const i = url.indexOf(marker);
-  if (i === -1) return null;
-  return decodeURIComponent(url.slice(i + marker.length).split("?")[0]) || null;
-}
 
 export const POST = handle("photo-remove", async ({ req, log }) => {
   const { user } = await getAuthContext(req);
@@ -44,12 +35,13 @@ export const POST = handle("photo-remove", async ({ req, log }) => {
     .eq("id", user.id);
 
   // Best-effort cleanup — the profile is already cleared, so a storage error
-  // must not fail the request. Paths are re-derived from the stored URLs and
-  // confirmed to sit under this user's own folder before deleting.
+  // must not fail the request. `avatarPath` accepts a bare path (what we store
+  // now) as well as a legacy public URL, and already refuses anything outside
+  // this user's own folder.
   const paths = [
-    storagePath((prof?.photo_url as string) ?? null),
-    storagePath((prof?.photo_formal_url as string) ?? null),
-  ].filter((p): p is string => Boolean(p) && p!.startsWith(`${user.id}/`));
+    avatarPath((prof?.photo_url as string) ?? null, user.id),
+    avatarPath((prof?.photo_formal_url as string) ?? null, user.id),
+  ].filter((p): p is string => Boolean(p));
 
   if (paths.length > 0) {
     const { error } = await admin.storage.from("avatars").remove(paths);

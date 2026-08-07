@@ -114,6 +114,23 @@ Render the saved CV to a downloadable PDF.
 4. Set `NEXT_PUBLIC_APP_URL` to the Railway-generated URL.
 5. In **Supabase → Auth → URL Configuration**, add the Railway URL to the allowed redirect URLs.
 
+### Deployment target is not interchangeable
+
+VoiceCV must run on a **long-lived Node process** (Railway, Render, Fly, a
+container — not Vercel/Lambda/Cloud Run).
+
+`POST /api/generate-cv` returns the CV as soon as the primary model is done and
+finishes two jobs *after* responding: seeding the reusable profile, and running
+the multi-model competition that may swap in a better CV. On a serverless
+platform the process is frozen once the response flushes, so both are dropped —
+and dropped silently, which is the dangerous part: the competition simply never
+runs and nothing reports it.
+
+If you must move to serverless, upgrade to Next 15 and wrap those calls in
+`after()`, or move them to a real job queue. `lib/runtime/background.ts` detects
+the common serverless platforms and logs an error naming the job it is about to
+drop, so a wrong target shows up in the logs instead of as missing features.
+
 ## Team
 - **Sumair Shahid** — Backend, AI integration, deployment
 - Partner — Frontend, UI/UX, Arabic localization

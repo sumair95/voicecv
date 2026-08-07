@@ -278,12 +278,22 @@ export function VoiceRecorder({
           </button>
         )}
 
-        <div
-          aria-live="polite"
-          className="mt-8 flex flex-col items-center justify-center gap-6"
-        >
+        {/* The state change is what matters, and it has to be announced as
+            words — `aria-live` used to sit on the layout div below, wrapping an
+            animating waveform that carries no text, so a screen reader had
+            nothing to read out (L3). This region is the announcement; the
+            visuals below are decorative and now marked as such. */}
+        <p aria-live="polite" role="status" className="sr-only">
+          {state === "requesting" && t("rec.status.requesting")}
+          {state === "recording" && t("rec.status.recording")}
+          {state === "recorded" && t("rec.status.recorded")}
+          {state === "submitting" && t("rec.status.transcribing")}
+          {state === "error" && t("rec.status.error")}
+        </p>
+
+        <div className="mt-8 flex flex-col items-center justify-center gap-6">
           {state === "recording" && (
-            <div className="flex h-16 items-end gap-1">
+            <div className="flex h-16 items-end gap-1" aria-hidden="true">
               {bars.map((v, i) => (
                 <span
                   key={i}
