@@ -433,6 +433,21 @@ export const t: Dict = {
     ur: "اس ای میل پر اکاؤنٹ پہلے سے موجود ہے۔ سائن ان کریں یا پاس ورڈ ری سیٹ کریں۔",
     it: "Esiste già un account con questa email. Prova ad accedere oppure reimposta la password.",
   },
+  // Inactivity logout. Users on a 5-minute idle timer see these regularly, and
+  // this audience may not read English — leaving them hardcoded meant the one
+  // message explaining why the app signed you out was the least understandable.
+  "auth.idle.warning": {
+    en: "Still there? You'll be signed out in 1 minute.",
+    ar: "هل ما زلت هنا؟ سيتم تسجيل خروجك خلال دقيقة.",
+    ur: "کیا آپ موجود ہیں؟ ایک منٹ میں آپ کو سائن آؤٹ کر دیا جائے گا۔",
+    it: "Ci sei ancora? Verrai disconnesso tra 1 minuto.",
+  },
+  "auth.idle.signedOut": {
+    en: "Signed out due to inactivity",
+    ar: "تم تسجيل الخروج بسبب عدم النشاط",
+    ur: "غیر فعالی کی وجہ سے سائن آؤٹ کر دیا گیا",
+    it: "Disconnesso per inattività",
+  },
   "auth.signup.checkEmail": {
     en: "Account created — check your email to confirm it.",
     ar: "تم إنشاء الحساب — تحقق من بريدك الإلكتروني لتأكيده.",
