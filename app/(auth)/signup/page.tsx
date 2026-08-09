@@ -52,11 +52,17 @@ export default function SignupPage() {
     }
 
     if (data.session) {
+      // Email confirmation is off — they're already signed in.
       toast.success("Welcome to VoiceCV!");
       router.push("/onboarding");
       router.refresh();
     } else {
-      toast.success("Check your email to confirm your account.");
+      // Confirmation required, so there's nothing more to do on this page —
+      // sitting on a filled-in signup form invites a confused re-submit. Send
+      // them where they'll need to be once they've clicked the email link, and
+      // let /login explain why they're there.
+      toast.success(t("auth.signup.checkEmail"));
+      router.push("/login?confirm=1");
     }
   }
 

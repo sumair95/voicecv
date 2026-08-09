@@ -433,6 +433,21 @@ export const t: Dict = {
     ur: "اس ای میل پر اکاؤنٹ پہلے سے موجود ہے۔ سائن ان کریں یا پاس ورڈ ری سیٹ کریں۔",
     it: "Esiste già un account con questa email. Prova ad accedere oppure reimposta la password.",
   },
+  "auth.signup.checkEmail": {
+    en: "Account created — check your email to confirm it.",
+    ar: "تم إنشاء الحساب — تحقق من بريدك الإلكتروني لتأكيده.",
+    ur: "اکاؤنٹ بن گیا — تصدیق کے لیے اپنی ای میل دیکھیں۔",
+    it: "Account creato — controlla la tua email per confermarlo.",
+  },
+  // Shown as a persistent banner on the login page after signup. Deliberately
+  // not a toast: the user is about to leave for their inbox, and a toast would
+  // be gone by the time they come back.
+  "auth.login.confirmNotice": {
+    en: "Almost there — confirm your account from the email we just sent, then sign in below.",
+    ar: "خطوة أخيرة — أكّد حسابك من البريد الذي أرسلناه، ثم سجّل الدخول أدناه.",
+    ur: "بس ایک قدم باقی — ہم نے جو ای میل بھیجی ہے اس سے اپنے اکاؤنٹ کی تصدیق کریں، پھر نیچے سائن ان کریں۔",
+    it: "Ci siamo quasi — conferma il tuo account dall'email che ti abbiamo inviato, poi accedi qui sotto.",
+  },
 
   // Dashboard
   "dashboard.welcome": { en: "Welcome", ar: "أهلاً", ur: "خوش آمدید", it: "Benvenuto" },

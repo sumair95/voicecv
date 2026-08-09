@@ -18,6 +18,8 @@ function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const redirectTo = params.get("redirectTo") ?? "/dashboard";
+  // Set by the signup page when the account needs email confirmation.
+  const awaitingConfirm = params.get("confirm") === "1";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -57,6 +59,19 @@ function LoginForm() {
     <Card className="w-full max-w-md border-border/60 shadow-lg">
       <CardContent className="p-8">
         <h1 className="text-2xl font-bold text-foreground">{t("auth.login.title")}</h1>
+
+        {awaitingConfirm && (
+          <p
+            role="status"
+            // teal-800/200 are NOT defined in tailwind.config (palette is
+            // 50/100/400/500/600/700) — an undefined shade applies no colour at
+            // all and silently inherits the page foreground. Stick to real ones.
+            className="mt-4 rounded-lg border border-teal/30 bg-teal/10 px-4 py-3 text-sm text-teal-700 dark:text-teal-100"
+          >
+            {t("auth.login.confirmNotice")}
+          </p>
+        )}
+
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="email">{t("auth.email")}</Label>
