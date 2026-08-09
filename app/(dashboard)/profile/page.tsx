@@ -535,7 +535,7 @@ export default function ProfilePage() {
         ) : (
           <>
             {isEmpty && (
-              <p className="rounded-lg bg-teal/10 px-3 py-2 text-sm text-teal-800 dark:text-teal-300">
+              <p className="rounded-lg bg-teal/10 px-3 py-2 text-sm text-teal-700 dark:text-teal-100">
                 {t("profile.hint")}
               </p>
             )}

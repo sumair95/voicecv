@@ -391,7 +391,7 @@ function JobsInner() {
       )}
 
       {!searching && relaxation && results.length > 0 && (
-        <div className="rounded-lg border border-teal/30 bg-teal/10 px-4 py-2.5 text-sm text-teal-800 dark:text-teal-200">
+        <div className="rounded-lg border border-teal/30 bg-teal/10 px-4 py-2.5 text-sm text-teal-700 dark:text-teal-100">
           {t("job.relaxed", { role: relaxation.requestedQuery })}
         </div>
       )}
