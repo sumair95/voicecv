@@ -33,6 +33,8 @@ export default function DashboardPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [signedInAs, setSignedInAs] = useState<string>("");
   const importInput = useRef<HTMLInputElement>(null);
   const supabase = useMemo(() => createClient(), []);
 
@@ -87,7 +89,7 @@ export default function DashboardPage() {
   const loadPage = useCallback(
     async (cursor?: string) => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return { rows: [], hasMore: false };
+      if (!user) return { rows: [], hasMore: false, error: "not-signed-in" };
       let q = supabase
         .from("cvs")
         .select("*")
@@ -95,10 +97,18 @@ export default function DashboardPage() {
         .order("created_at", { ascending: false })
         .limit(PAGE_SIZE + 1);
       if (cursor) q = q.lt("created_at", cursor);
-      const { data } = await q;
+      // The error used to be discarded here, so a failed read (permissions,
+      // network, PostgREST) rendered as the "create your first CV" empty state —
+      // indistinguishable from genuinely having none, and alarming if you know
+      // you have CVs. Surface it instead: an empty list must mean empty.
+      const { data, error } = await q;
+      if (error) {
+        console.error("[dashboard] CV list query failed", error);
+        return { rows: [], hasMore: false, error: error.message };
+      }
       const rows = (data as CVRecord[]) ?? [];
       const trimmed = rows.slice(0, PAGE_SIZE);
-      return { rows: trimmed, hasMore: rows.length > PAGE_SIZE };
+      return { rows: trimmed, hasMore: rows.length > PAGE_SIZE, error: null };
     },
     [supabase],
   );
@@ -106,7 +116,11 @@ export default function DashboardPage() {
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      // Without this the spinner spins forever when there's no session.
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       const [{ data: profileRow }, page] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).single(),
         loadPage(),
@@ -114,6 +128,8 @@ export default function DashboardPage() {
       setProfile(profileRow as Profile | null);
       setCvs(page.rows);
       setHasMore(page.hasMore);
+      setLoadError(page.error ?? null);
+      setSignedInAs(user.email ?? user.id);
       setLoading(false);
     })();
   }, [supabase, loadPage]);
@@ -256,6 +272,23 @@ export default function DashboardPage() {
             </Card>
           ))}
         </div>
+      ) : loadError ? (
+        // A failed read is NOT an empty account. Say so, rather than inviting
+        // the user to "create your first CV" over the top of their real data.
+        <Card className="border-red-300 dark:border-red-900/60">
+          <CardContent className="space-y-3 py-10 text-center">
+            <h2 className="text-xl font-semibold text-foreground">
+              {t("dashboard.loadError.title")}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {t("dashboard.loadError.body")}
+            </p>
+            <p className="font-mono text-xs text-muted-foreground">{loadError}</p>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              {t("dashboard.loadError.retry")}
+            </Button>
+          </CardContent>
+        </Card>
       ) : cvs.length === 0 ? (
         <Card className="border-dashed border-border">
           <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
@@ -263,6 +296,13 @@ export default function DashboardPage() {
               <Sparkles className="h-8 w-8" />
             </div>
             <h2 className="text-xl font-semibold text-foreground">{t("dashboard.empty.title")}</h2>
+            {/* Naming the account makes "where did my CVs go?" answerable at a
+                glance — the usual cause is being signed into a second account. */}
+            {signedInAs && (
+              <p className="text-xs text-muted-foreground">
+                {t("dashboard.empty.signedInAs", { account: signedInAs })}
+              </p>
+            )}
             <p className="max-w-md text-muted-foreground">{t("dashboard.empty.desc")}</p>
             <Button asChild size="lg" className="bg-teal hover:bg-teal-600">
               <Link href="/record">

@@ -496,6 +496,30 @@ export const t: Dict = {
     ur: "وہ CV پڑھا نہیں جا سکا۔ PDF آزمائیں یا ریکارڈ کر کے بنائیں۔",
     it: "Impossibile leggere quel CV. Prova un PDF, o registrane uno.",
   },
+  "dashboard.loadError.title": {
+    en: "We couldn't load your CVs",
+    ar: "تعذّر تحميل سيرك الذاتية",
+    ur: "آپ کے CVs لوڈ نہیں ہو سکے",
+    it: "Non siamo riusciti a caricare i tuoi CV",
+  },
+  "dashboard.loadError.body": {
+    en: "Your CVs are safe — this is a problem reading them, not a problem with your account. Try again in a moment.",
+    ar: "سيرك الذاتية بأمان — المشكلة في قراءتها فقط وليست في حسابك. حاول مرة أخرى بعد لحظات.",
+    ur: "آپ کے CVs محفوظ ہیں — یہ صرف پڑھنے کا مسئلہ ہے، آپ کے اکاؤنٹ کا نہیں۔ تھوڑی دیر بعد کوشش کریں۔",
+    it: "I tuoi CV sono al sicuro — è un problema di lettura, non del tuo account. Riprova tra poco.",
+  },
+  "dashboard.loadError.retry": {
+    en: "Try again",
+    ar: "حاول مرة أخرى",
+    ur: "دوبارہ کوشش کریں",
+    it: "Riprova",
+  },
+  "dashboard.empty.signedInAs": {
+    en: "Signed in as {account}",
+    ar: "تم تسجيل الدخول باسم {account}",
+    ur: "بطور {account} سائن ان",
+    it: "Accesso come {account}",
+  },
   "dashboard.myCvs": { en: "My CVs", ar: "سيرتي الذاتية", ur: "میرے CVs", it: "I miei CV" },
   "dashboard.empty.title": {
     en: "Create your first CV in 5 minutes",
