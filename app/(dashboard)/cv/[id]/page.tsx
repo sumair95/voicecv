@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Pencil, Check, Loader2, Info, Briefcase, UserRound } from "lucide-react";
+import { ArrowLeft, Download, Pencil, Check, Loader2, Info, Briefcase, UserRound, ArrowDownWideNarrow } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CVPreview } from "@/components/CVPreview";
 import { CoverLetterPanel } from "@/components/CoverLetterPanel";
@@ -17,6 +17,7 @@ import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import type { CVData, CVRecord, TemplateId } from "@/types/cv";
 import { DEFAULT_TEMPLATE, EMPTY_CV } from "@/types/cv";
 import { migrateCvData } from "@/lib/cv/migrate";
+import { needsDateSort, sortExperienceByDate } from "@/lib/cv/reorder";
 
 export default function CVDetailPage() {
   const { t } = useLanguage();
@@ -115,6 +116,21 @@ export default function CVDetailPage() {
   function handleChange(updated: CVData) {
     setCv((prev) => (prev ? { ...prev, cv_data: updated } : prev));
     scheduleSave(updated);
+  }
+
+  /**
+   * One-click "newest first" for the experience list. Best-effort by design —
+   * `duration` is free text in four languages, so entries whose dates can't be
+   * read keep their order rather than being shuffled (see lib/cv/reorder.ts).
+   * The per-entry ↑/↓ buttons remain the reliable way to get an exact order.
+   */
+  function sortExperience() {
+    if (!cv?.cv_data) return;
+    const current = migrateCvData(cv.cv_data);
+    const sorted = sortExperienceByDate(current.experience);
+    handleChange({ ...current, experience: sorted });
+    track("cv_experience_sorted", { cvId: id, count: sorted.length });
+    toast.success(t("edit.sorted"));
   }
 
   // Pull the user's saved profile details into this CV's personal fields
@@ -306,6 +322,17 @@ export default function CVDetailPage() {
             <Button variant="outline" onClick={applyProfile}>
               <UserRound className="me-2 h-4 w-4" />
               {t("profile.applyToCv")}
+            </Button>
+          )}
+          {editing && cvData.experience.length > 1 && (
+            <Button
+              variant="outline"
+              onClick={sortExperience}
+              disabled={!needsDateSort(cvData.experience)}
+              title={t("edit.sortByDateHint")}
+            >
+              <ArrowDownWideNarrow className="me-2 h-4 w-4" />
+              {t("edit.sortByDate")}
             </Button>
           )}
           <Button

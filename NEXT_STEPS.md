@@ -39,6 +39,50 @@
 
 ## 🟡 In progress (Sumair, browser)
 
+### ⚡ Step 0 — JD Match: run migration 028, then smoke-test (added 2026-08-20)
+
+The `/jobs/match` feature is code-complete and `npm run build` is clean, but the
+table it writes to does not exist yet.
+
+1. **Supabase → SQL Editor → paste `supabase/migrations/028_jd_match.sql` → Run.**
+   Creates `jd_matches` + owner-only RLS + the column grants that keep the paid
+   `draft` column unreadable from the browser.
+2. **Verify the paywall actually holds.** In the browser console while logged in:
+   ```js
+   await supabase.from('jd_matches').select('draft')   // must fail: permission denied
+   await supabase.from('jd_matches').select('id, overall_score')  // must succeed
+   ```
+3. **Smoke test the flow** at `/jobs/match`: pick a CV → paste a real job ad →
+   *Check My Match* (~40s, Opus) → confirm the score, the breakdown bars and the
+   missing keywords render → click *Unlock* → confirm a **new** CV appears in the
+   dashboard (master CV unchanged), titled `<CV> — <Role> @ <Company>`, with
+   premium templates unlocked and one premium-CV credit spent.
+4. **Also test a PDF upload** (any job ad PDF) via the *Upload PDF* button — it
+   goes through Claude's document input, no parsing library involved.
+
+Until step 1 is done the analysis still works (score + gaps render), but the
+unlock card is hidden on purpose — the route degrades rather than 500-ing after
+a paid model call. Cost note: each analysis is one `claude-opus-5` call at
+~2.3k in / 2.2k out with adaptive thinking. If that proves too expensive at
+volume, set `CLAUDE_MATCH_MODEL=claude-sonnet-4-6` in Railway — no redeploy of
+code needed.
+
+### ⚡ Step 0b — Editor fixes (added 2026-08-20). No migration needed.
+
+Three changes that need nothing but a deploy. Worth eyeballing once live:
+
+1. **Skill "×" now works.** It was never a broken handler — the input was always
+   ~221px wide regardless of content, so chips overflowed the Modern sidebar and
+   the × landed underneath `<main>`, which ate the click. Check: edit a CV, click
+   the × on a skill in all four templates. Note every field is now sized to its
+   content, so edit mode looks tighter than before — that's intended.
+2. **Experience ↑/↓ + "Newest first".** Edit a CV with 2+ jobs: arrows on each
+   entry, and a "Newest first" toolbar button that greys out when already
+   sorted. Jobs whose dates we can't parse deliberately stay put.
+3. **"Upload a CV" on the dashboard.** Try a real PDF CV. It should land in the
+   editor with jobs in order and dates verbatim. It costs one CV from the free
+   allowance, so an over-limit account gets the upsell instead.
+
 ### Step 1 — Supabase schema (one-time)
 - Open https://supabase.com/dashboard → project `ilksvltqcmcsjeappepq`.
 - SQL Editor → paste `supabase/schema.sql` → Run.

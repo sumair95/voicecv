@@ -11,6 +11,7 @@ import {
   Editable,
   AddButton,
   RemoveButton,
+  MoveButtons,
   BulletList,
   detectPlatform,
   shortDisplay,
@@ -20,6 +21,7 @@ import {
   EMPTY_LANGUAGE,
   EMPTY_SOCIAL,
 } from "@/components/cv/primitives";
+import { moveItem } from "@/lib/cv/reorder";
 import type { CVData } from "@/types/cv";
 
 export interface SectionCtx {
@@ -50,9 +52,16 @@ export function ExperienceContent({ data, editable, patch, t }: SectionCtx) {
   return (
     <div className="space-y-4">
       {data.experience.map((exp, i) => (
-        <div key={i} className="group relative pe-7">
+        <div key={i} className="group relative pe-20">
           {editable && (
-            <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
+            <div className="absolute end-0 top-0 flex items-center gap-1">
+              <MoveButtons
+                index={i}
+                count={data.experience.length}
+                upLabel={t("edit.moveUp")}
+                downLabel={t("edit.moveDown")}
+                onMove={(to) => patch({ experience: moveItem(data.experience, i, to) })}
+              />
               <RemoveButton
                 label={t("edit.remove")}
                 onClick={() => {
@@ -289,7 +298,7 @@ export function SkillsContent({ data, editable, patch, t }: SectionCtx) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {data.skills.map((s, i) => (
-        <span key={i} className="inline-flex items-center gap-1 rounded-md border border-navy-100 px-2 py-0.5 text-sm">
+        <span key={i} className="inline-flex max-w-full items-center gap-1 rounded-md border border-navy-100 px-2 py-0.5 text-sm">
           <Editable
             value={s}
             editable
@@ -384,7 +393,7 @@ export function HobbiesContent({ data, editable, patch, t }: SectionCtx) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {data.hobbies.map((h, i) => (
-        <span key={i} className="inline-flex items-center gap-1 rounded-md border border-navy-100 px-2 py-0.5 text-sm">
+        <span key={i} className="inline-flex max-w-full items-center gap-1 rounded-md border border-navy-100 px-2 py-0.5 text-sm">
           <Editable
             value={h}
             editable

@@ -14,7 +14,14 @@
  * 2-char initials for an avatar.
  */
 
-import { Plus, X, Globe, Link as LinkIcon } from "lucide-react";
+import {
+  Plus,
+  X,
+  Globe,
+  Link as LinkIcon,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import type { IconType } from "react-icons";
 import {
   FaGithub,
@@ -139,6 +146,17 @@ export function shortDisplay(url: string): string {
 }
 
 // ───── Editable input ──────────────────────────────────────────────
+/**
+ * Character width for an inline text input, so it is as wide as its content
+ * instead of the browser's default ~20 characters. Floored so an empty field is
+ * still a visible click target, capped so one long value can't blow out a
+ * column. Kept in sync with the copy in `components/CVPreview.tsx`.
+ */
+export function inputSize(value: string, placeholder?: string): number {
+  const len = (value || placeholder || "").length;
+  return Math.min(Math.max(len + 1, 6), 38);
+}
+
 export function Editable({
   value,
   onChange,
@@ -188,9 +206,13 @@ export function Editable({
       onChange={(e) => onChange?.(e.target.value)}
       placeholder={placeholder}
       spellCheck={false}
+      // See `inputSize` above. Without an explicit size the input is ~20
+      // characters wide whatever it holds, which pushed skill chips out of
+      // their column and left the remove X under a sibling that ate the click.
+      size={inputSize(value, placeholder)}
       className={[
         base,
-        "inline-block w-auto min-w-[60px] max-w-full",
+        "inline-block w-auto min-w-0 max-w-full",
         className ?? "",
       ].join(" ")}
     />
@@ -221,6 +243,60 @@ export function RemoveButton({
     >
       <X className="h-3 w-3" />
     </button>
+  );
+}
+
+/**
+ * ↑/↓ reorder controls for one entry in a list section.
+ *
+ * Rendered for every entry (not just on hover) because on a touch screen there
+ * is no hover — the existing hover-only remove button is already hard to reach
+ * on mobile, and this is the control a user reaches for most.
+ */
+export function MoveButtons({
+  index,
+  count,
+  onMove,
+  upLabel,
+  downLabel,
+  dark,
+}: {
+  index: number;
+  count: number;
+  /** Called with the destination index. */
+  onMove: (to: number) => void;
+  upLabel: string;
+  downLabel: string;
+  dark?: boolean;
+}) {
+  if (count < 2) return null;
+  const tone = dark
+    ? "bg-white/10 text-white/70 hover:bg-teal/50 hover:text-white disabled:opacity-25"
+    : "bg-navy-50 text-navy-400 hover:bg-teal/20 hover:text-teal-700 disabled:opacity-30";
+  const cls = `grid h-5 w-5 shrink-0 place-items-center rounded-full transition disabled:cursor-not-allowed ${tone}`;
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => onMove(index - 1)}
+        disabled={index === 0}
+        aria-label={upLabel}
+        title={upLabel}
+        className={cls}
+      >
+        <ChevronUp className="h-3 w-3" />
+      </button>
+      <button
+        type="button"
+        onClick={() => onMove(index + 1)}
+        disabled={index === count - 1}
+        aria-label={downLabel}
+        title={downLabel}
+        className={cls}
+      >
+        <ChevronDown className="h-3 w-3" />
+      </button>
+    </>
   );
 }
 

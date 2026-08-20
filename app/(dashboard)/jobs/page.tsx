@@ -15,6 +15,7 @@ import {
   Trash2,
   Building2,
   Sparkles,
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -290,6 +291,16 @@ function JobsInner() {
         </div>
         <p className="text-muted-foreground">{t("job.intro")}</p>
       </header>
+
+      {/* Entry point for the other direction: the user already has a posting in
+          hand and wants to know how their CV scores against it. */}
+      <Link
+        href={cvId ? `/jobs/match?cv=${cvId}` : "/jobs/match"}
+        className="flex items-center gap-2 rounded-lg border border-teal/30 bg-teal/5 px-4 py-3 text-sm font-medium text-teal-700 transition hover:border-teal/60 hover:bg-teal/10 dark:text-teal-100"
+      >
+        <Target className="h-4 w-4 shrink-0" />
+        {t("job.jdCta")}
+      </Link>
 
       {cvs.length === 0 ? (
         <Card>

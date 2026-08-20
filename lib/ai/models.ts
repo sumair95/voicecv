@@ -13,6 +13,16 @@
 /** Primary Claude model used for CV writing, tailoring, judging, job match, etc. */
 export const CLAUDE_TEXT_MODEL = process.env.CLAUDE_MODEL ?? "claude-sonnet-4-6";
 
+/**
+ * Model for JD Match — scoring a CV against a job description and rewriting the
+ * summary + current role. Deliberately a step above CLAUDE_TEXT_MODEL: this is
+ * the one flow whose output the user pays for and then sends to an employer,
+ * and it runs once per analysis rather than per keystroke, so the quality is
+ * worth the token cost. Falls back to CLAUDE_TEXT_MODEL at runtime if this
+ * model refuses or errors (see lib/jobs/jd-match.ts).
+ */
+export const CLAUDE_MATCH_MODEL = process.env.CLAUDE_MATCH_MODEL ?? "claude-opus-5";
+
 /** OpenAI challenger model for the multi-model CV competition. */
 export const OPENAI_TEXT_MODEL = process.env.OPENAI_MODEL ?? "gpt-4o";
 

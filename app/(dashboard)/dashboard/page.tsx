@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Plus, FileText, Sparkles, Loader2, Trash2, Download } from "lucide-react";
+import { Plus, FileText, Sparkles, Loader2, Trash2, Download, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +32,45 @@ export default function DashboardPage() {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const importInput = useRef<HTMLInputElement>(null);
   const supabase = useMemo(() => createClient(), []);
+
+  /**
+   * Upload an existing CV (PDF or .txt) → new CV row → straight into the
+   * editor. Costs one CV from the lifetime allowance, same as recording one,
+   * so a 402 opens the same upsell the "Create" button uses.
+   */
+  async function importCv(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-picking the same file after an error
+    if (!file || importing) return;
+    setImporting(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/cv/import", { method: "POST", body: form });
+      if (res.status === 402) {
+        setUpsellOpen(true);
+        return;
+      }
+      const data = (await res.json().catch(() => ({}))) as {
+        cvId?: string;
+        error?: string;
+      };
+      if (!res.ok || !data.cvId) {
+        toast.error(data.error ?? t("dashboard.importError"));
+        return;
+      }
+      track("cv_imported", { cvId: data.cvId });
+      toast.success(t("dashboard.imported"));
+      router.push(`/cv/${data.cvId}`);
+    } catch {
+      toast.error(t("dashboard.importError"));
+    } finally {
+      setImporting(false);
+    }
+  }
 
   // Surface the Stripe Checkout result, then strip the query param so a
   // refresh doesn't re-toast. Credits themselves are granted by the webhook.
@@ -167,14 +205,40 @@ export default function DashboardPage() {
           </h1>
           <p className="mt-1 text-muted-foreground">{t("dashboard.myCvs")}</p>
         </div>
-        <Button
-          size="lg"
-          className="bg-teal hover:bg-teal-600"
-          onClick={() => (atCvLimit ? setUpsellOpen(true) : router.push("/record"))}
-        >
-          <Plus className="me-2 h-5 w-5" />
-          {t("dashboard.create")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Shortcut for people who already have a CV: skip the nine spoken
+              questions and land in the editor with everything filled in. */}
+          <input
+            ref={importInput}
+            type="file"
+            accept=".pdf,.txt,.md,application/pdf,text/plain"
+            onChange={importCv}
+            className="hidden"
+          />
+          <Button
+            size="lg"
+            variant="outline"
+            disabled={importing}
+            onClick={() =>
+              atCvLimit ? setUpsellOpen(true) : importInput.current?.click()
+            }
+          >
+            {importing ? (
+              <Loader2 className="me-2 h-5 w-5 animate-spin" />
+            ) : (
+              <Upload className="me-2 h-5 w-5" />
+            )}
+            {importing ? t("dashboard.importing") : t("dashboard.import")}
+          </Button>
+          <Button
+            size="lg"
+            className="bg-teal hover:bg-teal-600"
+            onClick={() => (atCvLimit ? setUpsellOpen(true) : router.push("/record"))}
+          >
+            <Plus className="me-2 h-5 w-5" />
+            {t("dashboard.create")}
+          </Button>
+        </div>
       </div>
 
       {!loading && (

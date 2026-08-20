@@ -26,7 +26,8 @@ import {
 import { tr } from "@/lib/i18n";
 import { ClassicTemplate } from "@/components/cv/ClassicTemplate";
 import { ExecutiveTemplate } from "@/components/cv/ExecutiveTemplate";
-import { CvPhoto } from "@/components/cv/primitives";
+import { CvPhoto, MoveButtons } from "@/components/cv/primitives";
+import { moveItem } from "@/lib/cv/reorder";
 import type {
   CVCertificateItem,
   CVData,
@@ -56,6 +57,17 @@ function initialsOf(name: string) {
       .map((n) => n[0]?.toUpperCase() ?? "")
       .join("") || "??"
   );
+}
+
+/**
+ * Character width for an inline text input, so it is as wide as its content
+ * instead of the browser's default ~20 characters. Floored so an empty field is
+ * still a visible click target, capped so one long value can't blow out a
+ * column. Kept in sync with the copy in `components/cv/primitives.tsx`.
+ */
+export function inputSize(value: string, placeholder?: string): number {
+  const len = (value || placeholder || "").length;
+  return Math.min(Math.max(len + 1, 6), 38);
 }
 
 function Editable({
@@ -110,9 +122,17 @@ function Editable({
       onChange={(e) => onChange?.(e.target.value)}
       placeholder={placeholder}
       spellCheck={false}
+      // Width must track the CONTENT. Without an explicit `size`, a text input
+      // takes the browser default of ~20 characters (~221px) no matter how
+      // short the value is — so a 3-letter skill chip in the 264px Modern
+      // sidebar grew wider than the column and pushed its own "remove" X past
+      // the sidebar's right edge, underneath <main>. The X stayed visible
+      // (nothing clips it) but <main> paints later and swallowed the click,
+      // which read as "the delete cross doesn't work".
+      size={inputSize(value, placeholder)}
       className={[
         base,
-        "inline-block w-auto min-w-[60px] max-w-full",
+        "inline-block w-auto min-w-0 max-w-full",
         className ?? "",
       ].join(" ")}
     />
@@ -429,9 +449,18 @@ export function CVPreview({
           <MinSection title={t("cv.experience")}>
             <div className="space-y-5">
               {data.experience.map((exp, i) => (
-                <div key={i} className="group relative pe-7">
+                <div key={i} className="group relative pe-20">
                   {editable && (
-                    <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
+                    <div className="absolute end-0 top-0 flex items-center gap-1">
+                      <MoveButtons
+                        index={i}
+                        count={data.experience.length}
+                        upLabel={t("edit.moveUp")}
+                        downLabel={t("edit.moveDown")}
+                        onMove={(to) =>
+                          patch({ experience: moveItem(data.experience, i, to) })
+                        }
+                      />
                       <RemoveButton
                         label={t("edit.remove")}
                         onClick={() => {
@@ -672,7 +701,7 @@ export function CVPreview({
                 return (
                   <div
                     key={i}
-                    className="inline-flex items-center gap-1 rounded-md border border-navy-100 px-2 py-0.5 text-sm text-navy-700"
+                    className="inline-flex max-w-full items-center gap-1 rounded-md border border-navy-100 px-2 py-0.5 text-sm text-navy-700"
                   >
                     <Editable
                       value={skill}
@@ -792,7 +821,7 @@ export function CVPreview({
                 {data.hobbies.map((h, i) => (
                   <div
                     key={i}
-                    className="inline-flex items-center gap-1 rounded-md border border-navy-100 px-2 py-0.5 text-sm text-navy-700"
+                    className="inline-flex max-w-full items-center gap-1 rounded-md border border-navy-100 px-2 py-0.5 text-sm text-navy-700"
                   >
                     <Editable
                       value={h}
@@ -1019,7 +1048,7 @@ export function CVPreview({
                 return (
                   <div
                     key={i}
-                    className="inline-flex items-center gap-1 rounded-md bg-teal/20 px-2 py-0.5"
+                    className="inline-flex max-w-full items-center gap-1 rounded-md bg-teal/20 px-2 py-0.5"
                   >
                     <Editable
                       value={skill}
@@ -1209,7 +1238,16 @@ export function CVPreview({
                 <li key={i} className="group relative">
                   <span className="absolute -start-[28px] top-1.5 h-3 w-3 rounded-full border-2 border-teal bg-white" />
                   {editable && (
-                    <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
+                    <div className="absolute end-0 top-0 flex items-center gap-1">
+                      <MoveButtons
+                        index={i}
+                        count={data.experience.length}
+                        upLabel={t("edit.moveUp")}
+                        downLabel={t("edit.moveDown")}
+                        onMove={(to) =>
+                          patch({ experience: moveItem(data.experience, i, to) })
+                        }
+                      />
                       <RemoveButton
                         label={t("edit.remove")}
                         onClick={() => {
@@ -1220,7 +1258,7 @@ export function CVPreview({
                       />
                     </div>
                   )}
-                  <div className="flex flex-wrap items-baseline justify-between gap-2 pe-7">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2 pe-20">
                     <h3 className="text-base font-semibold text-navy-900">
                       <Editable
                         value={exp.role}

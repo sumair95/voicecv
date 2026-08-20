@@ -95,4 +95,8 @@ export const LIMITS = {
   photoConvert: { windowMs: 60_000, max: 5 }, // 5 photo conversions / min (each spends a remove.bg credit)
   jobImprove: { windowMs: 60_000, max: 6 }, // 6 "improve match" analyses / min (each hits Claude)
   jobTailor: { windowMs: 60_000, max: 4 }, // 4 CV tailors / min (each hits Claude + spends a credit)
+  jdMatch: { windowMs: 60_000, max: 4 }, // 4 JD analyses / min (Opus + thinking — the priciest call we make)
+  jdExtract: { windowMs: 60_000, max: 6 }, // 6 JD file reads / min (each tokenizes an uploaded PDF)
+  jdApply: { windowMs: 60_000, max: 6 }, // 6 tailored-copy applies / min (no model call; spends a credit)
+  cvImport: { windowMs: 60_000, max: 3 }, // 3 CV file imports / min (each tokenizes a whole document)
 } as const;
