@@ -326,13 +326,33 @@ export function AddButton({
 }
 
 // ───── Render helpers ──────────────────────────────────────────────
+/**
+ * Hollow teal ring used for every bullet in the document, so detail bullets
+ * speak the same visual language as the larger ring that marks each timeline
+ * entry. `list-disc` markers can't be made hollow, hence the explicit span.
+ *
+ * `top-[0.6em]` centres the ring on the first line's text regardless of font
+ * size, and it stays put when the item wraps to several lines.
+ */
+export function BulletMarker() {
+  return (
+    <span
+      aria-hidden
+      className="absolute start-0 top-[0.6em] h-1.5 w-1.5 -translate-y-1/2 rounded-full border border-teal"
+    />
+  );
+}
+
 export function BulletList({ text }: { text: string }) {
   const items = descriptionBullets(text);
   if (items.length === 0) return null;
   return (
-    <ul className="ms-5 mt-2 list-disc space-y-1 text-sm leading-relaxed text-navy-600 marker:text-teal">
+    <ul className="ms-5 mt-2 list-none space-y-1 text-sm leading-relaxed text-navy-600">
       {items.map((line, i) => (
-        <li key={i}>{line}</li>
+        <li key={i} className="relative ps-4">
+          <BulletMarker />
+          {line}
+        </li>
       ))}
     </ul>
   );

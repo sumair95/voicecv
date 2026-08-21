@@ -250,7 +250,6 @@ function styles(fontFamily: string) {
     duration: { fontSize: 9, color: MUTED },
     description: { fontSize: 10, color: "#334155", marginTop: 4, lineHeight: 1.4 },
     bulletRow: { flexDirection: "row", marginTop: 3 },
-    bulletDot: { width: 8, fontSize: 10, color: TEAL, lineHeight: 1.4 },
     bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
     educationItem: { marginBottom: 8, flexDirection: "row" },
     educationLeft: { flexDirection: "row", flex: 1 },
@@ -453,17 +452,48 @@ function SectionHeader({
   );
 }
 
-// Timeline item — hollow teal circle + vertical line connecting to the
-// next item, matching the web preview's `border-s + dot marker` pattern.
-function TimelineItem({
-  isLast,
-  children,
-}: {
-  isLast?: boolean;
-  children: React.ReactNode;
-}) {
+/**
+ * Detail bullet: a hollow teal ring, matching the larger ring that marks each
+ * timeline entry so the whole document speaks one visual language.
+ *
+ * Sized and offset in points rather than inherited from the text: react-pdf has
+ * no baseline alignment, so the ring is nudged down to sit on the first line of
+ * a wrapped bullet instead of floating above it.
+ */
+function BulletDot() {
   return (
-    <View style={{ flexDirection: "row", marginBottom: 10 }}>
+    <View style={{ width: 8, paddingTop: 4 }}>
+      <View
+        style={{
+          width: 3.5,
+          height: 3.5,
+          borderRadius: 1.75,
+          borderWidth: 0.8,
+          borderColor: TEAL,
+        }}
+      />
+    </View>
+  );
+}
+
+// Timeline item — hollow teal circle + a vertical rail running the height of
+// the entry, matching the web preview's `border-s + dot marker` pattern.
+//
+// The rail is drawn per item rather than as one line behind the whole list
+// because react-pdf does not repeat a container's border/background on the
+// continuation pages of a View that breaks — a single long line would vanish
+// after the first page break. Per-item segments survive the break.
+//
+// Two details make those segments read as one continuous line:
+//   - The rail is drawn for EVERY entry including the last, so the line runs to
+//     the end of the section rather than stopping at the final marker.
+//   - The gap between entries is `paddingBottom` on the CONTENT column, not
+//     `marginBottom` on the row. Padding is inside the row's box, so the rail
+//     (which stretches to the row height) covers the gap; a margin sits outside
+//     it and would leave a break in the line at every entry boundary.
+function TimelineItem({ children }: { children: React.ReactNode }) {
+  return (
+    <View style={{ flexDirection: "row" }}>
       <View style={{ width: 14, alignItems: "center" }}>
         <View
           style={{
@@ -476,18 +506,25 @@ function TimelineItem({
             marginTop: 3,
           }}
         />
-        {!isLast && (
-          <View
-            style={{
-              width: 1,
-              flex: 1,
-              backgroundColor: "#E2E8F0",
-              marginTop: 2,
-            }}
-          />
-        )}
+        <View
+          style={{
+            width: 1,
+            flex: 1,
+            backgroundColor: "#E2E8F0",
+            marginTop: 2,
+          }}
+        />
       </View>
-      <View style={{ flex: 1, paddingLeft: 6 }}>{children}</View>
+      {/*
+        The padding is uniform, including on the last entry. Zeroing it there
+        left a short final entry (a one-line certificate) with a 0.1pt rail —
+        invisible, so the line still appeared to stop early. A consistent 10pt
+        tail guarantees every entry's rail is visible and the section reads as
+        one continuous line down to its end.
+      */}
+      <View style={{ flex: 1, paddingLeft: 6, paddingBottom: 10 }}>
+        {children}
+      </View>
     </View>
   );
 }
@@ -673,7 +710,7 @@ function ModernDocument({
             <>
               <SectionHeader icon={BriefcaseIcon} title={L.experience} />
               {cv.experience.map((exp, i) => (
-                <TimelineItem key={i} isLast={i === cv.experience.length - 1}>
+                <TimelineItem key={i}>
                   <View style={s.rowBetween}>
                     <Text style={s.role}>{exp.role}</Text>
                     <Text style={s.duration}>{exp.duration}</Text>
@@ -681,7 +718,7 @@ function ModernDocument({
                   <Text style={s.company}>{exp.company}</Text>
                   {bulletsFrom(exp.description).map((line, bi) => (
                     <View key={bi} style={s.bulletRow}>
-                      <Text style={s.bulletDot}>•</Text>
+                      <BulletDot />
                       <Text style={s.bulletText}>{line}</Text>
                     </View>
                   ))}
@@ -694,7 +731,7 @@ function ModernDocument({
             <>
               <SectionHeader icon={GraduationCapIcon} title={L.education} />
               {cv.education.map((edu, i) => (
-                <TimelineItem key={i} isLast={i === cv.education.length - 1}>
+                <TimelineItem key={i}>
                   <View style={s.rowBetween}>
                     <Text style={s.educationDegree}>{edu.degree}</Text>
                     <Text style={s.duration}>{edu.year}</Text>
@@ -709,7 +746,7 @@ function ModernDocument({
             <>
               <SectionHeader icon={AwardIcon} title={L.certificates} />
               {cv.certificates.map((c, i) => (
-                <TimelineItem key={i} isLast={i === cv.certificates.length - 1}>
+                <TimelineItem key={i}>
                   <View style={s.rowBetween}>
                     <Text style={s.certName}>
                       {c.name}
@@ -730,7 +767,7 @@ function ModernDocument({
                   .filter((a) => a.trim())
                   .map((a, i) => (
                     <View key={i} style={s.bulletRow}>
-                      <Text style={s.bulletDot}>•</Text>
+                      <BulletDot />
                       <Text style={s.bulletText}>{a}</Text>
                     </View>
                   ))}
@@ -802,7 +839,6 @@ const minStyles = (fontFamily: string) =>
     },
     expBlock: { marginBottom: 10 },
     bulletRow: { flexDirection: "row", marginTop: 2 },
-    bulletDot: { width: 8, fontSize: 10, color: TEAL },
     bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
     listRow: { marginBottom: 4, flexDirection: "row", justifyContent: "space-between" },
     skillsLine: { fontSize: 10, color: "#334155", lineHeight: 1.5 },
@@ -894,7 +930,7 @@ function MinimalistDocument({
                 <Text style={s.expCompany}>{exp.company}</Text>
                 {bulletsFrom(exp.description).map((line, bi) => (
                   <View key={bi} style={s.bulletRow}>
-                    <Text style={s.bulletDot}>•</Text>
+                    <BulletDot />
                     <Text style={s.bulletText}>{line}</Text>
                   </View>
                 ))}
@@ -972,7 +1008,7 @@ function MinimalistDocument({
               .filter((a) => a.trim())
               .map((a, i) => (
                 <View key={i} style={s.bulletRow}>
-                  <Text style={s.bulletDot}>•</Text>
+                  <BulletDot />
                   <Text style={s.bulletText}>{a}</Text>
                 </View>
               ))}
@@ -1018,7 +1054,6 @@ function classicStyles(fontFamily: string) {
     expDuration: { fontSize: 8, color: MUTED, letterSpacing: 1, textTransform: "uppercase" },
     expBlock: { marginBottom: 10 },
     bulletRow: { flexDirection: "row", marginTop: 2 },
-    bulletDot: { width: 8, fontSize: 10, color: TEAL },
     bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
     listRow: { marginBottom: 4, flexDirection: "row", justifyContent: "space-between" },
     line: { fontSize: 10, color: "#334155", lineHeight: 1.5 },
@@ -1099,7 +1134,7 @@ function ClassicDocument({ cv, language }: { cv: CVData; language: Language }) {
                 <Text style={s.expCompany}>{exp.company}</Text>
                 {bulletsFrom(exp.description).map((line, bi) => (
                   <View key={bi} style={s.bulletRow}>
-                    <Text style={s.bulletDot}>•</Text>
+                    <BulletDot />
                     <Text style={s.bulletText}>{line}</Text>
                   </View>
                 ))}
@@ -1170,7 +1205,7 @@ function ClassicDocument({ cv, language }: { cv: CVData; language: Language }) {
             <Sec title={L.achievement} />
             {cv.achievements.filter((a) => a.trim()).map((a, i) => (
               <View key={i} style={s.bulletRow}>
-                <Text style={s.bulletDot}>•</Text>
+                <BulletDot />
                 <Text style={s.bulletText}>{a}</Text>
               </View>
             ))}
@@ -1202,7 +1237,6 @@ function execStyles(fontFamily: string) {
     expDuration: { fontSize: 8, color: MUTED, letterSpacing: 1, textTransform: "uppercase" },
     expBlock: { marginBottom: 10, paddingLeft: 9 },
     bulletRow: { flexDirection: "row", marginTop: 2 },
-    bulletDot: { width: 8, fontSize: 10, color: TEAL },
     bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
     listRow: { marginBottom: 4, paddingLeft: 9, flexDirection: "row", justifyContent: "space-between" },
     line: { fontSize: 10, color: "#334155", lineHeight: 1.5, paddingLeft: 9 },
@@ -1274,7 +1308,7 @@ function ExecutiveDocument({ cv, language }: { cv: CVData; language: Language })
                   <Text style={s.expCompany}>{exp.company}</Text>
                   {bulletsFrom(exp.description).map((line, bi) => (
                     <View key={bi} style={s.bulletRow}>
-                      <Text style={s.bulletDot}>•</Text>
+                      <BulletDot />
                       <Text style={s.bulletText}>{line}</Text>
                     </View>
                   ))}
@@ -1345,7 +1379,7 @@ function ExecutiveDocument({ cv, language }: { cv: CVData; language: Language })
               <Sec title={L.achievement} />
               {cv.achievements.filter((a) => a.trim()).map((a, i) => (
                 <View key={i} style={[s.bulletRow, { paddingLeft: 9 }]}>
-                  <Text style={s.bulletDot}>•</Text>
+                  <BulletDot />
                   <Text style={s.bulletText}>{a}</Text>
                 </View>
               ))}

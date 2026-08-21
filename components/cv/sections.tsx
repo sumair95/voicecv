@@ -13,6 +13,7 @@ import {
   RemoveButton,
   MoveButtons,
   BulletList,
+  BulletMarker,
   detectPlatform,
   shortDisplay,
   EMPTY_EXPERIENCE,
@@ -424,9 +425,12 @@ export function AchievementsContent({ data, editable, patch, t }: SectionCtx) {
     const visible = data.achievements.filter((a) => a.trim());
     if (visible.length === 0) return null;
     return (
-      <ul className="ms-5 list-disc space-y-1 text-sm leading-relaxed text-navy-600 marker:text-teal">
+      <ul className="ms-5 list-none space-y-1 text-sm leading-relaxed text-navy-600">
         {visible.map((a, i) => (
-          <li key={i}>{a}</li>
+          <li key={i} className="relative ps-4">
+            <BulletMarker />
+            {a}
+          </li>
         ))}
       </ul>
     );

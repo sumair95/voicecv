@@ -26,7 +26,7 @@ import {
 import { tr } from "@/lib/i18n";
 import { ClassicTemplate } from "@/components/cv/ClassicTemplate";
 import { ExecutiveTemplate } from "@/components/cv/ExecutiveTemplate";
-import { CvPhoto, MoveButtons } from "@/components/cv/primitives";
+import { BulletMarker, CvPhoto, MoveButtons } from "@/components/cv/primitives";
 import { moveItem } from "@/lib/cv/reorder";
 import type {
   CVCertificateItem,
@@ -150,9 +150,12 @@ function BulletList({ text }: { text: string }) {
   const items = descriptionBullets(text);
   if (items.length === 0) return null;
   return (
-    <ul className="ms-5 mt-2 list-disc space-y-1 text-sm leading-relaxed text-navy-600 marker:text-teal">
+    <ul className="ms-5 mt-2 list-none space-y-1 text-sm leading-relaxed text-navy-600">
       {items.map((line, i) => (
-        <li key={i}>{line}</li>
+        <li key={i} className="relative ps-4">
+          <BulletMarker />
+          {line}
+        </li>
       ))}
     </ul>
   );
@@ -1540,9 +1543,12 @@ function AchievementsList({
     const visible = items.filter((a) => a.trim());
     if (visible.length === 0) return null;
     return (
-      <ul className="ms-5 list-disc space-y-1 leading-relaxed marker:text-teal">
+      <ul className="ms-5 list-none space-y-1 leading-relaxed">
         {visible.map((a, i) => (
-          <li key={i}>{a}</li>
+          <li key={i} className="relative ps-4">
+            <BulletMarker />
+            {a}
+          </li>
         ))}
       </ul>
     );
