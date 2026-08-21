@@ -38,7 +38,20 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: NO_FLASH }} />
         <ThemeProvider>
           <LanguageProvider>{children}</LanguageProvider>
-          <Toaster richColors position="top-right" />
+          {/*
+            Toasts must clear the navbar. It is `sticky top-0` and 65px tall
+            (h-16 + border), while sonner defaults to 24px from the top — so a
+            356px-wide toast landed on top of "My CVs / Jobs / Profile / Sign
+            out" and, being z-index 999999999 with pointer-events:auto, ate
+            every click on them. The 60-second idle warning made that a full
+            minute of dead navigation. 76px puts the toast just below the bar.
+          */}
+          <Toaster
+            richColors
+            position="top-right"
+            offset={{ top: 76, right: 16 }}
+            mobileOffset={{ top: 72, right: 12 }}
+          />
         </ThemeProvider>
       </body>
     </html>

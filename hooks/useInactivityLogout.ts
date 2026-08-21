@@ -32,6 +32,13 @@ const ACTIVITY_EVENTS: (keyof WindowEventMap)[] = [
 // recording is in progress (no pointer/keyboard activity happens then).
 const REFRESH_EVENT = "voicecv:inactivity-refresh";
 
+/**
+ * Stable id for the warning toast, so returning activity can take it back down.
+ * Without one, moving the mouse cancelled the logout but left the toast up for
+ * its full 60 seconds, still telling the user they were about to be signed out.
+ */
+const WARNING_TOAST_ID = "voicecv-idle-warning";
+
 let paused = false;
 
 /**
@@ -52,6 +59,8 @@ export function useInactivityLogout() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const warnRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const firedRef = useRef(false);
+  // Whether the warning toast is currently on screen.
+  const warnedRef = useRef(false);
 
   // Read through a ref so the effect doesn't tear down and restart (resetting
   // the idle countdown) every time `t` changes identity on a language switch.
@@ -81,11 +90,20 @@ export function useInactivityLogout() {
     function resetTimer() {
       if (firedRef.current) return;
       clearTimers();
+      // The user is active again, so the logout this warned about is no longer
+      // coming — take the warning down rather than leaving it up (and in the
+      // way) for the rest of its 60 seconds.
+      if (warnedRef.current) {
+        warnedRef.current = false;
+        toast.dismiss(WARNING_TOAST_ID);
+      }
       // While recording, don't count idle time toward a logout.
       if (paused) return;
       warnRef.current = setTimeout(() => {
         if (!firedRef.current) {
+          warnedRef.current = true;
           toast(tRef.current("auth.idle.warning"), {
+            id: WARNING_TOAST_ID,
             duration: WARN_BEFORE_MS,
           });
         }
@@ -101,6 +119,7 @@ export function useInactivityLogout() {
 
     return () => {
       clearTimers();
+      toast.dismiss(WARNING_TOAST_ID);
       ACTIVITY_EVENTS.forEach((evt) =>
         window.removeEventListener(evt, resetTimer),
       );
