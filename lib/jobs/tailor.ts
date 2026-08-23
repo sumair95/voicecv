@@ -61,6 +61,10 @@ function enforceFacts(original: CVData, tailored: CVData): CVData {
     socials: original.socials,
     hobbies: original.hobbies,
     achievements: original.achievements,
+    // Layout choice, not content: the rewrite is parsed from model JSON that
+    // has no section_order, so without this a tailored CV would silently snap
+    // back to the default section order.
+    section_order: original.section_order,
     // objective and skills are the two fields the tailor MAY rewrite/reorder.
   };
 }

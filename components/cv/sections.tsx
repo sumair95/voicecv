@@ -23,7 +23,7 @@ import {
   EMPTY_SOCIAL,
 } from "@/components/cv/primitives";
 import { moveItem } from "@/lib/cv/reorder";
-import type { CVData } from "@/types/cv";
+import type { CVData, SectionId } from "@/types/cv";
 
 export interface SectionCtx {
   data: CVData;
@@ -212,8 +212,16 @@ export function EducationContent({ data, editable, patch, t }: SectionCtx) {
 }
 
 export function CertificatesContent({ data, editable, patch, t }: SectionCtx) {
+  // Two columns when reading (matching the PDF); a single column while editing,
+  // where each row needs room for its inputs and remove control.
   return (
-    <ul className="space-y-2">
+    <ul
+      className={
+        editable
+          ? "space-y-2"
+          : "grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2"
+      }
+    >
       {data.certificates.map((c, i) => (
         <li key={i} className="group relative flex flex-wrap items-baseline justify-between gap-2 pe-7 text-sm">
           {editable && (
@@ -283,17 +291,20 @@ export function CertificatesContent({ data, editable, patch, t }: SectionCtx) {
 
 export function SkillsContent({ data, editable, patch, t }: SectionCtx) {
   if (!editable) {
+    // Three bulleted columns, mirroring the PDF. Chips wrapped raggedly and
+    // carried padding on every item; columns fit the same skills in a fraction
+    // of the height, which is what keeps a dense CV to two pages.
     return (
-      <div className="flex flex-wrap gap-2">
-        {data.skills.filter((s) => s.trim()).map((s, i) => (
-          <span
-            key={i}
-            className="rounded-md bg-navy-50 px-2.5 py-1 text-xs font-medium text-navy-700"
-          >
-            {s}
-          </span>
-        ))}
-      </div>
+      <ul className="grid grid-cols-2 gap-x-6 gap-y-0.5 text-sm text-navy-600 sm:grid-cols-3">
+        {data.skills
+          .filter((s) => s.trim())
+          .map((s, i) => (
+            <li key={i} className="relative ps-4 leading-snug">
+              <BulletMarker />
+              {s}
+            </li>
+          ))}
+      </ul>
     );
   }
   return (
@@ -560,4 +571,49 @@ export function SocialsInline({ data, editable, patch, t }: SectionCtx) {
       )}
     </span>
   );
+}
+
+/**
+ * The eight body sections of a single-column template, keyed by id so they can
+ * be rendered in the user's chosen order.
+ *
+ * Classic and Executive differ only in their heading treatment, so they pass
+ * their own `Section` component in rather than duplicating this list. A section
+ * with nothing in it stays `null` and is skipped by the renderer — which is how
+ * "hide empty sections outside edit mode" keeps working unchanged.
+ */
+export function singleColumnBlocks(
+  ctx: SectionCtx,
+  Section: React.ComponentType<{ title: string; children: React.ReactNode }>,
+): Partial<Record<SectionId, React.ReactNode>> {
+  const { data, editable, t } = ctx;
+  const wrap = (title: string, body: React.ReactNode) => (
+    <Section title={title}>{body}</Section>
+  );
+  return {
+    objective: showSection(data.objective ? 1 : 0, editable)
+      ? wrap(t("cv.objective"), <ObjectiveContent {...ctx} />)
+      : null,
+    experience: showSection(data.experience.length, editable)
+      ? wrap(t("cv.experience"), <ExperienceContent {...ctx} />)
+      : null,
+    education: showSection(data.education.length, editable)
+      ? wrap(t("cv.education"), <EducationContent {...ctx} />)
+      : null,
+    certificates: showSection(data.certificates.length, editable)
+      ? wrap(t("cv.certificates"), <CertificatesContent {...ctx} />)
+      : null,
+    skills: showSection(data.skills.length, editable)
+      ? wrap(t("cv.skills"), <SkillsContent {...ctx} />)
+      : null,
+    languages: showSection(data.languages.length, editable)
+      ? wrap(t("cv.languages"), <LanguagesContent {...ctx} />)
+      : null,
+    hobbies: showSection(data.hobbies.length, editable)
+      ? wrap(t("cv.hobbies"), <HobbiesContent {...ctx} />)
+      : null,
+    achievements: showSection(data.achievements.length, editable)
+      ? wrap(t("cv.achievement"), <AchievementsContent {...ctx} />)
+      : null,
+  };
 }

@@ -28,6 +28,7 @@ import { ClassicTemplate } from "@/components/cv/ClassicTemplate";
 import { ExecutiveTemplate } from "@/components/cv/ExecutiveTemplate";
 import { BulletMarker, CvPhoto, MoveButtons } from "@/components/cv/primitives";
 import { moveItem } from "@/lib/cv/reorder";
+import { renderOrderedSections } from "@/components/cv/useSectionOrder";
 import type {
   CVCertificateItem,
   CVData,
@@ -36,9 +37,26 @@ import type {
   CVLanguageItem,
   CVSocialLink,
   Language,
+  SectionId,
   TemplateId,
 } from "@/types/cv";
 import { migrateCvData } from "@/types/cv";
+import { DEFAULT_SECTION_ORDER } from "@/lib/cv/section-order";
+
+/**
+ * Modern splits its sections across two columns, so each column reorders
+ * within itself. `moveSection` uses these sets to find the neighbour that is
+ * actually visible next to a section — otherwise "move skills up" would swap
+ * it with a main-column section and appear to do nothing.
+ */
+const MODERN_ASIDE_SECTIONS: SectionId[] = ["skills", "languages", "hobbies"];
+const MODERN_MAIN_SECTIONS: SectionId[] = [
+  "objective",
+  "experience",
+  "education",
+  "certificates",
+  "achievements",
+];
 
 interface Props {
   cvData: CVData;
@@ -434,438 +452,449 @@ export function CVPreview({
           )}
         </header>
 
-        {(data.objective || editable) && (
-          <MinSection title={t("cv.objective")}>
-            <p className="text-sm leading-relaxed text-navy-600">
-              <Editable
-                value={data.objective}
-                editable={editable}
-                multiline
-                onChange={(v) => patch({ objective: v })}
-                placeholder="Objective…"
-              />
-            </p>
-          </MinSection>
-        )}
-
-        {(data.experience.length > 0 || editable) && (
-          <MinSection title={t("cv.experience")}>
-            <div className="space-y-5">
-              {data.experience.map((exp, i) => (
-                <div key={i} className="group relative pe-20">
-                  {editable && (
-                    <div className="absolute end-0 top-0 flex items-center gap-1">
-                      <MoveButtons
-                        index={i}
-                        count={data.experience.length}
-                        upLabel={t("edit.moveUp")}
-                        downLabel={t("edit.moveDown")}
-                        onMove={(to) =>
-                          patch({ experience: moveItem(data.experience, i, to) })
-                        }
-                      />
-                      <RemoveButton
-                        label={t("edit.remove")}
-                        onClick={() => {
-                          const next = [...data.experience];
-                          next.splice(i, 1);
-                          patch({ experience: next });
-                        }}
-                      />
-                    </div>
-                  )}
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <h3 className="text-base font-semibold text-navy-900">
-                      <Editable
-                        value={exp.role}
-                        editable={editable}
-                        onChange={(v) => {
-                          const next = [...data.experience];
-                          next[i] = { ...next[i], role: v };
-                          patch({ experience: next });
-                        }}
-                        placeholder="Role"
-                      />
-                    </h3>
-                    <span className="text-xs uppercase tracking-wider text-navy-400">
-                      <Editable
-                        value={exp.duration}
-                        editable={editable}
-                        onChange={(v) => {
-                          const next = [...data.experience];
-                          next[i] = { ...next[i], duration: v };
-                          patch({ experience: next });
-                        }}
-                        placeholder="Duration"
-                      />
-                    </span>
-                  </div>
-                  <div className="text-sm text-teal-700">
-                    <Editable
-                      value={exp.company}
-                      editable={editable}
-                      onChange={(v) => {
-                        const next = [...data.experience];
-                        next[i] = { ...next[i], company: v };
-                        patch({ experience: next });
-                      }}
-                      placeholder="Company"
-                    />
-                  </div>
-                  {editable ? (
-                    <div className="mt-2">
-                      <Editable
-                        value={exp.description}
-                        editable
-                        multiline
-                        onChange={(v) => {
-                          const next = [...data.experience];
-                          next[i] = { ...next[i], description: v };
-                          patch({ experience: next });
-                        }}
-                        placeholder={t("edit.hint.bullets")}
-                      />
-                    </div>
-                  ) : (
-                    <BulletList text={exp.description} />
-                  )}
-                </div>
-              ))}
-              {editable && (
-                <AddButton
-                  label={t("edit.add.experience")}
-                  onClick={() =>
-                    patch({
-                      experience: [...data.experience, { ...EMPTY_EXPERIENCE }],
-                    })
-                  }
+        {/* Body sections render in the user's chosen order
+            (cv.section_order); each carries its own move controls while
+            editing. Empty sections stay null and are skipped, exactly as
+            the old `{cond && (...)}` guards did. */}
+        {renderOrderedSections(
+          { data, editable, patch, t },
+          DEFAULT_SECTION_ORDER,
+          {
+            objective: (data.objective || editable) ? (
+            <MinSection title={t("cv.objective")}>
+              <p className="text-sm leading-relaxed text-navy-600">
+                <Editable
+                  value={data.objective}
+                  editable={editable}
+                  multiline
+                  onChange={(v) => patch({ objective: v })}
+                  placeholder="Objective…"
                 />
-              )}
-            </div>
-          </MinSection>
-        )}
-
-        {(data.education.length > 0 || editable) && (
-          <MinSection title={t("cv.education")}>
-            <ul className="space-y-3">
-              {data.education.map((edu, i) => (
-                <li key={i} className="group relative pe-7">
-                  {editable && (
-                    <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
-                      <RemoveButton
-                        label={t("edit.remove")}
-                        onClick={() => {
-                          const next = [...data.education];
-                          next.splice(i, 1);
-                          patch({ education: next });
+              </p>
+            </MinSection>
+            ) : null,
+            experience: (data.experience.length > 0 || editable) ? (
+            <MinSection title={t("cv.experience")}>
+              <div className="space-y-5">
+                {data.experience.map((exp, i) => (
+                  <div key={i} className="group relative pe-20">
+                    {editable && (
+                      <div className="absolute end-0 top-0 flex items-center gap-1">
+                        <MoveButtons
+                          index={i}
+                          count={data.experience.length}
+                          upLabel={t("edit.moveUp")}
+                          downLabel={t("edit.moveDown")}
+                          onMove={(to) =>
+                            patch({ experience: moveItem(data.experience, i, to) })
+                          }
+                        />
+                        <RemoveButton
+                          label={t("edit.remove")}
+                          onClick={() => {
+                            const next = [...data.experience];
+                            next.splice(i, 1);
+                            patch({ experience: next });
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <h3 className="text-base font-semibold text-navy-900">
+                        <Editable
+                          value={exp.role}
+                          editable={editable}
+                          onChange={(v) => {
+                            const next = [...data.experience];
+                            next[i] = { ...next[i], role: v };
+                            patch({ experience: next });
+                          }}
+                          placeholder="Role"
+                        />
+                      </h3>
+                      <span className="text-xs uppercase tracking-wider text-navy-400">
+                        <Editable
+                          value={exp.duration}
+                          editable={editable}
+                          onChange={(v) => {
+                            const next = [...data.experience];
+                            next[i] = { ...next[i], duration: v };
+                            patch({ experience: next });
+                          }}
+                          placeholder="Duration"
+                        />
+                      </span>
+                    </div>
+                    <div className="text-sm text-teal-700">
+                      <Editable
+                        value={exp.company}
+                        editable={editable}
+                        onChange={(v) => {
+                          const next = [...data.experience];
+                          next[i] = { ...next[i], company: v };
+                          patch({ experience: next });
                         }}
+                        placeholder="Company"
                       />
                     </div>
-                  )}
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <h3 className="text-sm font-semibold text-navy-900">
+                    {editable ? (
+                      <div className="mt-2">
+                        <Editable
+                          value={exp.description}
+                          editable
+                          multiline
+                          onChange={(v) => {
+                            const next = [...data.experience];
+                            next[i] = { ...next[i], description: v };
+                            patch({ experience: next });
+                          }}
+                          placeholder={t("edit.hint.bullets")}
+                        />
+                      </div>
+                    ) : (
+                      <BulletList text={exp.description} />
+                    )}
+                  </div>
+                ))}
+                {editable && (
+                  <AddButton
+                    label={t("edit.add.experience")}
+                    onClick={() =>
+                      patch({
+                        experience: [...data.experience, { ...EMPTY_EXPERIENCE }],
+                      })
+                    }
+                  />
+                )}
+              </div>
+            </MinSection>
+            ) : null,
+            education: (data.education.length > 0 || editable) ? (
+            <MinSection title={t("cv.education")}>
+              <ul className="space-y-3">
+                {data.education.map((edu, i) => (
+                  <li key={i} className="group relative pe-7">
+                    {editable && (
+                      <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
+                        <RemoveButton
+                          label={t("edit.remove")}
+                          onClick={() => {
+                            const next = [...data.education];
+                            next.splice(i, 1);
+                            patch({ education: next });
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <h3 className="text-sm font-semibold text-navy-900">
+                        <Editable
+                          value={edu.degree}
+                          editable={editable}
+                          onChange={(v) => {
+                            const next = [...data.education];
+                            next[i] = { ...next[i], degree: v };
+                            patch({ education: next });
+                          }}
+                          placeholder="Degree"
+                        />
+                      </h3>
+                      <span className="text-xs text-navy-400">
+                        <Editable
+                          value={edu.year}
+                          editable={editable}
+                          onChange={(v) => {
+                            const next = [...data.education];
+                            next[i] = { ...next[i], year: v };
+                            patch({ education: next });
+                          }}
+                          placeholder="Year"
+                        />
+                      </span>
+                    </div>
+                    <div className="text-sm text-navy-600">
                       <Editable
-                        value={edu.degree}
+                        value={edu.institution}
                         editable={editable}
                         onChange={(v) => {
                           const next = [...data.education];
-                          next[i] = { ...next[i], degree: v };
+                          next[i] = { ...next[i], institution: v };
                           patch({ education: next });
                         }}
-                        placeholder="Degree"
+                        placeholder="Institution"
                       />
-                    </h3>
+                    </div>
+                  </li>
+                ))}
+                {editable && (
+                  <AddButton
+                    label={t("edit.add.education")}
+                    onClick={() =>
+                      patch({
+                        education: [...data.education, { ...EMPTY_EDUCATION }],
+                      })
+                    }
+                  />
+                )}
+              </ul>
+            </MinSection>
+            ) : null,
+            certificates: (data.certificates.length > 0 || editable) ? (
+            <MinSection title={t("cv.certificates")}>
+              {/* Two columns when reading, matching the PDF; one column while
+                  editing, where each row needs room for its remove control. */}
+              <ul
+                className={
+                  editable
+                    ? "space-y-2"
+                    : "grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2"
+                }
+              >
+                {data.certificates.map((c, i) => (
+                  <li
+                    key={i}
+                    className="group relative flex flex-wrap items-baseline justify-between gap-2 pe-7"
+                  >
+                    {editable && (
+                      <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
+                        <RemoveButton
+                          label={t("edit.remove")}
+                          onClick={() => {
+                            const next = [...data.certificates];
+                            next.splice(i, 1);
+                            patch({ certificates: next });
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-sm font-semibold text-navy-900">
+                        <Editable
+                          value={c.name}
+                          editable={editable}
+                          onChange={(v) => {
+                            const next = [...data.certificates];
+                            next[i] = { ...next[i], name: v };
+                            patch({ certificates: next });
+                          }}
+                          placeholder="Certificate name"
+                        />
+                      </span>
+                      {(c.issuer || editable) && (
+                        <span className="ms-2 text-sm text-navy-400">
+                          ·{" "}
+                          <Editable
+                            value={c.issuer}
+                            editable={editable}
+                            onChange={(v) => {
+                              const next = [...data.certificates];
+                              next[i] = { ...next[i], issuer: v };
+                              patch({ certificates: next });
+                            }}
+                            placeholder="Issuer"
+                          />
+                        </span>
+                      )}
+                    </div>
                     <span className="text-xs text-navy-400">
                       <Editable
-                        value={edu.year}
+                        value={c.year}
                         editable={editable}
                         onChange={(v) => {
-                          const next = [...data.education];
+                          const next = [...data.certificates];
                           next[i] = { ...next[i], year: v };
-                          patch({ education: next });
+                          patch({ certificates: next });
                         }}
                         placeholder="Year"
                       />
                     </span>
-                  </div>
-                  <div className="text-sm text-navy-600">
-                    <Editable
-                      value={edu.institution}
-                      editable={editable}
-                      onChange={(v) => {
-                        const next = [...data.education];
-                        next[i] = { ...next[i], institution: v };
-                        patch({ education: next });
-                      }}
-                      placeholder="Institution"
-                    />
-                  </div>
-                </li>
-              ))}
-              {editable && (
-                <AddButton
-                  label={t("edit.add.education")}
-                  onClick={() =>
-                    patch({
-                      education: [...data.education, { ...EMPTY_EDUCATION }],
-                    })
-                  }
-                />
-              )}
-            </ul>
-          </MinSection>
-        )}
-
-        {(data.certificates.length > 0 || editable) && (
-          <MinSection title={t("cv.certificates")}>
-            <ul className="space-y-2">
-              {data.certificates.map((c, i) => (
-                <li
-                  key={i}
-                  className="group relative flex flex-wrap items-baseline justify-between gap-2 pe-7"
-                >
-                  {editable && (
-                    <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
-                      <RemoveButton
-                        label={t("edit.remove")}
-                        onClick={() => {
-                          const next = [...data.certificates];
-                          next.splice(i, 1);
-                          patch({ certificates: next });
-                        }}
-                      />
-                    </div>
-                  )}
-                  <div>
-                    <span className="text-sm font-semibold text-navy-900">
+                  </li>
+                ))}
+                {editable && (
+                  <AddButton
+                    label={t("edit.add.certificate")}
+                    onClick={() =>
+                      patch({
+                        certificates: [
+                          ...data.certificates,
+                          { ...EMPTY_CERTIFICATE },
+                        ],
+                      })
+                    }
+                  />
+                )}
+              </ul>
+            </MinSection>
+            ) : null,
+            skills: (data.skills.length > 0 || editable) ? (
+            <MinSection title={t("cv.skills")}>
+              <div className="flex flex-wrap gap-1.5">
+                {data.skills.map((skill, i) => {
+                  if (!editable && !skill.trim()) return null;
+                  return (
+                    <div
+                      key={i}
+                      className="inline-flex max-w-full items-center gap-1 rounded-md border border-navy-100 px-2 py-0.5 text-sm text-navy-700"
+                    >
                       <Editable
-                        value={c.name}
+                        value={skill}
                         editable={editable}
+                        placeholder={t("edit.placeholder.skill")}
                         onChange={(v) => {
-                          const next = [...data.certificates];
-                          next[i] = { ...next[i], name: v };
-                          patch({ certificates: next });
-                        }}
-                        placeholder="Certificate name"
-                      />
-                    </span>
-                    {(c.issuer || editable) && (
-                      <span className="ms-2 text-sm text-navy-400">
-                        ·{" "}
-                        <Editable
-                          value={c.issuer}
-                          editable={editable}
-                          onChange={(v) => {
-                            const next = [...data.certificates];
-                            next[i] = { ...next[i], issuer: v };
-                            patch({ certificates: next });
-                          }}
-                          placeholder="Issuer"
-                        />
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-xs text-navy-400">
-                    <Editable
-                      value={c.year}
-                      editable={editable}
-                      onChange={(v) => {
-                        const next = [...data.certificates];
-                        next[i] = { ...next[i], year: v };
-                        patch({ certificates: next });
-                      }}
-                      placeholder="Year"
-                    />
-                  </span>
-                </li>
-              ))}
-              {editable && (
-                <AddButton
-                  label={t("edit.add.certificate")}
-                  onClick={() =>
-                    patch({
-                      certificates: [
-                        ...data.certificates,
-                        { ...EMPTY_CERTIFICATE },
-                      ],
-                    })
-                  }
-                />
-              )}
-            </ul>
-          </MinSection>
-        )}
-
-        {(data.skills.length > 0 || editable) && (
-          <MinSection title={t("cv.skills")}>
-            <div className="flex flex-wrap gap-1.5">
-              {data.skills.map((skill, i) => {
-                if (!editable && !skill.trim()) return null;
-                return (
-                  <div
-                    key={i}
-                    className="inline-flex max-w-full items-center gap-1 rounded-md border border-navy-100 px-2 py-0.5 text-sm text-navy-700"
-                  >
-                    <Editable
-                      value={skill}
-                      editable={editable}
-                      placeholder={t("edit.placeholder.skill")}
-                      onChange={(v) => {
-                        const next = [...data.skills];
-                        next[i] = v;
-                        patch({ skills: next });
-                      }}
-                    />
-                    {editable && (
-                      <RemoveButton
-                        label={t("edit.remove")}
-                        onClick={() => {
                           const next = [...data.skills];
-                          next.splice(i, 1);
+                          next[i] = v;
                           patch({ skills: next });
                         }}
                       />
-                    )}
-                  </div>
-                );
-              })}
-              {editable && (
-                <AddButton
-                  label={t("edit.add.skill")}
-                  onClick={() => patch({ skills: [...data.skills, ""] })}
-                />
-              )}
-            </div>
-          </MinSection>
-        )}
-
-        {(data.languages.length > 0 || editable) && (
-          <MinSection title={t("cv.languages")}>
-            <ul className="grid grid-cols-2 gap-y-1 text-sm text-navy-700">
-              {data.languages.map((lng, i) => {
-                if (!editable && !lng.name.trim()) return null;
-                return (
-                  <li key={i} className="flex items-center gap-2">
-                    <Editable
-                      value={lng.name}
-                      editable={editable}
-                      placeholder={t("edit.placeholder.langName")}
-                      onChange={(v) => {
-                        const next = [...data.languages];
-                        next[i] = { ...next[i], name: v };
-                        patch({ languages: next });
-                      }}
-                    />
-                    {editable ? (
-                      <select
-                        value={lng.proficiency}
-                        onChange={(e) => {
+                      {editable && (
+                        <RemoveButton
+                          label={t("edit.remove")}
+                          onClick={() => {
+                            const next = [...data.skills];
+                            next.splice(i, 1);
+                            patch({ skills: next });
+                          }}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+                {editable && (
+                  <AddButton
+                    label={t("edit.add.skill")}
+                    onClick={() => patch({ skills: [...data.skills, ""] })}
+                  />
+                )}
+              </div>
+            </MinSection>
+            ) : null,
+            languages: (data.languages.length > 0 || editable) ? (
+            <MinSection title={t("cv.languages")}>
+              <ul className="grid grid-cols-2 gap-y-1 text-sm text-navy-700">
+                {data.languages.map((lng, i) => {
+                  if (!editable && !lng.name.trim()) return null;
+                  return (
+                    <li key={i} className="flex items-center gap-2">
+                      <Editable
+                        value={lng.name}
+                        editable={editable}
+                        placeholder={t("edit.placeholder.langName")}
+                        onChange={(v) => {
                           const next = [...data.languages];
-                          next[i] = { ...next[i], proficiency: e.target.value };
-                          patch({ languages: next });
-                        }}
-                        className="rounded border border-navy-100 px-1 text-xs text-navy-700"
-                      >
-                        <option value="">—</option>
-                        <option value={t("edit.proficiency.beginner")}>
-                          {t("edit.proficiency.beginner")}
-                        </option>
-                        <option value={t("edit.proficiency.conversational")}>
-                          {t("edit.proficiency.conversational")}
-                        </option>
-                        <option value={t("edit.proficiency.fluent")}>
-                          {t("edit.proficiency.fluent")}
-                        </option>
-                      </select>
-                    ) : (
-                      <span className="text-xs text-navy-400">
-                        — {lng.proficiency}
-                      </span>
-                    )}
-                    {editable && (
-                      <RemoveButton
-                        label={t("edit.remove")}
-                        onClick={() => {
-                          const next = [...data.languages];
-                          next.splice(i, 1);
+                          next[i] = { ...next[i], name: v };
                           patch({ languages: next });
                         }}
                       />
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-            {editable && (
-              <AddButton
-                label={t("edit.add.language")}
-                onClick={() =>
-                  patch({
-                    languages: [...data.languages, { ...EMPTY_LANGUAGE }],
-                  })
-                }
-              />
-            )}
-          </MinSection>
-        )}
-
-        {(data.hobbies.length > 0 || editable) && (
-          <MinSection title={t("cv.hobbies")}>
-            <p className="text-sm text-navy-600">
-              {(() => {
-                if (!editable) {
-                  return data.hobbies.filter((h) => h.trim()).join(" · ");
-                }
-                return null;
-              })()}
-            </p>
-            {editable && (
-              <div className="flex flex-wrap gap-1.5">
-                {data.hobbies.map((h, i) => (
-                  <div
-                    key={i}
-                    className="inline-flex max-w-full items-center gap-1 rounded-md border border-navy-100 px-2 py-0.5 text-sm text-navy-700"
-                  >
-                    <Editable
-                      value={h}
-                      editable
-                      placeholder={t("edit.placeholder.hobby")}
-                      onChange={(v) => {
-                        const next = [...data.hobbies];
-                        next[i] = v;
-                        patch({ hobbies: next });
-                      }}
-                    />
-                    <RemoveButton
-                      label={t("edit.remove")}
-                      onClick={() => {
-                        const next = [...data.hobbies];
-                        next.splice(i, 1);
-                        patch({ hobbies: next });
-                      }}
-                    />
-                  </div>
-                ))}
+                      {editable ? (
+                        <select
+                          value={lng.proficiency}
+                          onChange={(e) => {
+                            const next = [...data.languages];
+                            next[i] = { ...next[i], proficiency: e.target.value };
+                            patch({ languages: next });
+                          }}
+                          className="rounded border border-navy-100 px-1 text-xs text-navy-700"
+                        >
+                          <option value="">—</option>
+                          <option value={t("edit.proficiency.beginner")}>
+                            {t("edit.proficiency.beginner")}
+                          </option>
+                          <option value={t("edit.proficiency.conversational")}>
+                            {t("edit.proficiency.conversational")}
+                          </option>
+                          <option value={t("edit.proficiency.fluent")}>
+                            {t("edit.proficiency.fluent")}
+                          </option>
+                        </select>
+                      ) : (
+                        <span className="text-xs text-navy-400">
+                          — {lng.proficiency}
+                        </span>
+                      )}
+                      {editable && (
+                        <RemoveButton
+                          label={t("edit.remove")}
+                          onClick={() => {
+                            const next = [...data.languages];
+                            next.splice(i, 1);
+                            patch({ languages: next });
+                          }}
+                        />
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+              {editable && (
                 <AddButton
-                  label={t("edit.add.hobby")}
-                  onClick={() => patch({ hobbies: [...data.hobbies, ""] })}
+                  label={t("edit.add.language")}
+                  onClick={() =>
+                    patch({
+                      languages: [...data.languages, { ...EMPTY_LANGUAGE }],
+                    })
+                  }
+                />
+              )}
+            </MinSection>
+            ) : null,
+            hobbies: (data.hobbies.length > 0 || editable) ? (
+            <MinSection title={t("cv.hobbies")}>
+              <p className="text-sm text-navy-600">
+                {(() => {
+                  if (!editable) {
+                    return data.hobbies.filter((h) => h.trim()).join(" · ");
+                  }
+                  return null;
+                })()}
+              </p>
+              {editable && (
+                <div className="flex flex-wrap gap-1.5">
+                  {data.hobbies.map((h, i) => (
+                    <div
+                      key={i}
+                      className="inline-flex max-w-full items-center gap-1 rounded-md border border-navy-100 px-2 py-0.5 text-sm text-navy-700"
+                    >
+                      <Editable
+                        value={h}
+                        editable
+                        placeholder={t("edit.placeholder.hobby")}
+                        onChange={(v) => {
+                          const next = [...data.hobbies];
+                          next[i] = v;
+                          patch({ hobbies: next });
+                        }}
+                      />
+                      <RemoveButton
+                        label={t("edit.remove")}
+                        onClick={() => {
+                          const next = [...data.hobbies];
+                          next.splice(i, 1);
+                          patch({ hobbies: next });
+                        }}
+                      />
+                    </div>
+                  ))}
+                  <AddButton
+                    label={t("edit.add.hobby")}
+                    onClick={() => patch({ hobbies: [...data.hobbies, ""] })}
+                  />
+                </div>
+              )}
+            </MinSection>
+            ) : null,
+            achievements: (data.achievements.length > 0 || editable) ? (
+            <MinSection title={t("cv.achievement")}>
+              <div className="text-sm text-navy-600">
+                <AchievementsList
+                  items={data.achievements}
+                  editable={editable}
+                  t={t}
+                  onChange={(next) => patch({ achievements: next })}
                 />
               </div>
-            )}
-          </MinSection>
-        )}
-
-        {(data.achievements.length > 0 || editable) && (
-          <MinSection title={t("cv.achievement")}>
-            <div className="text-sm text-navy-600">
-              <AchievementsList
-                items={data.achievements}
-                editable={editable}
-                t={t}
-                onChange={(next) => patch({ achievements: next })}
-              />
-            </div>
-          </MinSection>
+            </MinSection>
+            ) : null,
+          },
         )}
       </article>
     );
@@ -1043,485 +1072,485 @@ export function CVPreview({
         </Section>
 
         {/* Skills */}
-        {(data.skills.length > 0 || editable) && (
-          <Section title={t("cv.skills")} dark>
-            <div className="flex flex-wrap gap-1.5">
-              {data.skills.map((skill, i) => {
-                if (!editable && !skill.trim()) return null;
-                return (
-                  <div
-                    key={i}
-                    className="inline-flex max-w-full items-center gap-1 rounded-md bg-teal/20 px-2 py-0.5"
-                  >
-                    <Editable
-                      value={skill}
-                      editable={editable}
-                      placeholder={t("edit.placeholder.skill")}
-                      onChange={(v) => {
-                        const next = [...data.skills];
-                        next[i] = v;
-                        patch({ skills: next });
-                      }}
-                      className="text-xs text-teal-100"
-                    />
-                    {editable && (
-                      <RemoveButton
-                        dark
-                        label={t("edit.remove")}
-                        onClick={() => {
+        {renderOrderedSections(
+          { data, editable, patch, t, dark: true },
+          MODERN_ASIDE_SECTIONS,
+          {
+            skills: (data.skills.length > 0 || editable) ? (
+            <Section title={t("cv.skills")} dark>
+              <div className="flex flex-wrap gap-1.5">
+                {data.skills.map((skill, i) => {
+                  if (!editable && !skill.trim()) return null;
+                  return (
+                    <div
+                      key={i}
+                      className="inline-flex max-w-full items-center gap-1 rounded-md bg-teal/20 px-2 py-0.5"
+                    >
+                      <Editable
+                        value={skill}
+                        editable={editable}
+                        placeholder={t("edit.placeholder.skill")}
+                        onChange={(v) => {
                           const next = [...data.skills];
-                          next.splice(i, 1);
+                          next[i] = v;
                           patch({ skills: next });
                         }}
+                        className="text-xs text-teal-100"
                       />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            {editable && (
-              <AddButton
-                dark
-                label={t("edit.add.skill")}
-                onClick={() => patch({ skills: [...data.skills, ""] })}
-              />
-            )}
-          </Section>
-        )}
-
-        {/* Languages */}
-        {(data.languages.length > 0 || editable) && (
-          <Section title={t("cv.languages")} dark>
-            <ul className="space-y-1.5 text-sm text-white/90">
-              {data.languages.map((lng, i) => {
-                if (!editable && !lng.name.trim()) return null;
-                return (
-                <li key={i} className="flex items-center gap-2">
-                  <Editable
-                    value={lng.name}
-                    editable={editable}
-                    placeholder={t("edit.placeholder.langName")}
-                    onChange={(v) => {
-                      const next = [...data.languages];
-                      next[i] = { ...next[i], name: v };
-                      patch({ languages: next });
-                    }}
-                    className="flex-1"
-                  />
-                  {editable ? (
-                    <select
-                      value={lng.proficiency}
-                      onChange={(e) => {
-                        const next = [...data.languages];
-                        next[i] = { ...next[i], proficiency: e.target.value };
-                        patch({ languages: next });
-                      }}
-                      className="rounded border border-white/20 bg-navy-900 px-1.5 py-0.5 text-xs text-white/90"
-                    >
-                      <option value="">—</option>
-                      <option value={t("edit.proficiency.beginner")}>
-                        {t("edit.proficiency.beginner")}
-                      </option>
-                      <option value={t("edit.proficiency.conversational")}>
-                        {t("edit.proficiency.conversational")}
-                      </option>
-                      <option value={t("edit.proficiency.fluent")}>
-                        {t("edit.proficiency.fluent")}
-                      </option>
-                    </select>
-                  ) : (
-                    <span className="text-xs text-white/60">
-                      {lng.proficiency}
-                    </span>
-                  )}
-                  {editable && (
-                    <RemoveButton
-                      dark
-                      label={t("edit.remove")}
-                      onClick={() => {
-                        const next = [...data.languages];
-                        next.splice(i, 1);
-                        patch({ languages: next });
-                      }}
-                    />
-                  )}
-                </li>
-                );
-              })}
-            </ul>
-            {editable && (
-              <AddButton
-                dark
-                label={t("edit.add.language")}
-                onClick={() =>
-                  patch({ languages: [...data.languages, { ...EMPTY_LANGUAGE }] })
-                }
-              />
-            )}
-          </Section>
-        )}
-
-        {/* Hobbies */}
-        {(data.hobbies.length > 0 || editable) && (
-          <Section title={t("cv.hobbies")} dark>
-            <div className="flex flex-wrap gap-1.5">
-              {data.hobbies.map((h, i) => {
-                if (!editable && !h.trim()) return null;
-                return (
-                  <div
-                    key={i}
-                    className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-0.5"
-                  >
+                      {editable && (
+                        <RemoveButton
+                          dark
+                          label={t("edit.remove")}
+                          onClick={() => {
+                            const next = [...data.skills];
+                            next.splice(i, 1);
+                            patch({ skills: next });
+                          }}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {editable && (
+                <AddButton
+                  dark
+                  label={t("edit.add.skill")}
+                  onClick={() => patch({ skills: [...data.skills, ""] })}
+                />
+              )}
+            </Section>
+            ) : null,
+            languages: (data.languages.length > 0 || editable) ? (
+            <Section title={t("cv.languages")} dark>
+              <ul className="space-y-1.5 text-sm text-white/90">
+                {data.languages.map((lng, i) => {
+                  if (!editable && !lng.name.trim()) return null;
+                  return (
+                  <li key={i} className="flex items-center gap-2">
                     <Editable
-                      value={h}
+                      value={lng.name}
                       editable={editable}
-                      placeholder={t("edit.placeholder.hobby")}
+                      placeholder={t("edit.placeholder.langName")}
                       onChange={(v) => {
-                        const next = [...data.hobbies];
-                        next[i] = v;
-                        patch({ hobbies: next });
+                        const next = [...data.languages];
+                        next[i] = { ...next[i], name: v };
+                        patch({ languages: next });
                       }}
-                      className="text-xs text-white/90"
+                      className="flex-1"
                     />
+                    {editable ? (
+                      <select
+                        value={lng.proficiency}
+                        onChange={(e) => {
+                          const next = [...data.languages];
+                          next[i] = { ...next[i], proficiency: e.target.value };
+                          patch({ languages: next });
+                        }}
+                        className="rounded border border-white/20 bg-navy-900 px-1.5 py-0.5 text-xs text-white/90"
+                      >
+                        <option value="">—</option>
+                        <option value={t("edit.proficiency.beginner")}>
+                          {t("edit.proficiency.beginner")}
+                        </option>
+                        <option value={t("edit.proficiency.conversational")}>
+                          {t("edit.proficiency.conversational")}
+                        </option>
+                        <option value={t("edit.proficiency.fluent")}>
+                          {t("edit.proficiency.fluent")}
+                        </option>
+                      </select>
+                    ) : (
+                      <span className="text-xs text-white/60">
+                        {lng.proficiency}
+                      </span>
+                    )}
                     {editable && (
                       <RemoveButton
                         dark
                         label={t("edit.remove")}
                         onClick={() => {
-                          const next = [...data.hobbies];
+                          const next = [...data.languages];
                           next.splice(i, 1);
-                          patch({ hobbies: next });
+                          patch({ languages: next });
                         }}
                       />
                     )}
-                  </div>
-                );
-              })}
-            </div>
-            {editable && (
-              <AddButton
-                dark
-                label={t("edit.add.hobby")}
-                onClick={() => patch({ hobbies: [...data.hobbies, ""] })}
-              />
-            )}
-          </Section>
+                  </li>
+                  );
+                })}
+              </ul>
+              {editable && (
+                <AddButton
+                  dark
+                  label={t("edit.add.language")}
+                  onClick={() =>
+                    patch({ languages: [...data.languages, { ...EMPTY_LANGUAGE }] })
+                  }
+                />
+              )}
+            </Section>
+            ) : null,
+            hobbies: (data.hobbies.length > 0 || editable) ? (
+            <Section title={t("cv.hobbies")} dark>
+              <div className="flex flex-wrap gap-1.5">
+                {data.hobbies.map((h, i) => {
+                  if (!editable && !h.trim()) return null;
+                  return (
+                    <div
+                      key={i}
+                      className="inline-flex max-w-full items-center gap-1 rounded-md bg-white/10 px-2 py-0.5"
+                    >
+                      <Editable
+                        value={h}
+                        editable={editable}
+                        placeholder={t("edit.placeholder.hobby")}
+                        onChange={(v) => {
+                          const next = [...data.hobbies];
+                          next[i] = v;
+                          patch({ hobbies: next });
+                        }}
+                        className="text-xs text-white/90"
+                      />
+                      {editable && (
+                        <RemoveButton
+                          dark
+                          label={t("edit.remove")}
+                          onClick={() => {
+                            const next = [...data.hobbies];
+                            next.splice(i, 1);
+                            patch({ hobbies: next });
+                          }}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {editable && (
+                <AddButton
+                  dark
+                  label={t("edit.add.hobby")}
+                  onClick={() => patch({ hobbies: [...data.hobbies, ""] })}
+                />
+              )}
+            </Section>
+            ) : null,
+          },
         )}
       </aside>
 
       {/* Main */}
       <main className="col-span-12 space-y-8 p-10 md:col-span-8">
         {/* Objective */}
-        {(data.objective || editable) && (
-          <section>
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
-              {t("cv.objective")}
-            </h2>
-            <p className="mt-2 border-s-2 border-teal/40 ps-4 text-sm italic leading-relaxed text-navy-600">
-              <Editable
-                value={data.objective}
-                editable={editable}
-                multiline
-                onChange={(v) => patch({ objective: v })}
-                placeholder="Objective…"
-              />
-            </p>
-          </section>
-        )}
-
-        {/* Experience */}
-        {(data.experience.length > 0 || editable) && (
-          <section>
-            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
-              <Briefcase className="h-3.5 w-3.5" />
-              {t("cv.experience")}
-            </h2>
-            <ol className="mt-4 space-y-5 border-s border-navy-100 ps-6">
-              {data.experience.map((exp, i) => (
-                <li key={i} className="group relative">
-                  <span className="absolute -start-[28px] top-1.5 h-3 w-3 rounded-full border-2 border-teal bg-white" />
-                  {editable && (
-                    <div className="absolute end-0 top-0 flex items-center gap-1">
-                      <MoveButtons
-                        index={i}
-                        count={data.experience.length}
-                        upLabel={t("edit.moveUp")}
-                        downLabel={t("edit.moveDown")}
-                        onMove={(to) =>
-                          patch({ experience: moveItem(data.experience, i, to) })
-                        }
-                      />
-                      <RemoveButton
-                        label={t("edit.remove")}
-                        onClick={() => {
-                          const next = [...data.experience];
-                          next.splice(i, 1);
-                          patch({ experience: next });
-                        }}
-                      />
-                    </div>
-                  )}
-                  <div className="flex flex-wrap items-baseline justify-between gap-2 pe-20">
-                    <h3 className="text-base font-semibold text-navy-900">
-                      <Editable
-                        value={exp.role}
-                        editable={editable}
-                        onChange={(v) => {
-                          const next = [...data.experience];
-                          next[i] = { ...next[i], role: v };
-                          patch({ experience: next });
-                        }}
-                        placeholder="Role"
-                      />
-                    </h3>
-                    <span className="text-xs text-navy-400">
-                      <Editable
-                        value={exp.duration}
-                        editable={editable}
-                        onChange={(v) => {
-                          const next = [...data.experience];
-                          next[i] = { ...next[i], duration: v };
-                          patch({ experience: next });
-                        }}
-                        placeholder="Duration"
-                      />
-                    </span>
-                  </div>
-                  <div className="text-sm font-medium text-teal-700">
-                    <Editable
-                      value={exp.company}
-                      editable={editable}
-                      onChange={(v) => {
-                        const next = [...data.experience];
-                        next[i] = { ...next[i], company: v };
-                        patch({ experience: next });
-                      }}
-                      placeholder="Company"
-                    />
-                  </div>
-                  {editable ? (
-                    <div className="mt-2">
-                      <p className="whitespace-pre-line text-sm leading-relaxed text-navy-600">
-                        <Editable
-                          value={exp.description}
-                          editable
-                          multiline
-                          onChange={(v) => {
+        {renderOrderedSections(
+          { data, editable, patch, t },
+          MODERN_MAIN_SECTIONS,
+          {
+            objective: (data.objective || editable) ? (
+            <section>
+              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
+                {t("cv.objective")}
+              </h2>
+              <p className="mt-2 border-s-2 border-teal/40 ps-4 text-sm italic leading-relaxed text-navy-600">
+                <Editable
+                  value={data.objective}
+                  editable={editable}
+                  multiline
+                  onChange={(v) => patch({ objective: v })}
+                  placeholder="Objective…"
+                />
+              </p>
+            </section>
+            ) : null,
+            experience: (data.experience.length > 0 || editable) ? (
+            <section>
+              <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
+                <Briefcase className="h-3.5 w-3.5" />
+                {t("cv.experience")}
+              </h2>
+              <ol className="mt-4 space-y-5 border-s border-navy-100 ps-6">
+                {data.experience.map((exp, i) => (
+                  <li key={i} className="group relative">
+                    <span className="absolute -start-[28px] top-1.5 h-3 w-3 rounded-full border-2 border-teal bg-white" />
+                    {editable && (
+                      <div className="absolute end-0 top-0 flex items-center gap-1">
+                        <MoveButtons
+                          index={i}
+                          count={data.experience.length}
+                          upLabel={t("edit.moveUp")}
+                          downLabel={t("edit.moveDown")}
+                          onMove={(to) =>
+                            patch({ experience: moveItem(data.experience, i, to) })
+                          }
+                        />
+                        <RemoveButton
+                          label={t("edit.remove")}
+                          onClick={() => {
                             const next = [...data.experience];
-                            next[i] = { ...next[i], description: v };
+                            next.splice(i, 1);
                             patch({ experience: next });
                           }}
-                          placeholder={t("edit.hint.bullets")}
                         />
-                      </p>
-                      <p className="mt-1 text-xs italic text-navy-400">
-                        {t("edit.hint.bullets")}
-                      </p>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap items-baseline justify-between gap-2 pe-20">
+                      <h3 className="text-base font-semibold text-navy-900">
+                        <Editable
+                          value={exp.role}
+                          editable={editable}
+                          onChange={(v) => {
+                            const next = [...data.experience];
+                            next[i] = { ...next[i], role: v };
+                            patch({ experience: next });
+                          }}
+                          placeholder="Role"
+                        />
+                      </h3>
+                      <span className="text-xs text-navy-400">
+                        <Editable
+                          value={exp.duration}
+                          editable={editable}
+                          onChange={(v) => {
+                            const next = [...data.experience];
+                            next[i] = { ...next[i], duration: v };
+                            patch({ experience: next });
+                          }}
+                          placeholder="Duration"
+                        />
+                      </span>
                     </div>
-                  ) : (
-                    <BulletList text={exp.description} />
-                  )}
-                </li>
-              ))}
-            </ol>
-            {editable && (
-              <div className="mt-3 ps-6">
-                <AddButton
-                  label={t("edit.add.experience")}
-                  onClick={() =>
-                    patch({
-                      experience: [...data.experience, { ...EMPTY_EXPERIENCE }],
-                    })
-                  }
-                />
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Education */}
-        {(data.education.length > 0 || editable) && (
-          <section>
-            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
-              <GraduationCap className="h-3.5 w-3.5" />
-              {t("cv.education")}
-            </h2>
-            <ul className="mt-4 space-y-4 border-s border-navy-100 ps-6">
-              {data.education.map((edu, i) => (
-                <li key={i} className="group relative pe-7">
-                  <span className="absolute -start-[28px] top-1.5 h-3 w-3 rounded-full border-2 border-teal bg-white" />
-                  {editable && (
-                    <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
-                      <RemoveButton
-                        label={t("edit.remove")}
-                        onClick={() => {
-                          const next = [...data.education];
-                          next.splice(i, 1);
-                          patch({ education: next });
+                    <div className="text-sm font-medium text-teal-700">
+                      <Editable
+                        value={exp.company}
+                        editable={editable}
+                        onChange={(v) => {
+                          const next = [...data.experience];
+                          next[i] = { ...next[i], company: v };
+                          patch({ experience: next });
                         }}
+                        placeholder="Company"
                       />
                     </div>
-                  )}
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <h3 className="text-base font-semibold text-navy-900">
+                    {editable ? (
+                      <div className="mt-2">
+                        <p className="whitespace-pre-line text-sm leading-relaxed text-navy-600">
+                          <Editable
+                            value={exp.description}
+                            editable
+                            multiline
+                            onChange={(v) => {
+                              const next = [...data.experience];
+                              next[i] = { ...next[i], description: v };
+                              patch({ experience: next });
+                            }}
+                            placeholder={t("edit.hint.bullets")}
+                          />
+                        </p>
+                        <p className="mt-1 text-xs italic text-navy-400">
+                          {t("edit.hint.bullets")}
+                        </p>
+                      </div>
+                    ) : (
+                      <BulletList text={exp.description} />
+                    )}
+                  </li>
+                ))}
+              </ol>
+              {editable && (
+                <div className="mt-3 ps-6">
+                  <AddButton
+                    label={t("edit.add.experience")}
+                    onClick={() =>
+                      patch({
+                        experience: [...data.experience, { ...EMPTY_EXPERIENCE }],
+                      })
+                    }
+                  />
+                </div>
+              )}
+            </section>
+            ) : null,
+            education: (data.education.length > 0 || editable) ? (
+            <section>
+              <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
+                <GraduationCap className="h-3.5 w-3.5" />
+                {t("cv.education")}
+              </h2>
+              <ul className="mt-4 space-y-4 border-s border-navy-100 ps-6">
+                {data.education.map((edu, i) => (
+                  <li key={i} className="group relative pe-7">
+                    <span className="absolute -start-[28px] top-1.5 h-3 w-3 rounded-full border-2 border-teal bg-white" />
+                    {editable && (
+                      <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
+                        <RemoveButton
+                          label={t("edit.remove")}
+                          onClick={() => {
+                            const next = [...data.education];
+                            next.splice(i, 1);
+                            patch({ education: next });
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <h3 className="text-base font-semibold text-navy-900">
+                        <Editable
+                          value={edu.degree}
+                          editable={editable}
+                          onChange={(v) => {
+                            const next = [...data.education];
+                            next[i] = { ...next[i], degree: v };
+                            patch({ education: next });
+                          }}
+                          placeholder="Degree"
+                        />
+                      </h3>
+                      <span className="text-xs text-navy-400">
+                        <Editable
+                          value={edu.year}
+                          editable={editable}
+                          onChange={(v) => {
+                            const next = [...data.education];
+                            next[i] = { ...next[i], year: v };
+                            patch({ education: next });
+                          }}
+                          placeholder="Year"
+                        />
+                      </span>
+                    </div>
+                    <div className="text-sm text-navy-600">
                       <Editable
-                        value={edu.degree}
+                        value={edu.institution}
                         editable={editable}
                         onChange={(v) => {
                           const next = [...data.education];
-                          next[i] = { ...next[i], degree: v };
+                          next[i] = { ...next[i], institution: v };
                           patch({ education: next });
                         }}
-                        placeholder="Degree"
+                        placeholder="Institution"
                       />
-                    </h3>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              {editable && (
+                <div className="mt-3 ps-6">
+                  <AddButton
+                    label={t("edit.add.education")}
+                    onClick={() =>
+                      patch({
+                        education: [...data.education, { ...EMPTY_EDUCATION }],
+                      })
+                    }
+                  />
+                </div>
+              )}
+            </section>
+            ) : null,
+            certificates: (data.certificates.length > 0 || editable) ? (
+            <section>
+              <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
+                <Award className="h-3.5 w-3.5" />
+                {t("cv.certificates")}
+              </h2>
+              <ul className="mt-4 space-y-3 border-s border-navy-100 ps-6">
+                {data.certificates.map((c, i) => (
+                  <li
+                    key={i}
+                    className="group relative flex flex-wrap items-baseline justify-between gap-2 pe-7"
+                  >
+                    <span className="absolute -start-[28px] top-1.5 h-3 w-3 rounded-full border-2 border-teal bg-white" />
+                    {editable && (
+                      <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
+                        <RemoveButton
+                          label={t("edit.remove")}
+                          onClick={() => {
+                            const next = [...data.certificates];
+                            next.splice(i, 1);
+                            patch({ certificates: next });
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-sm font-semibold text-navy-900">
+                        <Editable
+                          value={c.name}
+                          editable={editable}
+                          onChange={(v) => {
+                            const next = [...data.certificates];
+                            next[i] = { ...next[i], name: v };
+                            patch({ certificates: next });
+                          }}
+                          placeholder="Certificate name"
+                        />
+                      </span>
+                      {(c.issuer || editable) && (
+                        <span className="ms-2 text-sm text-navy-400">
+                          ·{" "}
+                          <Editable
+                            value={c.issuer}
+                            editable={editable}
+                            onChange={(v) => {
+                              const next = [...data.certificates];
+                              next[i] = { ...next[i], issuer: v };
+                              patch({ certificates: next });
+                            }}
+                            placeholder="Issuer"
+                          />
+                        </span>
+                      )}
+                    </div>
                     <span className="text-xs text-navy-400">
                       <Editable
-                        value={edu.year}
+                        value={c.year}
                         editable={editable}
                         onChange={(v) => {
-                          const next = [...data.education];
+                          const next = [...data.certificates];
                           next[i] = { ...next[i], year: v };
-                          patch({ education: next });
+                          patch({ certificates: next });
                         }}
                         placeholder="Year"
                       />
                     </span>
-                  </div>
-                  <div className="text-sm text-navy-600">
-                    <Editable
-                      value={edu.institution}
-                      editable={editable}
-                      onChange={(v) => {
-                        const next = [...data.education];
-                        next[i] = { ...next[i], institution: v };
-                        patch({ education: next });
-                      }}
-                      placeholder="Institution"
-                    />
-                  </div>
-                </li>
-              ))}
-            </ul>
-            {editable && (
-              <div className="mt-3 ps-6">
-                <AddButton
-                  label={t("edit.add.education")}
-                  onClick={() =>
-                    patch({
-                      education: [...data.education, { ...EMPTY_EDUCATION }],
-                    })
-                  }
+                  </li>
+                ))}
+              </ul>
+              {editable && (
+                <div className="mt-3 ps-6">
+                  <AddButton
+                    label={t("edit.add.certificate")}
+                    onClick={() =>
+                      patch({
+                        certificates: [
+                          ...data.certificates,
+                          { ...EMPTY_CERTIFICATE },
+                        ],
+                      })
+                    }
+                  />
+                </div>
+              )}
+            </section>
+            ) : null,
+            achievements: (data.achievements.length > 0 || editable) ? (
+            <section>
+              <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
+                <Trophy className="h-3.5 w-3.5" />
+                {t("cv.achievement")}
+              </h2>
+              <div className="mt-3 rounded-lg border border-teal/20 bg-teal/5 p-4 text-sm text-navy-600">
+                <AchievementsList
+                  items={data.achievements}
+                  editable={editable}
+                  t={t}
+                  onChange={(next) => patch({ achievements: next })}
                 />
               </div>
-            )}
-          </section>
-        )}
-
-        {/* Certificates */}
-        {(data.certificates.length > 0 || editable) && (
-          <section>
-            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
-              <Award className="h-3.5 w-3.5" />
-              {t("cv.certificates")}
-            </h2>
-            <ul className="mt-4 space-y-3 border-s border-navy-100 ps-6">
-              {data.certificates.map((c, i) => (
-                <li
-                  key={i}
-                  className="group relative flex flex-wrap items-baseline justify-between gap-2 pe-7"
-                >
-                  <span className="absolute -start-[28px] top-1.5 h-3 w-3 rounded-full border-2 border-teal bg-white" />
-                  {editable && (
-                    <div className="absolute end-0 top-0 opacity-0 transition group-hover:opacity-100">
-                      <RemoveButton
-                        label={t("edit.remove")}
-                        onClick={() => {
-                          const next = [...data.certificates];
-                          next.splice(i, 1);
-                          patch({ certificates: next });
-                        }}
-                      />
-                    </div>
-                  )}
-                  <div>
-                    <span className="text-sm font-semibold text-navy-900">
-                      <Editable
-                        value={c.name}
-                        editable={editable}
-                        onChange={(v) => {
-                          const next = [...data.certificates];
-                          next[i] = { ...next[i], name: v };
-                          patch({ certificates: next });
-                        }}
-                        placeholder="Certificate name"
-                      />
-                    </span>
-                    {(c.issuer || editable) && (
-                      <span className="ms-2 text-sm text-navy-400">
-                        ·{" "}
-                        <Editable
-                          value={c.issuer}
-                          editable={editable}
-                          onChange={(v) => {
-                            const next = [...data.certificates];
-                            next[i] = { ...next[i], issuer: v };
-                            patch({ certificates: next });
-                          }}
-                          placeholder="Issuer"
-                        />
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-xs text-navy-400">
-                    <Editable
-                      value={c.year}
-                      editable={editable}
-                      onChange={(v) => {
-                        const next = [...data.certificates];
-                        next[i] = { ...next[i], year: v };
-                        patch({ certificates: next });
-                      }}
-                      placeholder="Year"
-                    />
-                  </span>
-                </li>
-              ))}
-            </ul>
-            {editable && (
-              <div className="mt-3 ps-6">
-                <AddButton
-                  label={t("edit.add.certificate")}
-                  onClick={() =>
-                    patch({
-                      certificates: [
-                        ...data.certificates,
-                        { ...EMPTY_CERTIFICATE },
-                      ],
-                    })
-                  }
-                />
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Achievements */}
-        {(data.achievements.length > 0 || editable) && (
-          <section>
-            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
-              <Trophy className="h-3.5 w-3.5" />
-              {t("cv.achievement")}
-            </h2>
-            <div className="mt-3 rounded-lg border border-teal/20 bg-teal/5 p-4 text-sm text-navy-600">
-              <AchievementsList
-                items={data.achievements}
-                editable={editable}
-                t={t}
-                onChange={(next) => patch({ achievements: next })}
-              />
-            </div>
-          </section>
+            </section>
+            ) : null,
+          },
         )}
       </main>
     </article>

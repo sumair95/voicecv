@@ -300,6 +300,74 @@ export function MoveButtons({
   );
 }
 
+/**
+ * Wraps one CV section and, in edit mode, floats ↑/↓ controls beside its
+ * heading so the whole section can be moved within its column.
+ *
+ * The controls sit at the TOP of the wrapper, level with the section heading.
+ * That is deliberate: the per-entry ↑/↓/× controls inside a section are
+ * positioned against their own entry, which starts below the heading, so the
+ * two sets never overlap. (Overlapping absolutely-positioned controls is how
+ * the skill-× and the idle-toast bugs both happened — worth not repeating.)
+ *
+ * When not editing this renders its children untouched, so the printed CV and
+ * the PDF are unaffected by the existence of the control.
+ */
+export function SectionMover({
+  canUp,
+  canDown,
+  onUp,
+  onDown,
+  upLabel,
+  downLabel,
+  editable,
+  dark,
+  children,
+}: {
+  canUp: boolean;
+  canDown: boolean;
+  onUp: () => void;
+  onDown: () => void;
+  upLabel: string;
+  downLabel: string;
+  editable?: boolean;
+  dark?: boolean;
+  children: React.ReactNode;
+}) {
+  if (!editable) return <>{children}</>;
+  const tone = dark
+    ? "bg-white/10 text-white/70 hover:bg-teal/50 hover:text-white disabled:opacity-25"
+    : "bg-navy-50 text-navy-400 hover:bg-teal/20 hover:text-teal-700 disabled:opacity-30";
+  const cls = `grid h-5 w-5 shrink-0 place-items-center rounded-full transition disabled:cursor-not-allowed ${tone}`;
+  return (
+    <div className="relative">
+      <div className="absolute end-0 top-0 z-10 flex items-center gap-1">
+        <button
+          type="button"
+          onClick={onUp}
+          disabled={!canUp}
+          aria-label={upLabel}
+          title={upLabel}
+          className={cls}
+        >
+          <ChevronUp className="h-3 w-3" />
+        </button>
+        <button
+          type="button"
+          onClick={onDown}
+          disabled={!canDown}
+          aria-label={downLabel}
+          title={downLabel}
+          className={cls}
+        >
+          <ChevronDown className="h-3 w-3" />
+        </button>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 export function AddButton({
   onClick,
   label,

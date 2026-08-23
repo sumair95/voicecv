@@ -93,6 +93,25 @@ export interface CVLanguageItem {
   proficiency: string; // beginner | conversational | fluent (free-text so AI can localize)
 }
 
+/**
+ * A reorderable CV section. The default order lives in
+ * `lib/cv/section-order` — this module re-exports `migrateCvData`, so a value
+ * exported here would be imported by section-order and close an import cycle.
+ *
+ * The identity block (name, job title, photo, contact, socials) is deliberately
+ * NOT one of these — it anchors every template's header, and moving it would
+ * break the layouts rather than reorder them.
+ */
+export type SectionId =
+  | "objective"
+  | "experience"
+  | "education"
+  | "certificates"
+  | "skills"
+  | "languages"
+  | "hobbies"
+  | "achievements";
+
 export interface CVData {
   personal: CVPersonal;
   socials: CVSocialLink[];
@@ -105,6 +124,15 @@ export interface CVData {
   hobbies: string[];
   /** Simple achievements / awards, e.g. "Employee of the Month 2023". */
   achievements: string[];
+  /**
+   * The user's chosen section order, applied by every template and the PDF.
+   * Optional: absent means DEFAULT_SECTION_ORDER, so every CV written before
+   * this existed keeps rendering exactly as it did.
+   *
+   * Lives inside cv_data (like `personal.photo_url`) so no migration is needed
+   * and the order travels with the CV through export, tailoring and import.
+   */
+  section_order?: SectionId[];
 }
 
 export interface CVRecord {

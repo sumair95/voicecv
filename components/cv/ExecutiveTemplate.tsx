@@ -1,19 +1,14 @@
 "use client";
 
 import type { CVData } from "@/types/cv";
+import { DEFAULT_SECTION_ORDER } from "@/lib/cv/section-order";
+import { renderOrderedSections } from "@/components/cv/useSectionOrder";
 import { Editable, CvPhoto } from "@/components/cv/primitives";
 import {
-  ObjectiveContent,
-  ExperienceContent,
-  EducationContent,
-  CertificatesContent,
-  SkillsContent,
-  LanguagesContent,
-  HobbiesContent,
-  AchievementsContent,
   ContactInline,
   SocialsInline,
   showSection,
+  singleColumnBlocks,
 } from "@/components/cv/sections";
 
 interface Props {
@@ -83,45 +78,12 @@ export function ExecutiveTemplate({ data, editable, patch, t, isRtl }: Props) {
         )}
       </header>
 
-      {showSection(data.objective ? 1 : 0, editable) && (
-        <Section title={t("cv.objective")}>
-          <ObjectiveContent {...ctx} />
-        </Section>
-      )}
-      {showSection(data.experience.length, editable) && (
-        <Section title={t("cv.experience")}>
-          <ExperienceContent {...ctx} />
-        </Section>
-      )}
-      {showSection(data.education.length, editable) && (
-        <Section title={t("cv.education")}>
-          <EducationContent {...ctx} />
-        </Section>
-      )}
-      {showSection(data.certificates.length, editable) && (
-        <Section title={t("cv.certificates")}>
-          <CertificatesContent {...ctx} />
-        </Section>
-      )}
-      {showSection(data.skills.length, editable) && (
-        <Section title={t("cv.skills")}>
-          <SkillsContent {...ctx} />
-        </Section>
-      )}
-      {showSection(data.languages.length, editable) && (
-        <Section title={t("cv.languages")}>
-          <LanguagesContent {...ctx} />
-        </Section>
-      )}
-      {showSection(data.hobbies.length, editable) && (
-        <Section title={t("cv.hobbies")}>
-          <HobbiesContent {...ctx} />
-        </Section>
-      )}
-      {showSection(data.achievements.length, editable) && (
-        <Section title={t("cv.achievement")}>
-          <AchievementsContent {...ctx} />
-        </Section>
+      {/* Body sections render in the user's chosen order (cv.section_order),
+          each with its own move controls while editing. */}
+      {renderOrderedSections(
+        { ...ctx, t },
+        DEFAULT_SECTION_ORDER,
+        singleColumnBlocks(ctx, Section),
       )}
     </article>
   );

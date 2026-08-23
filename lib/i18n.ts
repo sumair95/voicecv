@@ -1065,6 +1065,18 @@ export const t: Dict = {
     it: "Aggiungi link",
   },
   "edit.remove": { en: "Remove", ar: "حذف", ur: "حذف کریں", it: "Rimuovi" },
+  "edit.sectionUp": {
+    en: "Move this section up",
+    ar: "نقل هذا القسم لأعلى",
+    ur: "اس سیکشن کو اوپر کریں",
+    it: "Sposta questa sezione su",
+  },
+  "edit.sectionDown": {
+    en: "Move this section down",
+    ar: "نقل هذا القسم لأسفل",
+    ur: "اس سیکشن کو نیچے کریں",
+    it: "Sposta questa sezione giù",
+  },
   "edit.moveUp": { en: "Move up", ar: "نقل لأعلى", ur: "اوپر کریں", it: "Sposta su" },
   "edit.moveDown": { en: "Move down", ar: "نقل لأسفل", ur: "نیچے کریں", it: "Sposta giù" },
   "edit.sortByDate": {

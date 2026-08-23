@@ -7,6 +7,7 @@
  */
 
 import type { CVData, CVLanguageItem, CVPersonal, CVSocialLink } from "@/types/cv";
+import { normaliseSectionOrder } from "@/lib/cv/section-order";
 
 export function migrateCvData(raw: unknown): CVData {
   const src = (raw && typeof raw === "object" ? raw : {}) as Partial<CVData> & {
@@ -62,6 +63,10 @@ export function migrateCvData(raw: unknown): CVData {
     languages,
     hobbies: Array.isArray(src.hobbies) ? src.hobbies : [],
     achievements: migrateAchievements(src),
+    // Normalised here so every consumer (templates, PDF, tailoring) can trust
+    // it: unknown or duplicated ids are dropped and missing ones appended, so a
+    // CV saved before a section existed still renders that section.
+    section_order: normaliseSectionOrder(src.section_order),
   };
 }
 

@@ -11,7 +11,9 @@ import {
   Circle,
   Line,
 } from "@react-pdf/renderer";
-import type { CVData, Language, TemplateId } from "@/types/cv";
+import { Fragment } from "react";
+import type { CVData, Language, SectionId, TemplateId } from "@/types/cv";
+import { DEFAULT_SECTION_ORDER, orderedSections } from "@/lib/cv/section-order";
 
 // Register fonts. @react-pdf needs explicit registration; Google Fonts CDN URLs work.
 // Current Google Fonts TTF URLs (verified 2026-06-04). Google rotates
@@ -115,18 +117,20 @@ function styles(fontFamily: string) {
       // Page-level padding gives every page (including page 2+) a clean
       // top/bottom margin so continuation pages don't start flush at the
       // edge of the paper.
-      paddingTop: 30,
-      paddingBottom: 30,
+      paddingTop: 24,
+      paddingBottom: 24,
     },
     sidebar: {
-      width: "32%",
+      width: "31%",
       backgroundColor: NAVY,
       color: "#FFFFFF",
-      padding: 28,
+      padding: 20,
     },
     main: {
-      width: "68%",
-      padding: 32,
+      // 24pt here rather than 32: the sidebar already narrows this column, so
+      // every point of padding costs a line wrap on long bullets.
+      width: "69%",
+      padding: 24,
       backgroundColor: "#FFFFFF",
     },
     avatar: {
@@ -238,29 +242,29 @@ function styles(fontFamily: string) {
       borderLeftColor: TEAL,
       borderLeftWidth: 2,
       paddingLeft: 10,
-      fontSize: 10,
+      fontSize: 9.5,
       color: "#475569",
-      marginTop: 4,
-      marginBottom: 12,
-      lineHeight: 1.5,
+      marginTop: 3,
+      marginBottom: 8,
+      lineHeight: 1.4,
     },
-    experienceItem: { marginBottom: 12 },
-    role: { fontSize: 12, fontWeight: 700, color: NAVY },
-    company: { fontSize: 10, fontWeight: 600, color: "#0F766E", marginTop: 2 },
+    experienceItem: { marginBottom: 8 },
+    role: { fontSize: 11, fontWeight: 700, color: NAVY },
+    company: { fontSize: 9.5, fontWeight: 600, color: "#0F766E", marginTop: 1 },
     duration: { fontSize: 9, color: MUTED },
-    description: { fontSize: 10, color: "#334155", marginTop: 4, lineHeight: 1.4 },
+    description: { fontSize: 9.5, color: "#334155", marginTop: 3, lineHeight: 1.35 },
     bulletRow: { flexDirection: "row", marginTop: 3 },
-    bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
-    educationItem: { marginBottom: 8, flexDirection: "row" },
+    bulletText: { flex: 1, fontSize: 9.5, color: "#334155", lineHeight: 1.35 },
+    educationItem: { marginBottom: 5, flexDirection: "row" },
     educationLeft: { flexDirection: "row", flex: 1 },
     educationContent: { flex: 1 },
-    educationDegree: { fontSize: 11, fontWeight: 700, color: NAVY },
-    educationInstitution: { fontSize: 10, color: "#334155" },
+    educationDegree: { fontSize: 10, fontWeight: 700, color: NAVY },
+    educationInstitution: { fontSize: 9.5, color: "#334155" },
     timelineDot: {
       width: 8, fontSize: 10, color: TEAL, lineHeight: 1.4, marginRight: 6,
     },
-    certName: { fontSize: 10, fontWeight: 700, color: NAVY },
-    certIssuer: { fontSize: 10, color: MUTED },
+    certName: { fontSize: 9.5, fontWeight: 700, color: NAVY },
+    certIssuer: { fontSize: 9.5, color: MUTED },
     rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
     skillRow: { flexDirection: "row", flexWrap: "wrap" },
     starBox: {
@@ -401,6 +405,35 @@ function TrophyIcon({ size = 10, color = TEAL }: IconProps) {
 
 // Reusable section header: icon + uppercase title.
 // `rule` (used by Minimalist) adds a subtle gray underline.
+/**
+ * Render a column's sections in the order the user arranged on screen.
+ *
+ * The PDF reads the SAME `cv.section_order` the preview does, so the download
+ * matches what was arranged rather than a second, hardcoded order that would
+ * drift from it. A null block is skipped, which is how the old
+ * `{cv.x.length > 0 && ...}` guards behaved.
+ */
+const ALL_SECTIONS = DEFAULT_SECTION_ORDER;
+/** Modern is two-column, so each column orders within itself. */
+const MODERN_ASIDE: SectionId[] = ["skills", "languages", "hobbies"];
+const MODERN_MAIN: SectionId[] = [
+  "objective",
+  "experience",
+  "education",
+  "certificates",
+  "achievements",
+];
+
+function orderedPdfSections(
+  cv: CVData,
+  within: readonly SectionId[],
+  blocks: Partial<Record<SectionId, React.ReactNode>>,
+): React.ReactNode[] {
+  return orderedSections(cv, within)
+    .filter((id) => blocks[id] != null)
+    .map((id) => <Fragment key={id}>{blocks[id]}</Fragment>);
+}
+
 function SectionHeader({
   icon: Icon,
   title,
@@ -491,6 +524,55 @@ function BulletDot() {
 //     `marginBottom` on the row. Padding is inside the row's box, so the rail
 //     (which stretches to the row height) covers the gap; a margin sits outside
 //     it and would leave a break in the line at every entry boundary.
+/**
+ * Multi-column bulleted list — the single biggest space saver on a dense CV.
+ *
+ * Skills and certificates are short phrases; rendering one per full-width row
+ * wastes most of the line and is what pushed a two-page CV onto a third page.
+ * Laid out in columns they occupy a few compact rows instead. Modelled on the
+ * reference CV, which runs skills in three columns and certificates in two.
+ *
+ * Items fill each column top-to-bottom (column-major) so a reader scans down a
+ * column rather than hopping across the page.
+ */
+function ColumnList({
+  items,
+  columns,
+  textStyle,
+}: {
+  items: string[];
+  columns: number;
+  /**
+   * Typed off a real StyleSheet entry. Text is overloaded (Text | SVGText), so
+   * ComponentProps<typeof Text>["style"] widens to include SVG attributes and
+   * stops being assignable back to Text.
+   */
+  textStyle: ReturnType<typeof classicStyles>["bulletText"];
+}) {
+  const clean = items.map((i) => i.trim()).filter(Boolean);
+  if (clean.length === 0) return null;
+  // With fewer items than columns, don't leave empty columns stretching the row.
+  const cols = Math.max(1, Math.min(columns, clean.length));
+  const perCol = Math.ceil(clean.length / cols);
+  return (
+    <View style={{ flexDirection: "row" }}>
+      {Array.from({ length: cols }, (_, c) => (
+        <View
+          key={c}
+          style={{ flex: 1, paddingRight: c < cols - 1 ? 10 : 0 }}
+        >
+          {clean.slice(c * perCol, (c + 1) * perCol).map((item, i) => (
+            <View key={i} style={{ flexDirection: "row", marginBottom: 1.5 }}>
+              <BulletDot />
+              <Text style={textStyle}>{item}</Text>
+            </View>
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 function TimelineItem({ children }: { children: React.ReactNode }) {
   return (
     <View style={{ flexDirection: "row" }}>
@@ -659,121 +741,119 @@ function ModernDocument({
             </>
           )}
 
-          {cv.skills.length > 0 && (
-            <>
-              <SectionHeader title={L.skills} dark />
-              <View style={s.skillRow}>
-                {cv.skills.map((skill, i) => (
-                  <Text key={i} style={s.skill}>
-                    {skill}
-                  </Text>
-                ))}
-              </View>
-            </>
-          )}
-
-          {cv.languages.length > 0 && (
-            <>
-              <SectionHeader title={L.languages} dark />
-              {cv.languages.map((lng, i) => (
-                <View key={i} style={s.sidebarLanguage}>
-                  <Text>{lng.name}</Text>
-                  <Text style={s.languageProf}>{lng.proficiency}</Text>
+          {orderedPdfSections(cv, MODERN_ASIDE, {
+            skills: cv.skills.length > 0 ? (
+              <>
+                <SectionHeader title={L.skills} dark />
+                <View style={s.skillRow}>
+                  {cv.skills.map((skill, i) => (
+                    <Text key={i} style={s.skill}>
+                      {skill}
+                    </Text>
+                  ))}
                 </View>
-              ))}
-            </>
-          )}
-
-          {cv.hobbies.length > 0 && (
-            <>
-              <SectionHeader title={L.hobbies} dark />
-              <View style={s.skillRow}>
-                {cv.hobbies.map((h, i) => (
-                  <Text key={i} style={s.hobby}>
-                    {h}
-                  </Text>
+              </>
+            ) : null,
+            languages: cv.languages.length > 0 ? (
+              <>
+                <SectionHeader title={L.languages} dark />
+                {cv.languages.map((lng, i) => (
+                  <View key={i} style={s.sidebarLanguage}>
+                    <Text>{lng.name}</Text>
+                    <Text style={s.languageProf}>{lng.proficiency}</Text>
+                  </View>
                 ))}
-              </View>
-            </>
-          )}
+              </>
+            ) : null,
+            hobbies: cv.hobbies.length > 0 ? (
+              <>
+                <SectionHeader title={L.hobbies} dark />
+                <View style={s.skillRow}>
+                  {cv.hobbies.map((h, i) => (
+                    <Text key={i} style={s.hobby}>
+                      {h}
+                    </Text>
+                  ))}
+                </View>
+              </>
+            ) : null,
+          })}
         </View>
 
         <View style={s.main}>
-          {cv.objective ? (
-            <>
-              <SectionHeader title={L.objective} />
-              <Text style={s.objectiveBox}>{cv.objective}</Text>
-            </>
-          ) : null}
-
-          {cv.experience.length > 0 && (
-            <>
-              <SectionHeader icon={BriefcaseIcon} title={L.experience} />
-              {cv.experience.map((exp, i) => (
-                <TimelineItem key={i}>
-                  <View style={s.rowBetween}>
-                    <Text style={s.role}>{exp.role}</Text>
-                    <Text style={s.duration}>{exp.duration}</Text>
-                  </View>
-                  <Text style={s.company}>{exp.company}</Text>
-                  {bulletsFrom(exp.description).map((line, bi) => (
-                    <View key={bi} style={s.bulletRow}>
-                      <BulletDot />
-                      <Text style={s.bulletText}>{line}</Text>
+          {orderedPdfSections(cv, MODERN_MAIN, {
+            objective: cv.objective ? (
+              <>
+                <SectionHeader title={L.objective} />
+                <Text style={s.objectiveBox}>{cv.objective}</Text>
+              </>
+            ) : null,
+            experience: cv.experience.length > 0 ? (
+              <>
+                <SectionHeader icon={BriefcaseIcon} title={L.experience} />
+                {cv.experience.map((exp, i) => (
+                  <TimelineItem key={i}>
+                    <View style={s.rowBetween}>
+                      <Text style={s.role}>{exp.role}</Text>
+                      <Text style={s.duration}>{exp.duration}</Text>
                     </View>
-                  ))}
-                </TimelineItem>
-              ))}
-            </>
-          )}
-
-          {cv.education.length > 0 && (
-            <>
-              <SectionHeader icon={GraduationCapIcon} title={L.education} />
-              {cv.education.map((edu, i) => (
-                <TimelineItem key={i}>
-                  <View style={s.rowBetween}>
-                    <Text style={s.educationDegree}>{edu.degree}</Text>
-                    <Text style={s.duration}>{edu.year}</Text>
-                  </View>
-                  <Text style={s.educationInstitution}>{edu.institution}</Text>
-                </TimelineItem>
-              ))}
-            </>
-          )}
-
-          {cv.certificates.length > 0 && (
-            <>
-              <SectionHeader icon={AwardIcon} title={L.certificates} />
-              {cv.certificates.map((c, i) => (
-                <TimelineItem key={i}>
-                  <View style={s.rowBetween}>
-                    <Text style={s.certName}>
-                      {c.name}
-                      {c.issuer ? <Text style={s.certIssuer}> · {c.issuer}</Text> : null}
-                    </Text>
-                    <Text style={s.duration}>{c.year}</Text>
-                  </View>
-                </TimelineItem>
-              ))}
-            </>
-          )}
-
-          {cv.achievements.length > 0 && (
-            <>
-              <SectionHeader icon={TrophyIcon} title={L.achievement} />
-              <View style={s.starBox}>
-                {cv.achievements
-                  .filter((a) => a.trim())
-                  .map((a, i) => (
-                    <View key={i} style={s.bulletRow}>
-                      <BulletDot />
-                      <Text style={s.bulletText}>{a}</Text>
+                    <Text style={s.company}>{exp.company}</Text>
+                    {bulletsFrom(exp.description).map((line, bi) => (
+                      <View key={bi} style={s.bulletRow}>
+                        <BulletDot />
+                        <Text style={s.bulletText}>{line}</Text>
+                      </View>
+                    ))}
+                  </TimelineItem>
+                ))}
+              </>
+            ) : null,
+            education: cv.education.length > 0 ? (
+              <>
+                <SectionHeader icon={GraduationCapIcon} title={L.education} />
+                {cv.education.map((edu, i) => (
+                  <TimelineItem key={i}>
+                    <View style={s.rowBetween}>
+                      <Text style={s.educationDegree}>{edu.degree}</Text>
+                      <Text style={s.duration}>{edu.year}</Text>
                     </View>
-                  ))}
-              </View>
-            </>
-          )}
+                    <Text style={s.educationInstitution}>{edu.institution}</Text>
+                  </TimelineItem>
+                ))}
+              </>
+            ) : null,
+            certificates: cv.certificates.length > 0 ? (
+              <>
+                <SectionHeader icon={AwardIcon} title={L.certificates} />
+                {cv.certificates.map((c, i) => (
+                  <TimelineItem key={i}>
+                    <View style={s.rowBetween}>
+                      <Text style={s.certName}>
+                        {c.name}
+                        {c.issuer ? <Text style={s.certIssuer}> · {c.issuer}</Text> : null}
+                      </Text>
+                      <Text style={s.duration}>{c.year}</Text>
+                    </View>
+                  </TimelineItem>
+                ))}
+              </>
+            ) : null,
+            achievements: cv.achievements.length > 0 ? (
+              <>
+                <SectionHeader icon={TrophyIcon} title={L.achievement} />
+                <View style={s.starBox}>
+                  {cv.achievements
+                    .filter((a) => a.trim())
+                    .map((a, i) => (
+                      <View key={i} style={s.bulletRow}>
+                        <BulletDot />
+                        <Text style={s.bulletText}>{a}</Text>
+                      </View>
+                    ))}
+                </View>
+              </>
+            ) : null,
+          })}
         </View>
       </Page>
     </Document>
@@ -787,13 +867,13 @@ const minStyles = (fontFamily: string) =>
       fontFamily,
       fontSize: 10,
       color: NAVY,
-      paddingTop: 40,
-      paddingBottom: 40,
-      paddingLeft: 56,
-      paddingRight: 56,
+      paddingTop: 32,
+      paddingBottom: 32,
+      paddingLeft: 40,
+      paddingRight: 40,
     },
     name: {
-      fontSize: 22,
+      fontSize: 18,
       fontWeight: 400,
       textAlign: "center",
       letterSpacing: 1.5,
@@ -806,13 +886,13 @@ const minStyles = (fontFamily: string) =>
       textAlign: "center",
     },
     headerRule: {
-      marginTop: 14,
+      marginTop: 8,
       borderBottomColor: "#CBD5E1",
       borderBottomWidth: 1,
-      marginBottom: 6,
+      marginBottom: 4,
     },
     sectionTitle: {
-      fontSize: 9,
+      fontSize: 11,
       fontWeight: 700,
       color: "#1E293B",
       letterSpacing: 2,
@@ -820,28 +900,28 @@ const minStyles = (fontFamily: string) =>
       borderBottomColor: "#E2E8F0",
       borderBottomWidth: 1,
       paddingBottom: 3,
-      marginTop: 18,
-      marginBottom: 8,
+      marginTop: 11,
+      marginBottom: 5,
     },
-    body: { fontSize: 10, color: "#334155", lineHeight: 1.5 },
+    body: { fontSize: 9.5, color: "#334155", lineHeight: 1.4 },
     rowBetween: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "baseline",
     },
     expRole: { fontSize: 11, fontWeight: 700, color: NAVY },
-    expCompany: { fontSize: 10, fontWeight: 600, color: "#0F766E", marginTop: 1 },
+    expCompany: { fontSize: 9.5, fontWeight: 600, color: "#0F766E", marginTop: 1 },
     expDuration: {
-      fontSize: 8,
+      fontSize: 9,
       color: MUTED,
-      letterSpacing: 1,
+      letterSpacing: 0.5,
       textTransform: "uppercase",
     },
-    expBlock: { marginBottom: 10 },
+    expBlock: { marginBottom: 7 },
     bulletRow: { flexDirection: "row", marginTop: 2 },
-    bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
-    listRow: { marginBottom: 4, flexDirection: "row", justifyContent: "space-between" },
-    skillsLine: { fontSize: 10, color: "#334155", lineHeight: 1.5 },
+    bulletText: { flex: 1, fontSize: 9.5, color: "#334155", lineHeight: 1.35 },
+    listRow: { marginBottom: 2.5, flexDirection: "row", justifyContent: "space-between" },
+    skillsLine: { fontSize: 9.5, color: "#334155", lineHeight: 1.4 },
   });
 
 function MinimalistDocument({
@@ -911,109 +991,107 @@ function MinimalistDocument({
         ) : null}
         <View style={s.headerRule} />
 
-        {cv.objective ? (
-          <>
-            <SectionHeader title={L.objective} />
-            <Text style={s.body}>{cv.objective}</Text>
-          </>
-        ) : null}
-
-        {cv.experience.length > 0 && (
-          <>
-            <SectionHeader title={L.experience} />
-            {cv.experience.map((exp, i) => (
-              <View key={i} style={s.expBlock}>
-                <View style={s.rowBetween}>
-                  <Text style={s.expRole}>{exp.role}</Text>
-                  <Text style={s.expDuration}>{exp.duration}</Text>
-                </View>
-                <Text style={s.expCompany}>{exp.company}</Text>
-                {bulletsFrom(exp.description).map((line, bi) => (
-                  <View key={bi} style={s.bulletRow}>
-                    <BulletDot />
-                    <Text style={s.bulletText}>{line}</Text>
+        {orderedPdfSections(cv, ALL_SECTIONS, {
+          objective: cv.objective ? (
+            <>
+              <SectionHeader title={L.objective} />
+              <Text style={s.body}>{cv.objective}</Text>
+            </>
+          ) : null,
+          experience: cv.experience.length > 0 ? (
+            <>
+              <SectionHeader title={L.experience} />
+              {cv.experience.map((exp, i) => (
+                <View key={i} style={s.expBlock}>
+                  <View style={s.rowBetween}>
+                    <Text style={s.expRole}>{exp.role}</Text>
+                    <Text style={s.expDuration}>{exp.duration}</Text>
                   </View>
-                ))}
-              </View>
-            ))}
-          </>
-        )}
-
-        {cv.education.length > 0 && (
-          <>
-            <SectionHeader title={L.education} />
-            {cv.education.map((edu, i) => (
-              <View key={i} style={s.expBlock}>
-                <View style={s.rowBetween}>
-                  <Text style={s.expRole}>{edu.degree}</Text>
-                  <Text style={s.expDuration}>{edu.year}</Text>
-                </View>
-                <Text style={s.expCompany}>{edu.institution}</Text>
-              </View>
-            ))}
-          </>
-        )}
-
-        {cv.certificates.length > 0 && (
-          <>
-            <SectionHeader title={L.certificates} />
-            {cv.certificates.map((c, i) => (
-              <View key={i} style={s.listRow}>
-                <Text style={s.body}>
-                  {c.name}
-                  {c.issuer ? ` · ${c.issuer}` : ""}
-                </Text>
-                <Text style={s.expDuration}>{c.year}</Text>
-              </View>
-            ))}
-          </>
-        )}
-
-        {cv.skills.length > 0 && (
-          <>
-            <SectionHeader title={L.skills} />
-            <Text style={s.skillsLine}>
-              {cv.skills.filter((sk) => sk.trim()).join("  ·  ")}
-            </Text>
-          </>
-        )}
-
-        {cv.languages.length > 0 && (
-          <>
-            <SectionHeader title={L.languages} />
-            <Text style={s.skillsLine}>
-              {cv.languages
-                .filter((l) => l.name.trim())
-                .map((l) =>
-                  l.proficiency ? `${l.name} (${l.proficiency})` : l.name,
-                )
-                .join("  ·  ")}
-            </Text>
-          </>
-        )}
-
-        {cv.hobbies.length > 0 && (
-          <>
-            <SectionHeader title={L.hobbies} />
-            <Text style={s.skillsLine}>
-              {cv.hobbies.filter((h) => h.trim()).join("  ·  ")}
-            </Text>
-          </>
-        )}
-
-        {cv.achievements.length > 0 && (
-          <>
-            <SectionHeader title={L.achievement} />
-            {cv.achievements
-              .filter((a) => a.trim())
-              .map((a, i) => (
-                <View key={i} style={s.bulletRow}>
-                  <BulletDot />
-                  <Text style={s.bulletText}>{a}</Text>
+                  <Text style={s.expCompany}>{exp.company}</Text>
+                  {bulletsFrom(exp.description).map((line, bi) => (
+                    <View key={bi} style={s.bulletRow}>
+                      <BulletDot />
+                      <Text style={s.bulletText}>{line}</Text>
+                    </View>
+                  ))}
                 </View>
               ))}
-          </>
-        )}
+            </>
+          ) : null,
+          education: cv.education.length > 0 ? (
+            <>
+              <SectionHeader title={L.education} />
+              {cv.education.map((edu, i) => (
+                <View key={i} style={s.expBlock}>
+                  <View style={s.rowBetween}>
+                    <Text style={s.expRole}>{edu.degree}</Text>
+                    <Text style={s.expDuration}>{edu.year}</Text>
+                  </View>
+                  <Text style={s.expCompany}>{edu.institution}</Text>
+                </View>
+              ))}
+            </>
+          ) : null,
+          certificates: cv.certificates.length > 0 ? (
+            <>
+              <SectionHeader title={L.certificates} />
+              {/* Two columns — same reasoning as the premium templates: a
+                  certificate is a short phrase, so a full-width row each
+                  wasted most of the line. */}
+              <ColumnList
+                columns={2}
+                textStyle={s.bulletText}
+                items={cv.certificates.map((c) =>
+                  [c.name, c.issuer, c.year ? `(${c.year})` : ""]
+                    .filter(Boolean)
+                    .join(" · "),
+                )}
+              />
+            </>
+          ) : null,
+          skills: cv.skills.length > 0 ? (
+            <>
+              <SectionHeader title={L.skills} />
+              <Text style={s.skillsLine}>
+                {cv.skills.filter((sk) => sk.trim()).join("  ·  ")}
+              </Text>
+            </>
+          ) : null,
+          languages: cv.languages.length > 0 ? (
+            <>
+              <SectionHeader title={L.languages} />
+              <Text style={s.skillsLine}>
+                {cv.languages
+                  .filter((l) => l.name.trim())
+                  .map((l) =>
+                    l.proficiency ? `${l.name} (${l.proficiency})` : l.name,
+                  )
+                  .join("  ·  ")}
+              </Text>
+            </>
+          ) : null,
+          hobbies: cv.hobbies.length > 0 ? (
+            <>
+              <SectionHeader title={L.hobbies} />
+              <Text style={s.skillsLine}>
+                {cv.hobbies.filter((h) => h.trim()).join("  ·  ")}
+              </Text>
+            </>
+          ) : null,
+          achievements: cv.achievements.length > 0 ? (
+            <>
+              <SectionHeader title={L.achievement} />
+              {cv.achievements
+                .filter((a) => a.trim())
+                .map((a, i) => (
+                  <View key={i} style={s.bulletRow}>
+                    <BulletDot />
+                    <Text style={s.bulletText}>{a}</Text>
+                  </View>
+                ))}
+            </>
+          ) : null,
+        })}
       </Page>
     </Document>
   );
@@ -1041,33 +1119,25 @@ function socialBitsOf(cv: CVData) {
 
 function classicStyles(fontFamily: string) {
   return StyleSheet.create({
-    page: { fontFamily, paddingVertical: 48, paddingHorizontal: 56 },
-    name: { fontSize: 24, fontWeight: 600, textAlign: "center", letterSpacing: 1.5, color: NAVY },
-    headerRule: { alignSelf: "center", width: 90, borderBottomWidth: 1, borderBottomColor: "#94A3B8", marginTop: 10, marginBottom: 6 },
+    // 36pt margins and a 9.5pt body, matching the reference CV. The old
+    // 48/56 margins cost ~40pt of line width, which forced extra wraps on every
+    // bullet and was a large part of why dense CVs ran to a third page.
+    page: { fontFamily, paddingVertical: 36, paddingHorizontal: 40 },
+    name: { fontSize: 18, fontWeight: 600, textAlign: "center", letterSpacing: 1.5, color: NAVY },
+    headerRule: { alignSelf: "center", width: 90, borderBottomWidth: 1, borderBottomColor: "#94A3B8", marginTop: 6, marginBottom: 4 },
     contact: { fontSize: 9, color: MUTED, textAlign: "center", marginTop: 4 },
-    sectionTitle: { fontSize: 9, fontWeight: 700, color: NAVY, letterSpacing: 2.5, textTransform: "uppercase", textAlign: "center", marginTop: 18 },
-    sectionRule: { alignSelf: "center", width: 36, borderBottomWidth: 1, borderBottomColor: "#94A3B8", marginTop: 3, marginBottom: 9 },
-    body: { fontSize: 10, color: "#334155", lineHeight: 1.5 },
+    sectionTitle: { fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 2, textTransform: "uppercase", textAlign: "center", marginTop: 11 },
+    sectionRule: { alignSelf: "center", width: 36, borderBottomWidth: 1, borderBottomColor: "#94A3B8", marginTop: 3, marginBottom: 6 },
+    body: { fontSize: 9.5, color: "#334155", lineHeight: 1.4 },
     rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
     expRole: { fontSize: 11, fontWeight: 700, color: NAVY },
-    expCompany: { fontSize: 10, fontWeight: 600, color: "#0F766E", marginTop: 1 },
-    expDuration: { fontSize: 8, color: MUTED, letterSpacing: 1, textTransform: "uppercase" },
+    expCompany: { fontSize: 9.5, fontWeight: 600, color: "#0F766E", marginTop: 1 },
+    expDuration: { fontSize: 9, color: MUTED, letterSpacing: 0.5, textTransform: "uppercase" },
     expBlock: { marginBottom: 10 },
     bulletRow: { flexDirection: "row", marginTop: 2 },
-    bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
-    listRow: { marginBottom: 4, flexDirection: "row", justifyContent: "space-between" },
-    line: { fontSize: 10, color: "#334155", lineHeight: 1.5 },
-    skillWrap: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
-    skillPill: {
-      backgroundColor: "#F1F5F9",
-      borderRadius: 4,
-      paddingVertical: 2,
-      paddingHorizontal: 6,
-      fontSize: 9.5,
-      color: "#334155",
-      marginRight: 5,
-      marginBottom: 5,
-    },
+    bulletText: { flex: 1, fontSize: 9.5, color: "#334155", lineHeight: 1.35 },
+    listRow: { marginBottom: 2.5, flexDirection: "row", justifyContent: "space-between" },
+    line: { fontSize: 9.5, color: "#334155", lineHeight: 1.4 },
   });
 }
 
@@ -1115,102 +1185,101 @@ function ClassicDocument({ cv, language }: { cv: CVData; language: Language }) {
         {contact.length > 0 && <Text style={s.contact}>{contact.join("   ·   ")}</Text>}
         {socials.length > 0 && <Text style={s.contact}>{socials.join("   ·   ")}</Text>}
 
-        {cv.objective ? (
-          <>
-            <Sec title={L.objective} />
-            <Text style={s.body}>{cv.objective}</Text>
-          </>
-        ) : null}
-
-        {cv.experience.length > 0 && (
-          <>
-            <Sec title={L.experience} />
-            {cv.experience.map((exp, i) => (
-              <View key={i} style={s.expBlock}>
-                <View style={s.rowBetween}>
-                  <Text style={s.expRole}>{exp.role}</Text>
-                  <Text style={s.expDuration}>{exp.duration}</Text>
-                </View>
-                <Text style={s.expCompany}>{exp.company}</Text>
-                {bulletsFrom(exp.description).map((line, bi) => (
-                  <View key={bi} style={s.bulletRow}>
-                    <BulletDot />
-                    <Text style={s.bulletText}>{line}</Text>
+        {orderedPdfSections(cv, ALL_SECTIONS, {
+          objective: cv.objective ? (
+            <>
+              <Sec title={L.objective} />
+              <Text style={s.body}>{cv.objective}</Text>
+            </>
+          ) : null,
+          experience: cv.experience.length > 0 ? (
+            <>
+              <Sec title={L.experience} />
+              {cv.experience.map((exp, i) => (
+                <View key={i} style={s.expBlock}>
+                  <View style={s.rowBetween}>
+                    <Text style={s.expRole}>{exp.role}</Text>
+                    <Text style={s.expDuration}>{exp.duration}</Text>
                   </View>
-                ))}
-              </View>
-            ))}
-          </>
-        )}
-
-        {cv.education.length > 0 && (
-          <>
-            <Sec title={L.education} />
-            {cv.education.map((edu, i) => (
-              <View key={i} style={s.expBlock}>
-                <View style={s.rowBetween}>
-                  <Text style={s.expRole}>{edu.degree}</Text>
-                  <Text style={s.expDuration}>{edu.year}</Text>
+                  <Text style={s.expCompany}>{exp.company}</Text>
+                  {bulletsFrom(exp.description).map((line, bi) => (
+                    <View key={bi} style={s.bulletRow}>
+                      <BulletDot />
+                      <Text style={s.bulletText}>{line}</Text>
+                    </View>
+                  ))}
                 </View>
-                <Text style={s.expCompany}>{edu.institution}</Text>
-              </View>
-            ))}
-          </>
-        )}
-
-        {cv.certificates.length > 0 && (
-          <>
-            <Sec title={L.certificates} />
-            {cv.certificates.map((c, i) => (
-              <View key={i} style={s.listRow}>
-                <Text style={s.body}>{c.name}{c.issuer ? ` · ${c.issuer}` : ""}</Text>
-                <Text style={s.expDuration}>{c.year}</Text>
-              </View>
-            ))}
-          </>
-        )}
-
-        {cv.skills.length > 0 && (
-          <>
-            <Sec title={L.skills} />
-            <View style={s.skillWrap}>
-              {cv.skills.filter((sk) => sk.trim()).map((sk, i) => (
-                <Text key={i} style={s.skillPill}>{sk}</Text>
               ))}
-            </View>
-          </>
-        )}
-
-        {cv.languages.length > 0 && (
-          <>
-            <Sec title={L.languages} />
-            <Text style={s.line}>
-              {cv.languages
-                .filter((l) => l.name.trim())
-                .map((l) => (l.proficiency ? `${l.name} (${l.proficiency})` : l.name))
-                .join("  ·  ")}
-            </Text>
-          </>
-        )}
-
-        {cv.hobbies.length > 0 && (
-          <>
-            <Sec title={L.hobbies} />
-            <Text style={s.line}>{cv.hobbies.filter((h) => h.trim()).join("  ·  ")}</Text>
-          </>
-        )}
-
-        {cv.achievements.length > 0 && (
-          <>
-            <Sec title={L.achievement} />
-            {cv.achievements.filter((a) => a.trim()).map((a, i) => (
-              <View key={i} style={s.bulletRow}>
-                <BulletDot />
-                <Text style={s.bulletText}>{a}</Text>
-              </View>
-            ))}
-          </>
-        )}
+            </>
+          ) : null,
+          education: cv.education.length > 0 ? (
+            <>
+              <Sec title={L.education} />
+              {cv.education.map((edu, i) => (
+                <View key={i} style={s.expBlock}>
+                  <View style={s.rowBetween}>
+                    <Text style={s.expRole}>{edu.degree}</Text>
+                    <Text style={s.expDuration}>{edu.year}</Text>
+                  </View>
+                  <Text style={s.expCompany}>{edu.institution}</Text>
+                </View>
+              ))}
+            </>
+          ) : null,
+          certificates: cv.certificates.length > 0 ? (
+            <>
+              <Sec title={L.certificates} />
+              {/* Two columns: a certificate is a short phrase, so a full-width
+                  row per entry wasted most of the line. */}
+              <ColumnList
+                columns={2}
+                textStyle={s.bulletText}
+                items={cv.certificates.map((c) =>
+                  [c.name, c.issuer, c.year ? `(${c.year})` : ""]
+                    .filter(Boolean)
+                    .join(" · "),
+                )}
+              />
+            </>
+          ) : null,
+          skills: cv.skills.length > 0 ? (
+            <>
+              <Sec title={L.skills} />
+              {/* Three columns, like the reference CV. Pills carried padding and
+                  margins on every item and wrapped raggedly; columns are denser
+                  and scan better. */}
+              <ColumnList columns={3} textStyle={s.bulletText} items={cv.skills} />
+            </>
+          ) : null,
+          languages: cv.languages.length > 0 ? (
+            <>
+              <Sec title={L.languages} />
+              <Text style={s.line}>
+                {cv.languages
+                  .filter((l) => l.name.trim())
+                  .map((l) => (l.proficiency ? `${l.name} (${l.proficiency})` : l.name))
+                  .join("  ·  ")}
+              </Text>
+            </>
+          ) : null,
+          hobbies: cv.hobbies.length > 0 ? (
+            <>
+              <Sec title={L.hobbies} />
+              <Text style={s.line}>{cv.hobbies.filter((h) => h.trim()).join("  ·  ")}</Text>
+            </>
+          ) : null,
+          achievements: cv.achievements.length > 0 ? (
+            <>
+              <Sec title={L.achievement} />
+              {cv.achievements.filter((a) => a.trim()).map((a, i) => (
+                <View key={i} style={s.bulletRow}>
+                  <BulletDot />
+                  <Text style={s.bulletText}>{a}</Text>
+                </View>
+              ))}
+            </>
+          ) : null,
+        })}
       </Page>
     </Document>
   );
@@ -1223,34 +1292,23 @@ function execStyles(fontFamily: string) {
     page: { fontFamily, paddingTop: 36, paddingBottom: 36 },
     // Full-bleed header: pull it up out of the page's top padding so it still
     // sits flush at the very top of page 1 (page-1 layout is unchanged).
-    header: { backgroundColor: NAVY, marginTop: -36, paddingVertical: 28, paddingHorizontal: 48, borderBottomWidth: 4, borderBottomColor: TEAL },
-    name: { fontSize: 24, fontWeight: 700, color: "#FFFFFF", letterSpacing: 0.5 },
+    header: { backgroundColor: NAVY, marginTop: -36, paddingVertical: 20, paddingHorizontal: 40, borderBottomWidth: 4, borderBottomColor: TEAL },
+    name: { fontSize: 18, fontWeight: 700, color: "#FFFFFF", letterSpacing: 0.5 },
     headerContact: { fontSize: 9, color: "rgba(255,255,255,0.75)", marginTop: 6 },
-    content: { paddingVertical: 26, paddingHorizontal: 48 },
-    sectionRow: { flexDirection: "row", alignItems: "center", marginTop: 16, marginBottom: 8 },
-    sectionBar: { width: 3, height: 11, backgroundColor: TEAL, marginRight: 6, borderRadius: 2 },
-    sectionTitle: { fontSize: 9, fontWeight: 700, color: NAVY, letterSpacing: 1.5, textTransform: "uppercase" },
+    content: { paddingVertical: 16, paddingHorizontal: 40 },
+    sectionRow: { flexDirection: "row", alignItems: "center", marginTop: 11, marginBottom: 5 },
+    sectionBar: { width: 3, height: 12, backgroundColor: TEAL, marginRight: 6, borderRadius: 2 },
+    sectionTitle: { fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 1.5, textTransform: "uppercase" },
     body: { fontSize: 10, color: "#334155", lineHeight: 1.5 },
     rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
     expRole: { fontSize: 11, fontWeight: 700, color: NAVY },
     expCompany: { fontSize: 10, fontWeight: 600, color: "#0F766E", marginTop: 1 },
-    expDuration: { fontSize: 8, color: MUTED, letterSpacing: 1, textTransform: "uppercase" },
-    expBlock: { marginBottom: 10, paddingLeft: 9 },
+    expDuration: { fontSize: 9, color: MUTED, letterSpacing: 0.5, textTransform: "uppercase" },
+    expBlock: { marginBottom: 7, paddingLeft: 9 },
     bulletRow: { flexDirection: "row", marginTop: 2 },
-    bulletText: { flex: 1, fontSize: 10, color: "#334155", lineHeight: 1.4 },
-    listRow: { marginBottom: 4, paddingLeft: 9, flexDirection: "row", justifyContent: "space-between" },
-    line: { fontSize: 10, color: "#334155", lineHeight: 1.5, paddingLeft: 9 },
-    skillWrap: { flexDirection: "row", flexWrap: "wrap", paddingLeft: 9 },
-    skillPill: {
-      backgroundColor: "#F1F5F9",
-      borderRadius: 4,
-      paddingVertical: 2,
-      paddingHorizontal: 6,
-      fontSize: 9.5,
-      color: "#334155",
-      marginRight: 5,
-      marginBottom: 5,
-    },
+    bulletText: { flex: 1, fontSize: 9.5, color: "#334155", lineHeight: 1.35 },
+    listRow: { marginBottom: 2.5, paddingLeft: 9, flexDirection: "row", justifyContent: "space-between" },
+    line: { fontSize: 9.5, color: "#334155", lineHeight: 1.4, paddingLeft: 9 },
   });
 }
 
@@ -1289,102 +1347,101 @@ function ExecutiveDocument({ cv, language }: { cv: CVData; language: Language })
         </View>
 
         <View style={s.content}>
-          {cv.objective ? (
-            <>
-              <Sec title={L.objective} />
-              <Text style={[s.body, { paddingLeft: 9 }]}>{cv.objective}</Text>
-            </>
-          ) : null}
-
-          {cv.experience.length > 0 && (
-            <>
-              <Sec title={L.experience} />
-              {cv.experience.map((exp, i) => (
-                <View key={i} style={s.expBlock}>
-                  <View style={s.rowBetween}>
-                    <Text style={s.expRole}>{exp.role}</Text>
-                    <Text style={s.expDuration}>{exp.duration}</Text>
-                  </View>
-                  <Text style={s.expCompany}>{exp.company}</Text>
-                  {bulletsFrom(exp.description).map((line, bi) => (
-                    <View key={bi} style={s.bulletRow}>
-                      <BulletDot />
-                      <Text style={s.bulletText}>{line}</Text>
+          {orderedPdfSections(cv, ALL_SECTIONS, {
+            objective: cv.objective ? (
+              <>
+                <Sec title={L.objective} />
+                <Text style={[s.body, { paddingLeft: 9 }]}>{cv.objective}</Text>
+              </>
+            ) : null,
+            experience: cv.experience.length > 0 ? (
+              <>
+                <Sec title={L.experience} />
+                {cv.experience.map((exp, i) => (
+                  <View key={i} style={s.expBlock}>
+                    <View style={s.rowBetween}>
+                      <Text style={s.expRole}>{exp.role}</Text>
+                      <Text style={s.expDuration}>{exp.duration}</Text>
                     </View>
-                  ))}
-                </View>
-              ))}
-            </>
-          )}
-
-          {cv.education.length > 0 && (
-            <>
-              <Sec title={L.education} />
-              {cv.education.map((edu, i) => (
-                <View key={i} style={s.expBlock}>
-                  <View style={s.rowBetween}>
-                    <Text style={s.expRole}>{edu.degree}</Text>
-                    <Text style={s.expDuration}>{edu.year}</Text>
+                    <Text style={s.expCompany}>{exp.company}</Text>
+                    {bulletsFrom(exp.description).map((line, bi) => (
+                      <View key={bi} style={s.bulletRow}>
+                        <BulletDot />
+                        <Text style={s.bulletText}>{line}</Text>
+                      </View>
+                    ))}
                   </View>
-                  <Text style={s.expCompany}>{edu.institution}</Text>
-                </View>
-              ))}
-            </>
-          )}
-
-          {cv.certificates.length > 0 && (
-            <>
-              <Sec title={L.certificates} />
-              {cv.certificates.map((c, i) => (
-                <View key={i} style={s.listRow}>
-                  <Text style={s.body}>{c.name}{c.issuer ? ` · ${c.issuer}` : ""}</Text>
-                  <Text style={s.expDuration}>{c.year}</Text>
-                </View>
-              ))}
-            </>
-          )}
-
-          {cv.skills.length > 0 && (
-            <>
-              <Sec title={L.skills} />
-              <View style={s.skillWrap}>
-                {cv.skills.filter((sk) => sk.trim()).map((sk, i) => (
-                  <Text key={i} style={s.skillPill}>{sk}</Text>
                 ))}
-              </View>
-            </>
-          )}
-
-          {cv.languages.length > 0 && (
-            <>
-              <Sec title={L.languages} />
-              <Text style={s.line}>
-                {cv.languages
-                  .filter((l) => l.name.trim())
-                  .map((l) => (l.proficiency ? `${l.name} (${l.proficiency})` : l.name))
-                  .join("  ·  ")}
-              </Text>
-            </>
-          )}
-
-          {cv.hobbies.length > 0 && (
-            <>
-              <Sec title={L.hobbies} />
-              <Text style={s.line}>{cv.hobbies.filter((h) => h.trim()).join("  ·  ")}</Text>
-            </>
-          )}
-
-          {cv.achievements.length > 0 && (
-            <>
-              <Sec title={L.achievement} />
-              {cv.achievements.filter((a) => a.trim()).map((a, i) => (
-                <View key={i} style={[s.bulletRow, { paddingLeft: 9 }]}>
-                  <BulletDot />
-                  <Text style={s.bulletText}>{a}</Text>
-                </View>
-              ))}
-            </>
-          )}
+              </>
+            ) : null,
+            education: cv.education.length > 0 ? (
+              <>
+                <Sec title={L.education} />
+                {cv.education.map((edu, i) => (
+                  <View key={i} style={s.expBlock}>
+                    <View style={s.rowBetween}>
+                      <Text style={s.expRole}>{edu.degree}</Text>
+                      <Text style={s.expDuration}>{edu.year}</Text>
+                    </View>
+                    <Text style={s.expCompany}>{edu.institution}</Text>
+                  </View>
+                ))}
+              </>
+            ) : null,
+            certificates: cv.certificates.length > 0 ? (
+              <>
+                <Sec title={L.certificates} />
+                {/* Two columns: a certificate is a short phrase, so a full-width
+                    row per entry wasted most of the line. */}
+                <ColumnList
+                  columns={2}
+                  textStyle={s.bulletText}
+                  items={cv.certificates.map((c) =>
+                    [c.name, c.issuer, c.year ? `(${c.year})` : ""]
+                      .filter(Boolean)
+                      .join(" · "),
+                  )}
+                />
+              </>
+            ) : null,
+            skills: cv.skills.length > 0 ? (
+              <>
+                <Sec title={L.skills} />
+                {/* Three columns, like the reference CV. Pills carried padding and
+                    margins on every item and wrapped raggedly; columns are denser
+                    and scan better. */}
+                <ColumnList columns={3} textStyle={s.bulletText} items={cv.skills} />
+              </>
+            ) : null,
+            languages: cv.languages.length > 0 ? (
+              <>
+                <Sec title={L.languages} />
+                <Text style={s.line}>
+                  {cv.languages
+                    .filter((l) => l.name.trim())
+                    .map((l) => (l.proficiency ? `${l.name} (${l.proficiency})` : l.name))
+                    .join("  ·  ")}
+                </Text>
+              </>
+            ) : null,
+            hobbies: cv.hobbies.length > 0 ? (
+              <>
+                <Sec title={L.hobbies} />
+                <Text style={s.line}>{cv.hobbies.filter((h) => h.trim()).join("  ·  ")}</Text>
+              </>
+            ) : null,
+            achievements: cv.achievements.length > 0 ? (
+              <>
+                <Sec title={L.achievement} />
+                {cv.achievements.filter((a) => a.trim()).map((a, i) => (
+                  <View key={i} style={[s.bulletRow, { paddingLeft: 9 }]}>
+                    <BulletDot />
+                    <Text style={s.bulletText}>{a}</Text>
+                  </View>
+                ))}
+              </>
+            ) : null,
+          })}
         </View>
       </Page>
     </Document>

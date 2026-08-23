@@ -21,9 +21,20 @@
 import { useMemo } from "react";
 import type { CVData } from "@/types/cv";
 
+/**
+ * The array fields that hold CV *content*. `section_order` is excluded on
+ * purpose: it is layout configuration, reordered through `lib/cv/section-order`
+ * rather than added to and spliced like a list of jobs.
+ *
+ * The `-?` matters. Without it an optional field maps to `K | undefined`, so
+ * `undefined` leaks into this union and `CVData[K]` stops being indexable —
+ * which is exactly what adding `section_order?:` did.
+ */
+type ContentKeys = Exclude<keyof CVData, "section_order">;
+
 type ArrayKeys = {
-  [K in keyof CVData]: CVData[K] extends Array<unknown> ? K : never;
-}[keyof CVData];
+  [K in ContentKeys]-?: CVData[K] extends Array<unknown> ? K : never;
+}[ContentKeys];
 
 type ElemOf<K extends ArrayKeys> = CVData[K] extends Array<infer E> ? E : never;
 
